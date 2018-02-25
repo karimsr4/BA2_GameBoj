@@ -24,11 +24,13 @@ public final class Alu {
 	}
 
 	public static int unpackValue(int valueFlags) {
+		// value 16 bits?
 		return Bits.extract(valueFlags, 8, 8);
 
 	}
 
 	public static int unpackFlags(int valueFlags) {
+		//8 bits?
 		return Bits.extract(valueFlags, 4, 4);
 
 	}
@@ -40,7 +42,8 @@ public final class Alu {
 
 		int result = l + r + Bits.set(0, 0, c0);
 		boolean c = (result) > 0xFF;
-		boolean h = ((l << 4) + (r << 4)) + (Bits.set(0, 0, c0) << 4) > 0xFF;
+		boolean h = ((l << 4) + (r << 4)) + (Bits.set(0, 0, c0) << 4) > 0xFF;	
+		
 
 		int additionResult = Bits.extract(result, 0, 8);
 		boolean z = additionResult == 0;
@@ -62,8 +65,9 @@ public final class Alu {
 		Preconditions.checkBits16(r);
 
 		int result = l + r;
-		boolean c = (((l << 8) >>> 8) + ((r << 8) >>> 8)) > 0xFF;
-		boolean h = (((l << 12) >>> 12) + ((r << 12) >>> 12)) > 0xF;
+		boolean c = (((l << 8) >>> 8) + ((r << 8) >>> 8)) > 0xFF;//Bits.clip(8, l)+Bits.clip(8, r)?
+		boolean h = (((l << 12) >>> 12) + ((r << 12) >>> 12)) > 0xF;//Bits.clip(4,l)+Bits.clip(4,r)?
+		//result=Bits.clip(result,16); ?
 		
 		return packValueZNHC(result, false, false, h, c);
 
@@ -72,7 +76,15 @@ public final class Alu {
 	}
 
 	public static int add16H(int l, int r) {
-		return 0;
+		Preconditions.checkBits16(l);
+		Preconditions.checkBits16(r);
+		int result = l + r;
+		boolean c = (Bits.extract(l, 8, 4)+Bits.extract(l, 8, 4)) > 0xFF;
+		boolean h=  (Bits.extract(l, 8, 4)+Bits.extract(l, 8, 4)) > 0xF;
+		result=Bits.clip(16, result);
+		
+		
+		return packValueZNHC(result, false, false, h, c);
 
 	}
 
