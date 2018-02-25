@@ -3,9 +3,9 @@ package ch.epfl.gameboj.component.cpu;
 import ch.epfl.gameboj.Preconditions;
 import ch.epfl.gameboj.bits.Bits;
 
-public final class ALU {
+public final class Alu {
 
-	private ALU() {
+	private Alu() {
 
 	}
 
@@ -99,7 +99,7 @@ public final class ALU {
 		Preconditions.checkBits8(r);
 		int result = l | r;
 		boolean z = (result == 0);
-		return (result << 8) | maskZNHC(z, false, false, false);
+		return packValueZNHC(result, z, false, false, false);
 
 	}
 
