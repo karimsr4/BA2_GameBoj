@@ -1,10 +1,19 @@
 package ch.epfl.gameboj.component.cpu;
 
 import ch.epfl.gameboj.Preconditions;
+import ch.epfl.gameboj.bits.Bit;
 import ch.epfl.gameboj.bits.Bits;
 
 public final class Alu {
+	
+	public enum RotDir{
+		LEFT, RIGHT
+	}
 
+	public enum Flag implements Bit{
+		UNUSED_0, UNUSED_1, UNUSED_2, UNUSED_3, Z, N, H, C 
+	}
+	
 	private Alu() {
 
 	}
@@ -130,11 +139,11 @@ public final class Alu {
 	}
 
 	public static int rotate(RotDir d, int v) {
-
+        return 0;
 	}
 
 	public static int rotate(RotDir d, int v, boolean c) {
-
+        return 0;
 	}
 
 	public static int swap(int v) {
