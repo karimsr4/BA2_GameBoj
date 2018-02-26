@@ -6,197 +6,214 @@ import ch.epfl.gameboj.bits.Bits;
 
 public final class Alu {
 
-	public enum RotDir {
-		LEFT, RIGHT
-	}
+    public enum RotDir {
+        LEFT, RIGHT
+    }
 
-	public enum Flag implements Bit {
-		UNUSED_0, UNUSED_1, UNUSED_2, UNUSED_3, C, H, N, Z
-	}
+    public enum Flag implements Bit {
+        UNUSED_0, UNUSED_1, UNUSED_2, UNUSED_3, C, H, N, Z
+    }
 
-	private Alu() {
+    private Alu() {
 
-	}
+    }
 
-	public static int maskZNHC(boolean z, boolean n, boolean h, boolean c) {
-		return (z ? Flag.Z.mask() : 0) | (n ? Flag.N.mask() : 0) | (h ? Flag.H.mask() : 0) | (c ? Flag.C.mask() : 0);
+    public static int maskZNHC(boolean z, boolean n, boolean h, boolean c) {
+        return (z ? Flag.Z.mask() : 0) | (n ? Flag.N.mask() : 0)
+                | (h ? Flag.H.mask() : 0) | (c ? Flag.C.mask() : 0);
 
-	}
+    }
 
-	public static int unpackValue(int valueFlags) {
-		return Bits.extract(valueFlags, 8, 16);
+    public static int unpackValue(int valueFlags) {
+        return Bits.extract(valueFlags, 8, 16);
 
-	}
+    }
 
-	public static int unpackFlags(int valueFlags) {
-		return Bits.extract(valueFlags, 0, 8);
+    public static int unpackFlags(int valueFlags) {
+        return Bits.extract(valueFlags, 0, 8);
 
-	}
+    }
 
-	public static int add(int l, int r, boolean c0) {
+    public static int add(int l, int r, boolean c0) {
 
-		Preconditions.checkBits8(l);
-		Preconditions.checkBits8(r);
+        Preconditions.checkBits8(l);
+        Preconditions.checkBits8(r);
 
-		int result = l + r + Bits.set(0, 0, c0);
-		boolean c = (result) > 0xFF;
-		boolean h = (Bits.clip(4, r) + Bits.clip(4, l) + Bits.set(0, 0, c0)) > 0xF;
+        int result = l + r + Bits.set(0, 0, c0);
+        boolean c = (result) > 0xFF;
+        boolean h = (Bits.clip(4, r) + Bits.clip(4, l)
+                + Bits.set(0, 0, c0)) > 0xF;
 
-		int additionResult = Bits.extract(result, 0, 8);
-		boolean z = additionResult == 0;
+        int additionResult = Bits.extract(result, 0, 8);
+        boolean z = additionResult == 0;
 
-		return packValueZNHC(additionResult, z, false, h, c);
+        return packValueZNHC(additionResult, z, false, h, c);
 
-	}
+    }
 
-	public static int add(int l, int r) {
-		return add(l, r, false);
+    public static int add(int l, int r) {
+        return add(l, r, false);
 
-	}
+    }
 
-	public static int add16L(int l, int r) {
+    public static int add16L(int l, int r) {
 
-		Preconditions.checkBits16(l);
-		Preconditions.checkBits16(r);
+        Preconditions.checkBits16(l);
+        Preconditions.checkBits16(r);
 
-		int result = l + r;
-		boolean c = (Bits.clip(8, l) + Bits.clip(8, r)) > 0xFF;
-		boolean h = (Bits.clip(4, l) + Bits.clip(4, r)) > 0xF;
-		result = Bits.clip(result, 16);
+        int result = l + r;
+        boolean c = (Bits.clip(8, l) + Bits.clip(8, r)) > 0xFF;
+        boolean h = (Bits.clip(4, l) + Bits.clip(4, r)) > 0xF;
+        result = Bits.clip(result, 16);
 
-		return packValueZNHC(result, false, false, h, c);
+        return packValueZNHC(result, false, false, h, c);
 
-	}
+    }
 
-	public static int add16H(int l, int r) {
+    public static int add16H(int l, int r) {
 
-		Preconditions.checkBits16(l);
-		Preconditions.checkBits16(r);
-		int result = l + r;
-		boolean c = (Bits.extract(l, 8, 8) + Bits.extract(l, 8, 8)) > 0xFF;
-		boolean h = (Bits.extract(l, 8, 4) + Bits.extract(l, 8, 4)) > 0xF;
+        Preconditions.checkBits16(l);
+        Preconditions.checkBits16(r);
+        int result = l + r;
+        boolean c = (Bits.extract(l, 8, 8) + Bits.extract(l, 8, 8)) > 0xFF;
+        boolean h = (Bits.extract(l, 8, 4) + Bits.extract(l, 8, 4)) > 0xF;
 
-		result = Bits.clip(16, result);
+        result = Bits.clip(16, result);
 
-		/**
-		 * int result1=add(Bits.clip(8,l),Bits.clip(8,r)); int
-		 * result2=add(Bits.extract(8,l),Bits.extract(8,r),Bits.test(result1,4); int
-		 * result = Bits.add16....
-		 */
+        /**
+         * int result1=add(Bits.clip(8,l),Bits.clip(8,r)); int
+         * result2=add(Bits.extract(8,l),Bits.extract(8,r),Bits.test(result1,4);
+         * int result = Bits.add16....
+         */
 
-		return packValueZNHC(result, false, false, h, c);
+        return packValueZNHC(result, false, false, h, c);
 
-	}
+    }
 
-	public static int sub(int l, int r, boolean b0) {
-		Preconditions.checkBits8(l);
-		Preconditions.checkBits8(r);
-		int result = Bits.clip(8, l - (r + Bits.set(0, 0, b0)));
-		boolean c = l < r;
-		boolean z = (result == 0);
-		boolean h = (Bits.clip(4, l) < Bits.clip(4, r));
+    public static int sub(int l, int r, boolean b0) {
+        Preconditions.checkBits8(l);
+        Preconditions.checkBits8(r);
+        int result = Bits.clip(8, l - (r + Bits.set(0, 0, b0)));
+        boolean c = l < r;
+        boolean z = (result == 0);
+        boolean h = (Bits.clip(4, l) < Bits.clip(4, r));
 
-		return packValueZNHC(result, z, true, h, c);
+        return packValueZNHC(result, z, true, h, c);
 
-	}
+    }
 
-	public static int sub(int l, int r) {
-		return sub(l, r, false);
-	}
+    public static int sub(int l, int r) {
+        return sub(l, r, false);
+    }
 
-	public static int bcdAdjust(int v, boolean n, boolean h, boolean c) {
-		return 0;
+    public static int bcdAdjust(int v, boolean n, boolean h, boolean c) {
+        return 0;
 
-	}
+    }
 
-	public static int and(int l, int r) {
+    public static int and(int l, int r) {
 
-		Preconditions.checkBits8(l);
-		Preconditions.checkBits8(r);
-		int result = l & r;
-		boolean z = (result == 0);
-		return packValueZNHC(result, z, false, true, false);
+        Preconditions.checkBits8(l);
+        Preconditions.checkBits8(r);
+        int result = l & r;
+        boolean z = (result == 0);
+        return packValueZNHC(result, z, false, true, false);
 
-	}
+    }
 
-	public static int or(int l, int r) {
+    public static int or(int l, int r) {
 
-		Preconditions.checkBits8(l);
-		Preconditions.checkBits8(r);
-		int result = l | r;
-		boolean z = (result == 0);
-		return packValueZNHC(result, z, false, false, false);
+        Preconditions.checkBits8(l);
+        Preconditions.checkBits8(r);
+        int result = l | r;
+        boolean z = (result == 0);
+        return packValueZNHC(result, z, false, false, false);
 
-	}
+    }
 
-	public static int xor(int l, int r) {
+    public static int xor(int l, int r) {
 
-		Preconditions.checkBits8(l);
-		Preconditions.checkBits8(r);
-		int result = l ^ r;
-		boolean z = (result == 0);
-		return packValueZNHC(result, z, false, false, false);
+        Preconditions.checkBits8(l);
+        Preconditions.checkBits8(r);
+        int result = l ^ r;
+        boolean z = (result == 0);
+        return packValueZNHC(result, z, false, false, false);
 
-	}
+    }
 
-	public static int shiftLeft(int v) {
-		Preconditions.checkBits8(v);
-		int result = v << 1;
-		return packValueZNHC(result, result == 0, false, false, Bits.test(v, 7));
+    public static int shiftLeft(int v) {
+        Preconditions.checkBits8(v);
+        int result = v << 1;
+        return packValueZNHC(result, result == 0, false, false,
+                Bits.test(v, 7));
 
-	}
+    }
 
-	public static int shiftRightA(int v) {
-		Preconditions.checkBits8(v);
-		return packValueZNHC(v >> 1, v >> 1 == 0, false, false, Bits.test(v, 0));
+    public static int shiftRightA(int v) {
+        Preconditions.checkBits8(v);
+        return packValueZNHC(v >> 1, v >> 1 == 0, false, false,
+                Bits.test(v, 0));
 
-	}
+    }
 
-	public static int shiftRightL(int v) {
-		Preconditions.checkBits8(v);
-		return packValueZNHC(v >>> 1, v >>> 1 == 0, false, false, Bits.test(v, 0));
+    public static int shiftRightL(int v) {
+        Preconditions.checkBits8(v);
+        return packValueZNHC(v >>> 1, v >>> 1 == 0, false, false,
+                Bits.test(v, 0));
 
-	}
+    }
 
-	public static int rotate(RotDir d, int v) {
-		Preconditions.checkBits8(v);
-		int result = 0;
-		switch (d) {
-		case LEFT:
-			result = Bits.rotate(8, v, 1);
-			return packValueZNHC(result, result == 0, false, false, Bits.test(v, 1));
-		default:
-			result = Bits.rotate(8, v, -1);
-			return packValueZNHC(result, result == 0, false, false, Bits.test(v, 7));
-		}
+    public static int rotate(RotDir d, int v) {
+        Preconditions.checkBits8(v);
+        int result = 0;
+        switch (d) {
+        case LEFT:
+            result = Bits.rotate(8, v, 1);
+            return packValueZNHC(result, result == 0, false, false,
+                    Bits.test(v, 7));
+        default:
+            result = Bits.rotate(8, v, -1);
+            return packValueZNHC(result, result == 0, false, false,
+                    Bits.test(v, 0));
+        }
 
-	}
+    }
 
-	public static int rotate(RotDir d, int v, boolean c) {
-		Preconditions.checkBits8(v);
-		v = rotate(d, v);
-		int result = Bits.set(v, 0, c);
-		return packValueZNHC(result, result == 0, false, false, Bits.test(v, 0));
-	}
+    public static int rotate(RotDir d, int v, boolean c) {
+        Preconditions.checkBits8(v);
+        v = Bits.set(v, 8, c);
 
-	public static int swap(int v) {
-		Preconditions.checkBits8(v);
-		return Bits.make16(Bits.clip(4, v), Bits.extract(v, 4, 4));
+        switch (d) {
+        case LEFT:
+            v = Bits.rotate(9, v, 1);
+            return packValueZNHC(v, v == 0, false, false, Bits.test(v, 7));
+        default:
+            v = Bits.rotate(8, v, -1);
+            return packValueZNHC(v, v == 0, false, false, Bits.test(v, 7));
+        }
 
-	}
+    }
 
-	public static int testBit(int v, int bitIndex) {
-		Preconditions.checkBits8(v);
-		if ((bitIndex < 0) || (bitIndex > 7)) {
-			throw new IndexOutOfBoundsException();
-		} else {
-			return packValueZNHC(0, Bits.test(v, bitIndex), false, true, Bits.test(v, 7));
-		}
+    public static int swap(int v) {
+        Preconditions.checkBits8(v);
+        return Bits.make16(Bits.clip(4, v), Bits.extract(v, 4, 4));
 
-	}
+    }
 
-	private static int packValueZNHC(int v, boolean z, boolean n, boolean h, boolean c) {
-		return (v << 8) | maskZNHC(z, n, h, c);// Bits.add16?
-	}
+    public static int testBit(int v, int bitIndex) {
+        Preconditions.checkBits8(v);
+        if ((bitIndex < 0) || (bitIndex > 7)) {
+            throw new IndexOutOfBoundsException();
+        } else {
+            return packValueZNHC(0, Bits.test(v, bitIndex), false, true,
+                    Bits.test(v, 7));
+        }
+
+    }
+
+    private static int packValueZNHC(int v, boolean z, boolean n, boolean h,
+            boolean c) {
+        return (v << 8) | maskZNHC(z, n, h, c);// Bits.add16?
+    }
 
 }
