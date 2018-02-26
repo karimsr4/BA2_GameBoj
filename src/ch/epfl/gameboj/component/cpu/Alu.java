@@ -11,7 +11,7 @@ public final class Alu {
 	}
 
 	public enum Flag implements Bit {
-		UNUSED_0, UNUSED_1, UNUSED_2, UNUSED_3, Z, N, H, C
+		UNUSED_0, UNUSED_1, UNUSED_2, UNUSED_3, C, H, N, Z
 	}
 
 	private Alu() {
@@ -19,30 +19,28 @@ public final class Alu {
 	}
 
 	public static int maskZNHC(boolean z, boolean n, boolean h, boolean c) {
-		return Bits.set(0, 4, c) | Bits.set(0, 5, h) | Bits.set(0, 6, n) | Bits.set(0, 7, z);
+		return (z ? Flag.Z.mask() : 0) | (n ? Flag.N.mask() : 0) | (h ? Flag.H.mask() : 0) | (c ? Flag.C.mask() : 0);
 
 	}
 
 	public static int unpackValue(int valueFlags) {
-		// value 16 bits?
-		return Bits.extract(valueFlags, 8, 8);
+		return Bits.extract(valueFlags, 8, 16);
 
 	}
 
 	public static int unpackFlags(int valueFlags) {
-		// 8 bits?
-		return Bits.extract(valueFlags, 4, 4);
+		return Bits.extract(valueFlags, 0, 8);
 
 	}
 
 	public static int add(int l, int r, boolean c0) {
-		// A verifier
+
 		Preconditions.checkBits8(l);
 		Preconditions.checkBits8(r);
 
 		int result = l + r + Bits.set(0, 0, c0);
 		boolean c = (result) > 0xFF;
-		boolean h = ((l << 4) + (r << 4)) + (Bits.set(0, 0, c0) << 4) > 0xFF;
+		boolean h = (Bits.clip(4, r) + Bits.clip(4, l) + Bits.set(0, 0, c0)) > 0xF;
 
 		int additionResult = Bits.extract(result, 0, 8);
 		boolean z = additionResult == 0;
@@ -57,25 +55,27 @@ public final class Alu {
 	}
 
 	public static int add16L(int l, int r) {
-		// a verifier
+
 		Preconditions.checkBits16(l);
 		Preconditions.checkBits16(r);
 
 		int result = l + r;
-		boolean c = (((l << 8) >>> 8) + ((r << 8) >>> 8)) > 0xFF;// Bits.clip(8, l)+Bits.clip(8, r)?
-		boolean h = (((l << 12) >>> 12) + ((r << 12) >>> 12)) > 0xF;// Bits.clip(4,l)+Bits.clip(4,r)?
-		// result=Bits.clip(result,16); ?
+		boolean c = (Bits.clip(8, l) + Bits.clip(8, r)) > 0xFF;
+		boolean h = (Bits.clip(4, l) + Bits.clip(4, r)) > 0xF;
+		result = Bits.clip(result, 16);
 
 		return packValueZNHC(result, false, false, h, c);
 
 	}
 
 	public static int add16H(int l, int r) {
+
 		Preconditions.checkBits16(l);
 		Preconditions.checkBits16(r);
 		int result = l + r;
-		boolean c = (Bits.extract(l, 8, 4) + Bits.extract(l, 8, 4)) > 0xFF;
+		boolean c = (Bits.extract(l, 8, 8) + Bits.extract(l, 8, 8)) > 0xFF;
 		boolean h = (Bits.extract(l, 8, 4) + Bits.extract(l, 8, 4)) > 0xF;
+
 		result = Bits.clip(16, result);
 
 		/**
@@ -91,9 +91,9 @@ public final class Alu {
 	public static int sub(int l, int r, boolean b0) {
 		Preconditions.checkBits8(l);
 		Preconditions.checkBits8(r);
-		int result = l - (r + Bits.set(0, 0, b0));
+		int result = Bits.clip(8, l - (r + Bits.set(0, 0, b0)));
 		boolean c = l < r;
-		boolean z = (l == r);
+		boolean z = (result == 0);
 		boolean h = (Bits.clip(4, l) < Bits.clip(4, r));
 
 		return packValueZNHC(result, z, true, h, c);
@@ -110,7 +110,7 @@ public final class Alu {
 	}
 
 	public static int and(int l, int r) {
-		// a verifier
+
 		Preconditions.checkBits8(l);
 		Preconditions.checkBits8(r);
 		int result = l & r;
@@ -120,7 +120,7 @@ public final class Alu {
 	}
 
 	public static int or(int l, int r) {
-		// a verifier
+
 		Preconditions.checkBits8(l);
 		Preconditions.checkBits8(r);
 		int result = l | r;
@@ -130,7 +130,7 @@ public final class Alu {
 	}
 
 	public static int xor(int l, int r) {
-		// a verifier
+
 		Preconditions.checkBits8(l);
 		Preconditions.checkBits8(r);
 		int result = l ^ r;
@@ -141,19 +141,20 @@ public final class Alu {
 
 	public static int shiftLeft(int v) {
 		Preconditions.checkBits8(v);
-		return packValueZNHC(v << 1, v == 0, false, false, Bits.test(v, 7));
+		int result = v << 1;
+		return packValueZNHC(result, result == 0, false, false, Bits.test(v, 7));
 
 	}
 
 	public static int shiftRightA(int v) {
 		Preconditions.checkBits8(v);
-		return packValueZNHC(v >> 1, v == 0, false, false, Bits.test(v, 0));
+		return packValueZNHC(v >> 1, v >> 1 == 0, false, false, Bits.test(v, 0));
 
 	}
 
 	public static int shiftRightL(int v) {
 		Preconditions.checkBits8(v);
-		return packValueZNHC(v >>> 1, v == 0, false, false, Bits.test(v, 0));
+		return packValueZNHC(v >>> 1, v >>> 1 == 0, false, false, Bits.test(v, 0));
 
 	}
 
@@ -180,7 +181,6 @@ public final class Alu {
 
 	public static int swap(int v) {
 		Preconditions.checkBits8(v);
-
 		return Bits.make16(Bits.clip(4, v), Bits.extract(v, 4, 4));
 
 	}
