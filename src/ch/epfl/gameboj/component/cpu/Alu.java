@@ -64,7 +64,7 @@ public final class Alu {
         int result = l + r;
         boolean c = (Bits.clip(8, l) + Bits.clip(8, r)) > 0xFF;
         boolean h = (Bits.clip(4, l) + Bits.clip(4, r)) > 0xF;
-        result = Bits.clip(result, 16);
+        result = Bits.clip(16, result);
 
         return packValueZNHC(result, false, false, h, c);
 
