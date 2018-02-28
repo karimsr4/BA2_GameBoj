@@ -160,7 +160,9 @@ class AluTest {
 	
 	@Test
 	void BCDadjustWorksonKnownValues() {
+	    
 	    assertEquals(0x7300,Alu.bcdAdjust(0x6D, false, false, false));
+	    assertEquals(0x0940,Alu.bcdAdjust(0x0F, true, true, false));
 	}
 	
 	

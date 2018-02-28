@@ -102,8 +102,8 @@ public final class Alu {
     }
 
     public static int bcdAdjust(int v, boolean n, boolean h, boolean c) {
-        boolean fixL = (h) || ((!(n)) && (Bits.clip(3, v) > 9));
-        boolean fixH = c || ((!n) || (v > 0x99));
+        boolean fixL = (h) || ((!(n)) && (Bits.clip(4, v) > 9));
+        boolean fixH = c || ((!n) && (v > 0x99));
         int fix = (0x60) * Bits.set(0, 0, fixH) + (0x06) * Bits.set(0, 0, fixL);
         int Va = n ? v - fix : v + fix;
         return packValueZNHC(Va, Va == 0, n, false, fixH);
