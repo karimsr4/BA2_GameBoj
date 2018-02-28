@@ -9,7 +9,7 @@ public class GameBoy {
 	
 	
 	public Bus bus() {
-	return 0;
+	return null;
 		
 	}
 
