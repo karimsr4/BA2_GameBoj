@@ -107,7 +107,11 @@ public final class Alu {
     }
 
     public static int bcdAdjust(int v, boolean n, boolean h, boolean c) {
-        return 0;
+        boolean fixL = (h) || ((!(n)) && (Bits.clip(3, v) > 9));
+        boolean fixH = c || ((!n) || (v > 0x99));
+        int fix = (0x60) * Bits.set(0, 0, fixH) + (0x06) * Bits.set(0, 0, fixL);
+        int Va = n ? v - fix : v + fix;
+        return packValueZNHC(Va, Va == 0, n, false, fixH);
 
     }
 
@@ -182,21 +186,26 @@ public final class Alu {
     public static int rotate(RotDir d, int v, boolean c) {
         Preconditions.checkBits8(v);
         v = Bits.set(v, 8, c);
+        int result = 0;
 
         switch (d) {
         case LEFT:
             v = Bits.rotate(9, v, 1);
-            return packValueZNHC(v, v == 0, false, false, Bits.test(v, 7));
+            result = Bits.clip(8, v);
+            return packValueZNHC(result, result == 0, false, false,
+                    Bits.test(v, 8));
         default:
-            v = Bits.rotate(8, v, -1);
-            return packValueZNHC(v, v == 0, false, false, Bits.test(v, 7));
+            v = Bits.rotate(9, v, -1);
+            result = Bits.clip(8, v);
+            return packValueZNHC(result, result == 0, false, false,
+                    Bits.test(v, 8));
         }
 
     }
 
     public static int swap(int v) {
         Preconditions.checkBits8(v);
-        return Bits.make16(Bits.clip(4, v), Bits.extract(v, 4, 4));
+        return Bits.extract(v, 4, 0) | Bits.clip(4, v) << 4;
 
     }
 
@@ -205,15 +214,14 @@ public final class Alu {
         if ((bitIndex < 0) || (bitIndex > 7)) {
             throw new IndexOutOfBoundsException();
         } else {
-            return packValueZNHC(0, Bits.test(v, bitIndex), false, true,
-                    Bits.test(v, 7));
+            return packValueZNHC(0, Bits.test(v, bitIndex), false, true, false);
         }
 
     }
 
     private static int packValueZNHC(int v, boolean z, boolean n, boolean h,
             boolean c) {
-        return (v << 8) | maskZNHC(z, n, h, c);// Bits.add16?
+        return (v << 8) | maskZNHC(z, n, h, c);
     }
 
 }
