@@ -15,7 +15,12 @@ public final class Bus {
     private ArrayList<Component> componentArray = new ArrayList<Component>();
 
     /**
+     * attache le composant donné au bus
+     * 
      * @param component
+     *            composant à attacher au bus
+     * @throws NullPointerException
+     *             si le composant donné vaut null
      */
     public void attach(Component component) {
         Objects.requireNonNull(component);
@@ -23,8 +28,18 @@ public final class Bus {
     }
 
     /**
+     * retourne la valeur stockée à l'adresse donnée si au moins un des
+     * composants attaché au bus possède une valeur à cette adresse
+     * 
      * @param address
-     * @return
+     *            adresse en mémoire
+     * @return la valeur retourne la valeur stockée à l'adresse donnée si au
+     *         moins un des composants attaché au bus possède une valeur à cette
+     *         adresse
+     * @return 0xFF si aucun composant attaché au bus ne possède une valeur à
+     *         cette adresse
+     * @throws IllegalArgumentException
+     *             si l'adresse donnée n'est pas une valeur 16 bits
      */
     public int read(int address) {
 
@@ -40,8 +55,16 @@ public final class Bus {
     }
 
     /**
+     * stocke la valeur donnée à l'adresse donnée dans tous les composants
+     * connectés au bus 
+     * 
      * @param address
+     *            adresse ou stocker la valeur
      * @param data
+     *            valeur à stocker
+     * @throws IllegalArgumentException
+     *             si l'adresse n'est pas une valeur 16 bits ou si la valeur
+     *             n'est pas une valeur 8 bits
      */
     public void write(int address, int data) {
 

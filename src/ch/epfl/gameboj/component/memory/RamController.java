@@ -16,10 +16,20 @@ public final class RamController implements Component {
     private int endAddress;
 
     /**
+     * construit un contrôleur pour la mémoire vive donnée
      * 
      * @param ram
+     *            mémoire vive pour laquelle le controlleur sera construit
      * @param startAddress
+     *            adresse de départ en mémoire
      * @param endAddress
+     *            dernière adresse (non accessible) délimitant la zone en mémoie
+     * @throws NullPointerException
+     *             si la mémoire vive donnée est nulle
+     * @throws IllegalArgumentException
+     *             si l'une des valeurs n'est pas une valeur 16 bits ou si
+     *             l'intervalle qu'elles délimitent a une taille négative ou a
+     *             une taille supérieure a celle de la mémoire
      */
     public RamController(Ram ram, int startAddress, int endAddress) {
         Objects.requireNonNull(ram);
@@ -34,14 +44,17 @@ public final class RamController implements Component {
     }
 
     /**
+     * construit un controlleur pour la totalité de la mémoire vive fournie
+     * 
      * @param ram
+     *            mémoire vive pour laquelle le controlleur sera construit
      * @param startAddress
+     *            adresse de départ en mémoire
      */
     public RamController(Ram ram, int startAddress) {
         this(ram, startAddress, startAddress + ram.size());
     }
 
-    
     @Override
     public int read(int address) {
         Preconditions.checkBits16(address);

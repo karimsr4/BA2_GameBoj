@@ -30,7 +30,7 @@ public final class Alu {
     }
 
     public static int unpackFlags(int valueFlags) {
-        return (Bits.extract(valueFlags, 4, 4)) <<4 ;
+        return (Bits.extract(valueFlags, 4, 4)) << 4;
 
     }
 
@@ -88,14 +88,13 @@ public final class Alu {
         Preconditions.checkBits8(l);
         Preconditions.checkBits8(r);
         int result = Bits.clip(8, l - (r + Bits.set(0, 0, b0)));
-        boolean c = l < (r+Bits.set(0, 0, b0));
+        boolean c = l < (r + Bits.set(0, 0, b0));
         boolean z = (result == 0);
-        boolean h = (Bits.clip(4, l) < (Bits.clip(4, r)+Bits.set(0, 0, b0)));
+        boolean h = (Bits.clip(4, l) < (Bits.clip(4, r) + Bits.set(0, 0, b0)));
 
         return packValueZNHC(result, z, true, h, c);
 
     }
-   
 
     public static int sub(int l, int r) {
         return sub(l, r, false);
@@ -142,7 +141,7 @@ public final class Alu {
 
     public static int shiftLeft(int v) {
         Preconditions.checkBits8(v);
-        int result = Bits.clip(8, v << 1)   ;
+        int result = Bits.clip(8, v << 1);
         return packValueZNHC(result, result == 0, false, false,
                 Bits.test(v, 7));
 
@@ -150,13 +149,10 @@ public final class Alu {
 
     public static int shiftRightA(int v) {
         Preconditions.checkBits8(v);
-        int result= ((v<<24)>>1) >>>24;
+        int result = ((v << 24) >> 1) >>> 24;
         return packValueZNHC(result, result == 0, false, false,
                 Bits.test(v, 0));
 
-    }
-    public static void main (String[]args) {
-        System.out.println(Integer.toBinaryString(0b10>>1));
     }
 
     public static int shiftRightL(int v) {
