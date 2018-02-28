@@ -12,19 +12,44 @@ class AluTest {
 	void maskZNHCworksPerfectly() {
 		assertEquals(0x70, Alu.maskZNHC(false, true, true, true));
 	}
-	
+	@Test
+	void maskZNHCworksForAllPositive() {
+	    assertEquals(0b11110000, Alu.maskZNHC(true, true, true, true));
+	}
+	@Test
+    void maskZNHCworksForAllNegative() {
+        assertEquals(0, Alu.maskZNHC(false, false, false, false));
+    }
 	
 	@Test
 	void unpackValueWorksOnKnownValues() {
 		assertEquals(0xFF,Alu.unpackValue(0xFF70));
 	}
+	@Test
+	void unpackValueWorksForZeroValues() {
+	    assertEquals(0,Alu.unpackValue(0));
+	}
+	@Test
+	void unpackValueWorksFor16BitValues() {
+	    assertEquals(0xFF70,Alu.unpackValue(0xFF7070));
+	}
+	@Test 
+	void unpackValueWorksForMaxValue(){
+	    assertEquals(0xFFFF,Alu.unpackValue(0xFFFF00));
+	}
 
-	
 	@Test
 	void unpackFlagsWorksOnKnownValues() {
 		assertEquals(0x70,Alu.unpackFlags(0xFF70));
 	}
-	
+	@Test
+	void unpackFlagsWorksOnZeroValues() {
+	    assertEquals(0,Alu.unpackFlags(0));
+	}
+	@Test
+	void UnpackFlagsWorksOnMaxValue() {
+	    assertEquals(0xF0,Alu.unpackFlags(0xFF));
+	}
 	
 	@Test
 	void add1WorksOnKnownValues() {
@@ -68,8 +93,8 @@ class AluTest {
 	
 	@Test
 	void sub2WorksOnKnownValues() {
-		assertEquals(0xFF,Alu.unpackValue(Alu.sub(0x01, 0x01, true)));
-		assertEquals(0x70,Alu.unpackFlags(Alu.sub(0x01, 0x01, true)));
+		assertEquals(0xFF70,Alu.sub(0x01, 0x01, true));
+		
 	}
 	
 	
@@ -104,8 +129,8 @@ class AluTest {
 	
 	@Test
 	void shiftRightAWorksOnKnownValues() {
-		assertEquals(0xC0,Alu.unpackValue(Alu.shiftRightA(0x80)));
-		assertEquals(0x00,Alu.unpackFlags(Alu.shiftRightA(0x80)));
+	    assertEquals(0xC0,Alu.unpackValue(Alu.shiftRightA(0x80)));
+		
 	}
 	
 	
@@ -131,6 +156,11 @@ class AluTest {
 		
 		assertEquals(0x00,Alu.unpackValue(Alu.rotate(RotDir.LEFT, 0x80,false)));
 		assertEquals(0x90,Alu.unpackFlags(Alu.rotate(RotDir.LEFT, 0x80,false)));
+	}
+	
+	@Test
+	void BCDadjustWorksonKnownValues() {
+	    assertEquals(0x7300,Alu.bcdAdjust(0x6D, false, false, false));
 	}
 	
 	
