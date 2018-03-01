@@ -1,5 +1,7 @@
 package ch.epfl.gameboj;
 
+import java.util.Objects;
+
 import ch.epfl.gameboj.component.memory.Ram;
 import ch.epfl.gameboj.component.memory.RamController;
 
@@ -22,6 +24,7 @@ public class GameBoy {
      *            jeu a jouer
      */
     public GameBoy(Object cartridge) {
+        Objects.requireNonNull(cartridge);
         ram = new Ram(AddressMap.WORK_RAM_SIZE);
         ramController = new RamController(ram, AddressMap.WORK_RAM_START,
                 AddressMap.WORK_RAM_END);
