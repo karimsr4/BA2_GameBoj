@@ -223,9 +223,9 @@ class AluTest {
             int bit16 = RandomGenerator.randomBit(16) & ~0b1111;
             int bit8 = RandomGenerator.randomBit(8) & ~0b1111;
             int bit24 = RandomGenerator.randomBit(24) & ~0b1111;
-            assertEquals(Alu.unpackFlags(bit16), ((bit16 >>> 4) & 0b1111));
-            assertEquals(Alu.unpackFlags(bit8), ((bit8 >>> 4) & 0b1111));
-            assertEquals(Alu.unpackFlags(bit24), ((bit24 >>> 4) & 0b1111));
+            assertEquals(Alu.unpackFlags(bit16), ((bit16  & 0xFF)));
+            assertEquals(Alu.unpackFlags(bit8), ((bit8  & 0xFF)));
+            assertEquals(Alu.unpackFlags(bit24), ((bit24  & 0xFF)));
         }
 
     }
