@@ -30,10 +30,10 @@ public final class Alu {
 	
 	/**
 	 * retourne une valeur dont les bits correspondant aux différents fanions valent 1
-	 * @param z : fanion Z	
-	 * @param n : fanion N
-	 * @param h : fanion H
-	 * @param c : fanion C
+	 * @param z  fanion Z	
+	 * @param n  fanion N
+	 * @param h  fanion H
+	 * @param c  fanion C
 	 * @return une valeur dont les bits correspondant aux différents fanions valent 1
 	 */
 	public static int maskZNHC(boolean z, boolean n, boolean h, boolean c) {
@@ -43,7 +43,7 @@ public final class Alu {
 
 	/**
 	 * retourne la valeur contenue dans le paquet valeur/fanion donné
-	 * @param valueFlags : paquet valeur/fanion
+	 * @param valueFlags  paquet valeur/fanion
 	 * @return la valeur associée au paquet
 	 * @throws IllegalArgumentException si valueFlags n'est pas appropriée
 	 */
@@ -55,7 +55,7 @@ public final class Alu {
 
 	/**
 	 * retourne les fanions contenus dans le paquet valeur/fanion donné
-	 * @param valueFlags : paquet valeur/fanion
+	 * @param valueFlags  paquet valeur/fanion
 	 * @return les fanions associés au paquet
 	 *  @throws IllegalArgumentException si valueFlags n'est pas appropriée
 	 */
@@ -67,9 +67,9 @@ public final class Alu {
 
 	/**
 	 * retourne la somme des deux valeurs 8 bits données et du bit de retenue initial c0 et les fanions Z0HC
-	 * @param l: entier de 8 bits representant le premier operande
-	 * @param r: entier de 8 bits representant le deuxieme operande
-	 * @param c0 : le bit de retenue initial
+	 * @param l entier de 8 bits representant le premier operande
+	 * @param r entier de 8 bits representant le deuxieme operande
+	 * @param c0  le bit de retenue initial
 	 * @return la somme des deux valeurs données et du bit de retenue initial  
 	 * @throws IllegalArgumentException si l'une des deux operandes n'est pas un entier de 8 bits
 	 */
@@ -88,8 +88,8 @@ public final class Alu {
 
 	/**
 	 * retourne la somme des deux valeurs 8 bits données  et les fanions Z0HC
-	 * @param l: entier de 8 bits representant le premier operande
-	 * @param r: entier de 8 bits representant le deuxieme operande
+	 * @param l entier de 8 bits representant le premier operande
+	 * @param r entier de 8 bits representant le deuxieme operande
 	 * @return la somme des deux valeurs données  
 	 * @throws IllegalArgumentException si l'une des deux operandes n'est pas un entier de 8 bits
 	 */
@@ -101,8 +101,8 @@ public final class Alu {
 	/**
 	 * retourne la somme des deux valeurs 16 bits données et les fanions 00HC, 
 	 * avec H et C sont les fanions correspondant à l'addition des 8 bits de poids faible
-	 * @param l:  entier de 16 bits representant le premier operande
-	 * @param r:  entier de 16 bits representant le deuxieme operande
+	 * @param l  entier de 16 bits representant le premier operande
+	 * @param r  entier de 16 bits representant le deuxieme operande
 	 * @return  la somme des deux valeurs et les fanions 00HC
  	 * @throws IllegalArgumentException si l'une des deux operandes n'est pas un entier de 16 bits
  
@@ -121,8 +121,8 @@ public final class Alu {
 	/**
 	 * retourne la somme des deux valeurs 16 bits données et les fanions 00HC, 
 	 * avec H et C sont les fanions correspondant à l'addition des 8 bits de poids fort
-	 * @param l:  entier de 16 bits representant le premier operande
-	 * @param r:  entier de 16 bits representant le deuxieme operande
+	 * @param l  entier de 16 bits representant le premier operande
+	 * @param r  entier de 16 bits representant le deuxieme operande
 	 * @return  la somme des deux valeurs et les fanions 00HC
 	 * @throws IllegalArgumentException si l'une des deux operandes n'est pas un entier de 16 bits
 
@@ -142,9 +142,9 @@ public final class Alu {
 
 	/**
 	 * retourne la différence des valeurs de 8 bits données et du bit d'emprunt initial b0 et les fanions Z1HC,
-	* @param l:  entier de 8 bits representant le premier operande
-	 * @param r:  entier de 8 bits representant le deuxieme operande
-	 * @param b0: booleen representant le bit d'emprunt
+	* @param l  entier de 8 bits representant le premier operande
+	 * @param r  entier de 8 bits representant le deuxieme operande
+	 * @param b0 booleen representant le bit d'emprunt
 	 * @return la différence des valeurs données et du bit d'emprunt initial 
  	 * @throws IllegalArgumentException si l'une des deux operandes n'est pas un entier de 8 bits
 
@@ -162,8 +162,8 @@ public final class Alu {
 
 	/**
 	 * retourne la différence des valeurs de 8 bits données sans emprunt initial et les fanions Z1HC,
-	* @param l:  entier de 8 bits representant le premier operande
-	 * @param r:  entier de 8 bits representant le deuxieme operande
+	 * @param l  entier de 8 bits representant le premier operande
+	 * @param r entier de 8 bits representant le deuxieme operande
 	 * @return la différence des valeurs données 
  	 * @throws IllegalArgumentException si l'une des deux operandes n'est pas un entier de 8 bits
 
@@ -190,9 +190,11 @@ public final class Alu {
 
 	/**
 	 * retourne le « et » bit à bit des deux valeurs 8 bits données et les fanions Z010
-     * @param l:  entier de 8 bits representant le premier operande
-     * @param r:  entier de 8 bits representant le deuxieme operande
+     * @param l entier de 8 bits representant le premier operande
+     * @param r  entier de 8 bits representant le deuxieme operande
 	 * @return le « et » bit à bit des deux valeurs
+     * @throws IllegalArgumentException si l'une des deux operandes n'est pas un entier de 8 bits
+
 	 */
 	public static int and(int l, int r) {
 
@@ -202,6 +204,14 @@ public final class Alu {
 
 	}
 
+	   /**
+     * retourne le « ou » bit à bit des deux valeurs 8 bits données et les fanions Z000
+     * @param l  entier de 8 bits representant le premier operande
+     * @param r  entier de 8 bits representant le deuxieme operande
+     * @return le « ou » bit à bit des deux valeurs
+     * @throws IllegalArgumentException si l'une des deux operandes n'est pas un entier de 8 bits
+
+     */
 	public static int or(int l, int r) {
 
 		int result = Preconditions.checkBits8(l) | Preconditions.checkBits8(r);
@@ -210,6 +220,14 @@ public final class Alu {
 
 	}
 
+	  /**
+     * retourne le « ou » exclusif bit à bit des deux valeurs 8 bits données et les fanions Z000
+     * @param l  entier de 8 bits representant le premier operande
+     * @param r  entier de 8 bits representant le deuxieme operande
+     * @return le « ou » exclusif bit à bit des deux valeurs
+     * @throws IllegalArgumentException si l'une des deux operandes n'est pas un entier de 8 bits
+
+     */
 	public static int xor(int l, int r) {
 
 		int result = Preconditions.checkBits8(l) ^ Preconditions.checkBits8(r);
@@ -218,6 +236,13 @@ public final class Alu {
 
 	}
 
+	/**
+	 * retourne la valeur 8 bits donnée décalée à gauche d'un bit, et les fanions Z00C
+	 * @param v entier de 8 bits 
+	 * @return la valeur donnée décalée à gauche d'un bit et les fanions Z00C
+     * @throws IllegalArgumentException si la valeur donnée n'est pas un entier de 8 bits
+
+	 */
 	public static int shiftLeft(int v) {
 		
 		int result = Bits.clip(8, Preconditions.checkBits8(v) << 1);
@@ -225,6 +250,13 @@ public final class Alu {
 
 	}
 
+	/**
+     * retourne la valeur 8 bits donnée décalée à droite d'un bit de manière logique, et les fanions Z00C
+     * @param v entier de 8 bits 
+     * @return la valeur donnée décalée à gauche d'un bit de manière arithmétique et les fanions Z00C
+     * @throws IllegalArgumentException si la valeur donnée n'est pas un entier de 8 bits
+
+     */
 	public static int shiftRightA(int v) {
 		
 		int result = ((Preconditions.checkBits8(v) << 24) >> 1) >>> 24;
@@ -232,12 +264,27 @@ public final class Alu {
 
 	}
 
+	/**
+     * retourne la valeur 8 bits donnée décalée à droite d'un bit de manière arithmétique, et les fanions Z00C
+     * @param v entier de 8 bits 
+     * @return la valeur donnée décalée à gauche d'un bit de manière logique et les fanions Z00C
+     * @throws IllegalArgumentException si la valeur donnée n'est pas un entier de 8 bits
+
+     */
 	public static int shiftRightL(int v) {
 		Preconditions.checkBits8(v);
 		return packValueZNHC(v >>> 1, v >>> 1 == 0, false, false, Bits.test(v, 0));
 
 	}
 
+	/**
+	 * retourne la rotation de la valeur 8 bits donnée, d'une distance de un bit dans la direction donnée, 
+	 * et les fanions Z00C
+	 * @param d la direction de la rotation de type enuméré RotDir
+	 * @param v entier de 8 bits
+	 * @return la rotation de la valeur donné
+	 * @throws IllegalArgumentException si la valeur donnée n'est pas un entier de 8 bits
+	 */
 	public static int rotate(RotDir d, int v) {
 		Preconditions.checkBits8(v);
 		int result = 0;
@@ -252,6 +299,15 @@ public final class Alu {
 
 	}
 
+	/**
+     * retourne la rotation à travers la retenue, dans la direction donnée, de la combinaison de la valeur 8 bits et du fanion de retenue donnés,
+     * ainsi que les fanions Z00C
+	 * @param d la direction de la rotation de type enuméré RotDir
+	 * @param v entier de 8 bits 
+	 * @param c fanion de retenue donné de type Boolean
+	 * @return la rotation à travers la retenue de la valeur donné
+	 * @throws IllegalArgumentException si la valeur donnée n'est pas un entier de 8 bits
+	 */
 	public static int rotate(RotDir d, int v, boolean c) {
 		
 		v = Bits.set(Preconditions.checkBits8(v), 8, c);
@@ -270,12 +326,26 @@ public final class Alu {
 
 	}
 
+	/**
+	 * retourne la valeur obtenue en échangeant les 4 bits de poids faible et de poids fort de la valeur 8 bits donnée, 
+	 * et les fanions Z000
+	 * @param v entier de 8 bits
+	 * @return la valeur obtenue en échangeant les 4 bits de poids faible et de poids fort de v
+	 * @throws IllegalArgumentException si la valeur donnée n'est pas un entier de 8 bits
+	 */
 	public static int swap(int v) {
 		
 		return Bits.extract(Preconditions.checkBits8(v), 4, 0) | Bits.clip(4, v) << 4;
 
 	}
 
+	/**
+	 * retourne la valeur 0 et les fanions Z010 où Z est vrai 
+	 * ssi le bit d'index donné de la valeur 8 bits donnée vaut 1 
+	 * @param v entier de 8 bits
+	 * @param bitIndex index du bit
+	 * @return la valeur 0 et les fanions Z010 où Z est vrai ssi le bit d'index donné de la valeur 8 bits donnée vaut 1 
+	 */
 	public static int testBit(int v, int bitIndex) {
 		Preconditions.checkBits8(v);
 		if ((bitIndex < 0) || (bitIndex > 7)) {
@@ -286,6 +356,15 @@ public final class Alu {
 
 	}
 
+	/**
+	 * 
+	 * @param v
+	 * @param z
+	 * @param n
+	 * @param h
+	 * @param c
+	 * @return
+	 */
 	private static int packValueZNHC(int v, boolean z, boolean n, boolean h, boolean c) {
 		return (v << 8) | maskZNHC(z, n, h, c);
 	}
