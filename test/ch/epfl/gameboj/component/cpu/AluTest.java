@@ -157,7 +157,9 @@ class AluTest {
                 Alu.unpackValue(Alu.rotate(RotDir.LEFT, 0x80, false)));
         assertEquals(0x90,
                 Alu.unpackFlags(Alu.rotate(RotDir.LEFT, 0x80, false)));
-        assertEquals(0b100000000000000, Alu.rotate(RotDir.RIGHT, 0b0,true));
+        
+        
+        assertEquals(0b1000000000000000, Alu.rotate(RotDir.RIGHT, 0b0,true));
     }
 
     @Test
@@ -167,6 +169,13 @@ class AluTest {
         assertEquals(0x0940, Alu.bcdAdjust(0x0F, true, true, false));
     }
     
+    
+    @Test
+    void swapWorkOnKnownValues() {
+        
+        assertEquals(0x7F00, Alu.swap( 0xF7));
+        
+    }
 
   
 }

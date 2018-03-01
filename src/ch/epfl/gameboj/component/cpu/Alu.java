@@ -339,8 +339,8 @@ public final class Alu {
 	 * @throws IllegalArgumentException si la valeur donnée n'est pas un entier de 8 bits
 	 */
 	public static int swap(int v) {
-		
-		return Bits.extract(Preconditions.checkBits8(v), 4, 0) | Bits.clip(4, v) << 4;
+		int result=Bits.extract(Preconditions.checkBits8(v), 4, 4) | (Bits.clip(4, v) << 4);
+		return packValueZNHC(result, result==0, false,false, false) ;
 
 	}
 
