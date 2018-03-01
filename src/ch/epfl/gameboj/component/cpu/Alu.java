@@ -29,12 +29,12 @@ public final class Alu {
 
 	
 	/**
-	 * retourne une valeur dont les bits correspondant aux différents fanions valent 1
+	 * retourne une valeur dont les bits correspondant aux diffÃ©rents fanions valent 1
 	 * @param z : fanion Z	
 	 * @param n : fanion N
 	 * @param h : fanion H
 	 * @param c : fanion C
-	 * @return une valeur dont les bits correspondant aux différents fanions valent 1
+	 * @return une valeur dont les bits correspondant aux diffÃ©rents fanions valent 1
 	 */
 	public static int maskZNHC(boolean z, boolean n, boolean h, boolean c) {
 		return (z ? Flag.Z.mask() : 0) | (n ? Flag.N.mask() : 0) | (h ? Flag.H.mask() : 0) | (c ? Flag.C.mask() : 0);
@@ -42,10 +42,10 @@ public final class Alu {
 	}
 
 	/**
-	 * retourne la valeur contenue dans le paquet valeur/fanion donné
+	 * retourne la valeur contenue dans le paquet valeur/fanion donnÃ©
 	 * @param valueFlags : paquet valeur/fanion
-	 * @return la valeur associée au paquet
-	 * @throws IllegalArgumentException si valueFlags n'est pas appropriée
+	 * @return la valeur associÃ©e au paquet
+	 * @throws IllegalArgumentException si valueFlags n'est pas appropriÃ©e
 	 */
 	public static int unpackValue(int valueFlags) {
 		Preconditions.checkArgument(Bits.clip(4, valueFlags) == 0 && Bits.extract(valueFlags, 24, 8) == 0);
@@ -54,10 +54,10 @@ public final class Alu {
 	}
 
 	/**
-	 * retourne les fanions contenus dans le paquet valeur/fanion donné
+	 * retourne les fanions contenus dans le paquet valeur/fanion donnÃ©
 	 * @param valueFlags : paquet valeur/fanion
-	 * @return les fanions associés au paquet
-	 *  @throws IllegalArgumentException si valueFlags n'est pas appropriée
+	 * @return les fanions associÃ©s au paquet
+	 *  @throws IllegalArgumentException si valueFlags n'est pas appropriÃ©e
 	 */
 	public static int unpackFlags(int valueFlags) {
 		Preconditions.checkArgument(Bits.clip(4, valueFlags) == 0 && Bits.extract(valueFlags, 24, 8) == 0);
@@ -66,11 +66,11 @@ public final class Alu {
 	}
 
 	/**
-	 * retourne la somme des deux valeurs 8 bits données et du bit de retenue initial c0 et les fanions Z0HC
+	 * retourne la somme des deux valeurs 8 bits donnÃ©es et du bit de retenue initial c0 et les fanions Z0HC
 	 * @param l: entier de 8 bits representant le premier operande
 	 * @param r: entier de 8 bits representant le deuxieme operande
 	 * @param c0 : le bit de retenue initial
-	 * @return la somme des deux valeurs données et du bit de retenue initial  
+	 * @return la somme des deux valeurs donnÃ©es et du bit de retenue initial  
 	 * @throws IllegalArgumentException si l'une des deux operandes n'est pas un entier de 8 bits
 	 */
 	public static int add(int l, int r, boolean c0) {
@@ -87,10 +87,10 @@ public final class Alu {
 	}
 
 	/**
-	 * retourne la somme des deux valeurs 8 bits données  et les fanions Z0HC
+	 * retourne la somme des deux valeurs 8 bits donnÃ©es  et les fanions Z0HC
 	 * @param l: entier de 8 bits representant le premier operande
 	 * @param r: entier de 8 bits representant le deuxieme operande
-	 * @return la somme des deux valeurs données  
+	 * @return la somme des deux valeurs donnÃ©es  
 	 * @throws IllegalArgumentException si l'une des deux operandes n'est pas un entier de 8 bits
 	 */
 	public static int add(int l, int r) {
@@ -99,8 +99,8 @@ public final class Alu {
 	}
 
 	/**
-	 * retourne la somme des deux valeurs 16 bits données et les fanions 00HC, 
-	 * avec H et C sont les fanions correspondant à l'addition des 8 bits de poids faible
+	 * retourne la somme des deux valeurs 16 bits donnÃ©es et les fanions 00HC, 
+	 * avec H et C sont les fanions correspondant Ã  l'addition des 8 bits de poids faible
 	 * @param l:  entier de 16 bits representant le premier operande
 	 * @param r:  entier de 16 bits representant le deuxieme operande
 	 * @return  la somme des deux valeurs et les fanions 00HC
@@ -119,8 +119,8 @@ public final class Alu {
 	}
 
 	/**
-	 * retourne la somme des deux valeurs 16 bits données et les fanions 00HC, 
-	 * avec H et C sont les fanions correspondant à l'addition des 8 bits de poids fort
+	 * retourne la somme des deux valeurs 16 bits donnÃ©es et les fanions 00HC, 
+	 * avec H et C sont les fanions correspondant Ã  l'addition des 8 bits de poids fort
 	 * @param l:  entier de 16 bits representant le premier operande
 	 * @param r:  entier de 16 bits representant le deuxieme operande
 	 * @return  la somme des deux valeurs et les fanions 00HC
@@ -141,11 +141,11 @@ public final class Alu {
 	}
 
 	/**
-	 * retourne la différence des valeurs de 8 bits données et du bit d'emprunt initial b0 et les fanions Z1HC,
+	 * retourne la diffÃ©rence des valeurs de 8 bits donnÃ©es et du bit d'emprunt initial b0 et les fanions Z1HC,
 	* @param l:  entier de 8 bits representant le premier operande
 	 * @param r:  entier de 8 bits representant le deuxieme operande
 	 * @param b0: booleen representant le bit d'emprunt
-	 * @return
+	 * @return la diffÃ©rence des valeurs donnÃ©es et du bit d'emprunt initial 
  	 * @throws IllegalArgumentException si l'une des deux operandes n'est pas un entier de 8 bits
 
 	 */
@@ -161,9 +161,12 @@ public final class Alu {
 	}
 
 	/**
-	 * @param l
-	 * @param r
-	 * @return
+	 * retourne la diffÃ©rence des valeurs de 8 bits donnÃ©es sans emprunt initial et les fanions Z1HC,
+	* @param l:  entier de 8 bits representant le premier operande
+	 * @param r:  entier de 8 bits representant le deuxieme operande
+	 * @return la diffÃ©rence des valeurs donnÃ©es 
+ 	 * @throws IllegalArgumentException si l'une des deux operandes n'est pas un entier de 8 bits
+
 	 */
 	public static int sub(int l, int r) {
 		return sub(l, r, false);
@@ -186,9 +189,10 @@ public final class Alu {
 	}
 
 	/**
-	 * @param l
-	 * @param r
-	 * @return
+	 * retourne le Â«â€¯etâ€¯Â» bit Ã  bit des deux valeurs 8 bits donnÃ©es et les fanions Z010
+     * @param l:  entier de 8 bits representant le premier operande
+     * @param r:  entier de 8 bits representant le deuxieme operande
+	 * @return le Â«â€¯etâ€¯Â» bit Ã  bit des deux valeurs
 	 */
 	public static int and(int l, int r) {
 
