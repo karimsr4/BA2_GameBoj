@@ -67,8 +67,9 @@ public final class Alu {
 	public static int add16H(int l, int r) {
 
 		int result = Preconditions.checkBits16(l) + Preconditions.checkBits16(r);
-		boolean c = (Bits.extract(l, 8, 8) + Bits.extract(l, 8, 8)) > 0xFF;
-		boolean h = (Bits.extract(l, 8, 4) + Bits.extract(l, 8, 4)) > 0xF;
+		boolean cin = (Bits.clip(8, l) + Bits.clip(8, r)) > 0xFF;
+		boolean c = (Bits.extract(l, 8, 8) + Bits.extract(r, 8, 8)+Bits.set(0,0,cin)) > 0xFF;
+		boolean h = (Bits.extract(l, 8, 4) + Bits.extract(r, 8, 4)+Bits.set(0,0,cin)) > 0xF;
 
 		result = Bits.clip(16, result);
 
