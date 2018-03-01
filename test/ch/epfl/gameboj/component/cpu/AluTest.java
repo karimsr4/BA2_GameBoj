@@ -139,8 +139,10 @@ class AluTest {
 
     @Test
     void rotate1WorksOnKnownValues() {
-        assertEquals(0x01, Alu.unpackValue(Alu.rotate(RotDir.LEFT, 0x80)));
-        assertEquals(0x10, Alu.unpackFlags(Alu.rotate(RotDir.LEFT, 0x80)));
+        assertEquals(0x0110, Alu.rotate(RotDir.LEFT, 0x80));
+        assertEquals(0x0110, Alu.rotate(RotDir.LEFT, 0x80));
+        
+        
     }
 
     @Test
@@ -155,6 +157,7 @@ class AluTest {
                 Alu.unpackValue(Alu.rotate(RotDir.LEFT, 0x80, false)));
         assertEquals(0x90,
                 Alu.unpackFlags(Alu.rotate(RotDir.LEFT, 0x80, false)));
+        assertEquals(0b100000000000000, Alu.rotate(RotDir.RIGHT, 0b0,true));
     }
 
     @Test
@@ -163,6 +166,7 @@ class AluTest {
         assertEquals(0x7300, Alu.bcdAdjust(0x6D, false, false, false));
         assertEquals(0x0940, Alu.bcdAdjust(0x0F, true, true, false));
     }
+    
 
   
 }
