@@ -5,6 +5,7 @@ import ch.epfl.gameboj.bits.Bit;
 import ch.epfl.gameboj.bits.Bits;
 
 /**
+ * Classe simulant l'unité arithmétique et logique du CPU 
  * @author Karim HADIDANE (271018)
  * @author Ahmed JELLOULI (274056)
  */
@@ -21,7 +22,7 @@ public final class Alu {
 	
 	
 	/**
-	 * 
+	 * constructeur privé
 	 */
 	private Alu() {
 
@@ -173,13 +174,17 @@ public final class Alu {
 	}
 
 	/**
-	 * @param v
-	 * @param n
-	 * @param h
-	 * @param c
-	 * @return
+	 * ajuste la valeur 8 bits donnée en argument afin qu'elle soit au format DCB
+	 * @param v entier à 8 bits
+	 * @param n fanion N
+	 * @param h fanion H
+	 * @param c fanion C
+	 * @return la valeur ajustée au format DCB de v
+     * @throws IllegalArgumentException si la valeur donnée n'est pas un entier de 8 bits
+
 	 */
 	public static int bcdAdjust(int v, boolean n, boolean h, boolean c) {
+	    Preconditions.checkBits8(v);
 		boolean fixL = (h) || ((!(n)) && (Bits.clip(4, v) > 9));
 		boolean fixH = c || ((!n) && (v > 0x99));
 		int fix = (0x60) * Bits.set(0, 0, fixH) + (0x06) * Bits.set(0, 0, fixL);
@@ -345,6 +350,8 @@ public final class Alu {
 	 * @param v entier de 8 bits
 	 * @param bitIndex index du bit
 	 * @return la valeur 0 et les fanions Z010 où Z est vrai ssi le bit d'index donné de la valeur 8 bits donnée vaut 1 
+	 * @throws IllegalArgumentException si la valeur donnée n'est 8 bits
+	 * @throws IndexOutOfBoundsException si l'index de bit donné n'est pas compris entre 0 et 7
 	 */
 	public static int testBit(int v, int bitIndex) {
 		Preconditions.checkBits8(v);
@@ -357,13 +364,13 @@ public final class Alu {
 	}
 
 	/**
-	 * 
-	 * @param v
-	 * @param z
-	 * @param n
-	 * @param h
-	 * @param c
-	 * @return
+	 * retourne le paquet valeur/fanion 
+	 * @param v valeur à 8 bits ou 16 bits
+	 * @param z fanion Z
+	 * @param n fanion N
+	 * @param h fanion H
+	 * @param c fanion C
+	 * @return le paquet valeur/fanion 
 	 */
 	private static int packValueZNHC(int v, boolean z, boolean n, boolean h, boolean c) {
 		return (v << 8) | maskZNHC(z, n, h, c);
