@@ -48,7 +48,7 @@ class AluTest {
 	}
 	@Test
 	void UnpackFlagsWorksOnMaxValue() {
-	    assertEquals(0xF0,Alu.unpackFlags(0xFF));
+	    assertEquals(0xF0,Alu.unpackFlags(0xFFF0));
 	}
 	
 	@Test
