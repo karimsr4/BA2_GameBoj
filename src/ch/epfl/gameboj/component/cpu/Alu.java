@@ -358,7 +358,7 @@ public final class Alu {
 		if ((bitIndex < 0) || (bitIndex > 7)) {
 			throw new IndexOutOfBoundsException();
 		} else {
-			return packValueZNHC(0, Bits.test(v, bitIndex), false, true, false);
+			return packValueZNHC(0, !(Bits.test(v, bitIndex)), false, true, false);
 		}
 
 	}

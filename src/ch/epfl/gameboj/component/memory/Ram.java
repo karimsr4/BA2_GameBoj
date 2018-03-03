@@ -1,6 +1,7 @@
 package ch.epfl.gameboj.component.memory;
 
 /**
+ * Classe simulant la mémoire vive RAM
  * @author Karim HADIDANE (271018)
  * @author Ahmed JELLOULI (274056)
  */

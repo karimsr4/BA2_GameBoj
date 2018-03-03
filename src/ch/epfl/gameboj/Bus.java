@@ -6,6 +6,7 @@ import java.util.Objects;
 import ch.epfl.gameboj.component.Component;
 
 /**
+ * Classe simulant le bus
  * @author Karim HADIDANE (271018)
  * @author Ahmed JELLOULI (274056)
  *

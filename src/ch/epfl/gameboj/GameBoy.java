@@ -26,8 +26,7 @@ public class GameBoy {
     public GameBoy(Object cartridge) {
         Objects.requireNonNull(cartridge);
         ram = new Ram(AddressMap.WORK_RAM_SIZE);
-        ramController = new RamController(ram, AddressMap.WORK_RAM_START,
-                AddressMap.WORK_RAM_END);
+        ramController = new RamController(ram, AddressMap.WORK_RAM_START);
         echoRamController = new RamController(ram, AddressMap.ECHO_RAM_START,
                 AddressMap.ECHO_RAM_END);
         bus = new Bus();
