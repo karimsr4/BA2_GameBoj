@@ -1,11 +1,11 @@
 package ch.epfl.gameboj;
 
-import ch.epfl.gameboj.bits.Bit;
-
 public interface Register {
     
+    int ordinal();
+    
     default int index() {
-        return 0;
+        return this.ordinal();
         
     }
 
