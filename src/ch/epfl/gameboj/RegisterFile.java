@@ -11,8 +11,8 @@ import ch.epfl.gameboj.bits.Bits;
 public final class RegisterFile <E extends Register> {
     
     
-    private int taille;
-    private Byte[] registerArray;
+   
+    private final Byte[] registerArray;
     
     /**
      * constructeur qui construit un banc de registres 8 bits 
@@ -32,7 +32,7 @@ public final class RegisterFile <E extends Register> {
      */
     public int get(E reg) {
         
-        return Preconditions.checkBits8(registerArray[reg.index()]);
+        return Byte.toUnsignedInt(registerArray[reg.index()]);
         
     }
     
@@ -53,6 +53,8 @@ public final class RegisterFile <E extends Register> {
     
     
     public void setBit(E reg, Bit bit, boolean newValue) {
+        
+        set(reg,Bits.set(get(reg),bit.index(), newValue));
         
     }
     
