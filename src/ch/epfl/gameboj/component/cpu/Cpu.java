@@ -91,5 +91,49 @@ public class Cpu implements Component, Clocked {
         this.bus=bus;
         bus.attach(this);
     }
+    
+    
+    private int read8(int address) {
+        
+    }
+    
+    
+    private int read8AtHl() {
+        
+    }
+    
+    
+    private int read8AfterOpcode() {
+        
+    }
 
+    
+    private int read16(int address) {
+        
+    }
+    
+    
+    private int read16AfterOpcode() {
+        
+    }
+    
+    
+    private void write8(int address, int v) {
+        
+    }
+    
+    
+    private void write16(int address, int v) {
+        
+    }
+    
+    
+    private void write8AtHl(int v) {
+        
+    }
+    
+    
+    private void push16(int v) {
+        
+    }
 }
