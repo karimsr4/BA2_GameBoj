@@ -1,5 +1,6 @@
 package ch.epfl.gameboj.component.cpu;
 
+import ch.epfl.gameboj.Bus;
 import ch.epfl.gameboj.Register;
 import ch.epfl.gameboj.RegisterFile;
 import ch.epfl.gameboj.component.Clocked;
@@ -16,6 +17,7 @@ public class Cpu implements Component, Clocked {
     private int SP;
     private static final Opcode[] DIRECT_OPCODE_TABLE = buildOpcodeTable(
             Opcode.Kind.DIRECT);
+    private Bus bus;
 
     private enum Reg16 implements Register {
         
@@ -83,6 +85,11 @@ public class Cpu implements Component, Clocked {
     @Override
     public void write(int address, int data) {
 
+    }
+    @Override
+    public void attachTo(Bus bus) {
+        this.bus=bus;
+        bus.attach(this);
     }
 
 }
