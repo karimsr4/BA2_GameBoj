@@ -4,6 +4,7 @@ import ch.epfl.gameboj.Register;
 import ch.epfl.gameboj.RegisterFile;
 import ch.epfl.gameboj.component.Clocked;
 import ch.epfl.gameboj.component.Component;
+import ch.epfl.gameboj.component.cpu.Opcode.Kind;
 
 public class Cpu implements Component, Clocked {
 
@@ -13,11 +14,13 @@ public class Cpu implements Component, Clocked {
 
     private int PC;
     private int SP;
+    private static final Opcode[] DIRECT_OPCODE_TABLE=buildOpcodeTable(Opcode.Kind.DIRECT);
+     
 
     private enum Reg16 implements Register {
         AF, BC, DE, HL
     }
-
+    
     private RegisterFile<Reg> regs8bits = new RegisterFile<Reg>(Reg.values());
 
     public Cpu() {
@@ -29,6 +32,21 @@ public class Cpu implements Component, Clocked {
         regs8bits.set(Reg.E, 0);
         regs8bits.set(Reg.H, 0);
         regs8bits.set(Reg.L, 0);
+        PC=0;
+        SP=0;
+        
+    }
+
+    private static Opcode[] buildOpcodeTable(Kind kind) {
+        Opcode[] opcodes=new Opcode[256];
+        for(Opcode o: Opcode.values()) {
+            if (o.kind==kind) {
+                opcodes[o.encoding]=o;
+            }
+        }
+        
+        
+        return opcodes;
     }
 
     public int[] _testGetPcSpAFBCDEHL() {
