@@ -12,14 +12,14 @@ public final class RegisterFile <E extends Register> {
     
     
     private int taille;
-    private Byte[] allRegs;
+    private Byte[] registerArray;
     
     /**
      * constructeur qui construit un banc de registres 8 bits 
      * @param allRegs
      */
     public RegisterFile(E[] allRegs) {
-       this.allRegs=new Byte[allRegs.length];
+       this.registerArray=new Byte[allRegs.length];
         
     }
 
@@ -32,7 +32,7 @@ public final class RegisterFile <E extends Register> {
      */
     public int get(E reg) {
         
-        return Preconditions.checkBits8(allRegs[reg.index()]);
+        return Preconditions.checkBits8(registerArray[reg.index()]);
         
     }
     
@@ -40,14 +40,14 @@ public final class RegisterFile <E extends Register> {
     
     public void set(E reg, int newValue) {
         Preconditions.checkBits8(newValue);
-        this.allRegs[reg.index()]=(byte) newValue;
+        this.registerArray[reg.index()]=(byte) newValue;
         
         
     }
     
     
     public boolean testBit(E reg, Bit b) {
-        return Bits.test(this.allRegs[reg.index()], b);
+        return Bits.test(this.registerArray[reg.index()], b);
         
     }
     
