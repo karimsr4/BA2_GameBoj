@@ -14,13 +14,25 @@ public class Cpu implements Component, Clocked {
 
     private int PC;
     private int SP;
-    private static final Opcode[] DIRECT_OPCODE_TABLE=buildOpcodeTable(Opcode.Kind.DIRECT);
-     
+    private static final Opcode[] DIRECT_OPCODE_TABLE = buildOpcodeTable(
+            Opcode.Kind.DIRECT);
 
     private enum Reg16 implements Register {
-        AF, BC, DE, HL
+        
+        AF(Reg.A,Reg.F),
+        BC(Reg.B,Reg.C),
+        DE(Reg.D,Reg.E),
+        HL(Reg.H,Reg.L);
+        
+        
+        private Reg first;
+        private Reg second;
+        private Reg16(Reg first, Reg second) {
+            this.first=first;
+            this.second=second;
+        }
     }
-    
+
     private RegisterFile<Reg> regs8bits = new RegisterFile<Reg>(Reg.values());
 
     public Cpu() {
@@ -32,20 +44,19 @@ public class Cpu implements Component, Clocked {
         regs8bits.set(Reg.E, 0);
         regs8bits.set(Reg.H, 0);
         regs8bits.set(Reg.L, 0);
-        PC=0;
-        SP=0;
-        
+        PC = 0;
+        SP = 0;
+
     }
 
     private static Opcode[] buildOpcodeTable(Kind kind) {
-        Opcode[] opcodes=new Opcode[256];
-        for(Opcode o: Opcode.values()) {
-            if (o.kind==kind) {
-                opcodes[o.encoding]=o;
+        Opcode[] opcodes = new Opcode[256];
+        for (Opcode o : Opcode.values()) {
+            if (o.kind == kind) {
+                opcodes[o.encoding] = o;
             }
         }
-        
-        
+
         return opcodes;
     }
 
