@@ -117,29 +117,42 @@ public class Cpu implements Component, Clocked {
     }
 
     private int read16(int address) {
-        Preconditions.checkBits16(address);
+        Preconditions.checkBits16(address);// vérifier les adresses
+        Preconditions.checkBits16(address+1);
+        return Bits.make16(read8(address+1), read8(address));
         
 
     }
 
     private int read16AfterOpcode() {
+        return read16(PC+1);
 
     }
 
     private void write8(int address, int v) {
+        bus.write(address, v);
 
     }
 
     private void write16(int address, int v) {
-
+        Preconditions.checkBits16(v);
+        write8(address,Bits.clip(8, v));
+        write8(address+1,Bits.extract(v, 8, 8));
     }
 
     private void write8AtHl(int v) {
+        write(reg16(Reg16.HL),v);
 
     }
 
     private void push16(int v) {
-
+        SP -=2 ;
+        write16(SP,v);
+    }
+    private int pop16() {
+        int v =read16(SP);
+        SP +=2 ;
+        return v;
     }
 
     // gestion des paires de registres
@@ -157,7 +170,7 @@ public class Cpu implements Component, Clocked {
             break;
         default:
             regs8bits.set(r.getFirst(), Bits.extract(newV, 8, 8));
-            regs8bits.set(r.getSecond(), Bits.clip(newV, 8));
+            regs8bits.set(r.getSecond(), Bits.clip(8, newV));
         }
 
     }
@@ -168,7 +181,7 @@ public class Cpu implements Component, Clocked {
             break;
         default:
             regs8bits.set(r.getFirst(), Bits.extract(newV, 8, 8));
-            regs8bits.set(r.getSecond(), Bits.clip(newV, 8));
+            regs8bits.set(r.getSecond(), Bits.clip(8,newV));
         }
         
     }
