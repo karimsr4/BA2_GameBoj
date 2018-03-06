@@ -289,18 +289,25 @@ public class Cpu implements Component, Clocked {
         }
             break;
         case LD_HLR_N8: {
+            write8AtHl(read8AfterOpcode());
         }
             break;
         case LD_N16R_SP: {
+            write16(read16AfterOpcode(), SP );
         }
             break;
         case LD_R8_R8: {
+    
+            regs8bits.set(extractReg(opcode, 3), regs8bits.get(extractReg(opcode, 0)));
         }
             break;
         case LD_SP_HL: {
+            //??????
+            setReg16SP(Reg16.AF, reg16(Reg16.HL));
         }
             break;
         case PUSH_R16: {
+            push16(read16AfterOpcode());
         }
             break;
         }
