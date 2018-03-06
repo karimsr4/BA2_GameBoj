@@ -108,24 +108,23 @@ public class Cpu implements Component, Clocked {
 
     private int read8AtHl() {
         return read8(reg16(Reg16.HL));
-        
+
     }
 
     private int read8AfterOpcode() {
-        return read8(PC+1);
+        return read8(PC + 1);
 
     }
 
     private int read16(int address) {
         Preconditions.checkBits16(address);// vérifier les adresses
-        Preconditions.checkBits16(address+1);
-        return Bits.make16(read8(address+1), read8(address));
-        
+        Preconditions.checkBits16(address + 1);
+        return Bits.make16(read8(address + 1), read8(address));
 
     }
 
     private int read16AfterOpcode() {
-        return read16(PC+1);
+        return read16(PC + 1);
 
     }
 
@@ -136,22 +135,23 @@ public class Cpu implements Component, Clocked {
 
     private void write16(int address, int v) {
         Preconditions.checkBits16(v);
-        write8(address,Bits.clip(8, v));
-        write8(address+1,Bits.extract(v, 8, 8));
+        write8(address, Bits.clip(8, v));
+        write8(address + 1, Bits.extract(v, 8, 8));
     }
 
     private void write8AtHl(int v) {
-        write(reg16(Reg16.HL),v);
+        write(reg16(Reg16.HL), v);
 
     }
 
     private void push16(int v) {
-        SP -=2 ;
-        write16(SP,v);
+        SP -= 2;
+        write16(SP, v);
     }
+
     private int pop16() {
-        int v =read16(SP);
-        SP +=2 ;
+        int v = read16(SP);
+        SP += 2;
         return v;
     }
 
@@ -174,15 +174,39 @@ public class Cpu implements Component, Clocked {
         }
 
     }
+
     private void setReg16SP(Reg16 r, int newV) {
         switch (r) {
         case AF:
-            SP= Bits.extract(newV, 8, 8)<<8;
+            SP = Bits.extract(newV, 8, 8) << 8;
             break;
         default:
             regs8bits.set(r.getFirst(), Bits.extract(newV, 8, 8));
-            regs8bits.set(r.getSecond(), Bits.clip(8,newV));
+            regs8bits.set(r.getSecond(), Bits.clip(8, newV));
         }
-        
+
     }
+    // extraction de paramètres
+    private Reg extractReg(Opcode opcode, int startBit) {
+        int r= Bits.extract(opcode.encoding, startBit, 3);
+        switch(r) {
+        case 0b000:
+            return Reg.B;
+        case 0b001:
+            return Reg.C;
+        case 0b010:
+            return Reg.D;
+        case 0b011:
+            return Reg.E;
+        case 0b100:
+            return Reg.H;
+        case 0b101:
+            return Reg.L;
+        case 0b111:
+            return Reg.A;      
+        }
+        // ???????
+        return null;
+    }
+    
 }
