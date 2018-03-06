@@ -1,5 +1,6 @@
 package ch.epfl.gameboj.component.cpu;
 
+import ch.epfl.gameboj.AddressMap;
 import ch.epfl.gameboj.Bus;
 import ch.epfl.gameboj.Preconditions;
 import ch.epfl.gameboj.Register;
@@ -34,13 +35,7 @@ public class Cpu implements Component, Clocked {
             this.second = second;
         }
 
-        public Reg getFirst() {
-            return first;
-        }
-
-        public Reg getSecond() {
-            return second;
-        }
+        
     }
 
     public Cpu() {
@@ -112,8 +107,7 @@ public class Cpu implements Component, Clocked {
     }
 
     private int read16(int address) {
-        Preconditions.checkBits16(address);// vérifier les adresses
-        Preconditions.checkBits16(address + 1);
+        
         return Bits.make16(read8(address + 1), read8(address));
 
     }
@@ -152,8 +146,8 @@ public class Cpu implements Component, Clocked {
 
     // gestion des paires de registres
     private int reg16(Reg16 r) {
-        return Bits.make16(regs8bits.get(r.getFirst()),
-                regs8bits.get(r.getSecond()));
+        return Bits.make16(regs8bits.get(r.first),
+                regs8bits.get(r.second));
     }
 
     private void setReg16(Reg16 r, int newV) {
@@ -164,8 +158,8 @@ public class Cpu implements Component, Clocked {
             regs8bits.set(Reg.F, 0);
             break;
         default:
-            regs8bits.set(r.getFirst(), Bits.extract(newV, 8, 8));
-            regs8bits.set(r.getSecond(), Bits.clip(8, newV));
+            regs8bits.set(r.first, Bits.extract(newV, 8, 8));
+            regs8bits.set(r.second, Bits.clip(8, newV));
         }
 
     }
@@ -176,8 +170,8 @@ public class Cpu implements Component, Clocked {
             SP = Bits.extract(newV, 8, 8) << 8;
             break;
         default:
-            regs8bits.set(r.getFirst(), Bits.extract(newV, 8, 8));
-            regs8bits.set(r.getSecond(), Bits.clip(8, newV));
+            setReg16(r, newV);
+            
         }
 
     }
@@ -242,13 +236,15 @@ public class Cpu implements Component, Clocked {
         }
             break;
         case LD_A_N8R: {
-         //   regs8bits.set(Reg.A, read8());
+            regs8bits.set(Reg.A, read8(AddressMap.REGS_START+read8AfterOpcode()));
         }
             break;
         case LD_A_CR: {
+            regs8bits.set(Reg.A, read8(AddressMap.REGS_START+regs8bits.get(Reg.C)));
         }
             break;
         case LD_A_N16R: {
+            regs8bits.set(Reg.A, read8(read16AfterOpcode())); 
         }
             break;
         case LD_A_BCR: {
@@ -260,12 +256,15 @@ public class Cpu implements Component, Clocked {
         }
             break;
         case LD_R8_N8: {
+            regs8bits.set(extractReg(opcode, 3), read8AfterOpcode());
         }
             break;
         case LD_R16SP_N16: {
+            setReg16SP(extractReg16(opcode),read16AfterOpcode() );  
         }
             break;
         case POP_R16: {
+            setReg16(extractReg16(opcode),pop16());  
         }
             break;
         case LD_HLR_R8: {
