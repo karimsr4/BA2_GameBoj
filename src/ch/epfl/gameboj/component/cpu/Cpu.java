@@ -226,4 +226,86 @@ public class Cpu implements Component, Clocked {
 
     }
 
+    // dispatch method
+    private void dispatch(Opcode opcode) {
+        switch (opcode.family) {
+        case NOP: {
+        }
+            break;
+        case LD_R8_HLR: {
+           regs8bits.set(extractReg(opcode, 3), read8AtHl());
+        }
+            break;
+        case LD_A_HLRU: {
+            regs8bits.set(Reg.A, read8AtHl());
+            setReg16(Reg16.HL, reg16(Reg16.HL)+extractHlIncrement(opcode));
+        }
+            break;
+        case LD_A_N8R: {
+         //   regs8bits.set(Reg.A, read8());
+        }
+            break;
+        case LD_A_CR: {
+        }
+            break;
+        case LD_A_N16R: {
+        }
+            break;
+        case LD_A_BCR: {
+            regs8bits.set(Reg.A, read16(reg16(Reg16.BC)));
+        }
+            break;
+        case LD_A_DER: {
+            regs8bits.set(Reg.A, read16(reg16(Reg16.DE)));
+        }
+            break;
+        case LD_R8_N8: {
+        }
+            break;
+        case LD_R16SP_N16: {
+        }
+            break;
+        case POP_R16: {
+        }
+            break;
+        case LD_HLR_R8: {
+        }
+            break;
+        case LD_HLRU_A: {
+        }
+            break;
+        case LD_N8R_A: {
+        }
+            break;
+        case LD_CR_A: {
+        }
+            break;
+        case LD_N16R_A: {
+        }
+            break;
+        case LD_BCR_A: {
+        }
+            break;
+        case LD_DER_A: {
+        }
+            break;
+        case LD_HLR_N8: {
+        }
+            break;
+        case LD_N16R_SP: {
+        }
+            break;
+        case LD_R8_R8: {
+        }
+            break;
+        case LD_SP_HL: {
+        }
+            break;
+        case PUSH_R16: {
+        }
+            break;
+        }
+
+    }
+
 }
