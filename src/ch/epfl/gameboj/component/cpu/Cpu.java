@@ -268,24 +268,32 @@ public class Cpu implements Component, Clocked {
         }
             break;
         case LD_HLR_R8: {
+            write(reg16(Reg16.HL),regs8bits.get(extractReg(opcode, 0)));
         }
             break;
         case LD_HLRU_A: {
+            write(reg16(Reg16.HL),regs8bits.get(Reg.A));
+            setReg16(Reg16.HL, reg16(Reg16.HL)+extractHlIncrement(opcode));
         }
             break;
         case LD_N8R_A: {
+            write(AddressMap.REGS_START+read8AfterOpcode(),regs8bits.get(Reg.A));
         }
             break;
         case LD_CR_A: {
+            write(AddressMap.REGS_START+regs8bits.get(Reg.C),regs8bits.get(Reg.A));
         }
             break;
         case LD_N16R_A: {
+            write(read16AfterOpcode(),regs8bits.get(Reg.A));
         }
             break;
         case LD_BCR_A: {
+            write(reg16(Reg16.BC),regs8bits.get(Reg.A));
         }
             break;
         case LD_DER_A: {
+            write(reg16(Reg16.DE),regs8bits.get(Reg.A)); 
         }
             break;
         case LD_HLR_N8: {
