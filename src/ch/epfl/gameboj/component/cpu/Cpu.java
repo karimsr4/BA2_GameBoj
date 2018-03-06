@@ -186,10 +186,11 @@ public class Cpu implements Component, Clocked {
         }
 
     }
+
     // extraction de paramètres
     private Reg extractReg(Opcode opcode, int startBit) {
-        int r= Bits.extract(opcode.encoding, startBit, 3);
-        switch(r) {
+        int r = Bits.extract(opcode.encoding, startBit, 3);
+        switch (r) {
         case 0b000:
             return Reg.B;
         case 0b001:
@@ -203,10 +204,32 @@ public class Cpu implements Component, Clocked {
         case 0b101:
             return Reg.L;
         case 0b111:
-            return Reg.A;      
+            return Reg.A;
         }
         // ???????
         return null;
     }
+
+    private Reg16 extractReg16(Opcode opcode) {
+        int r = Bits.extract(opcode.encoding, 4, 2);
+        switch (r) {
+        case 0b00:
+            return Reg16.BC;
+        case 0b01:
+            return Reg16.DE;
+        case 0b10:
+            return Reg16.HL;
+        default:
+            return Reg16.AF;
+
+        }
+
+    }
     
+    
+    private int extractHlIncrement(Opcode opcode) {
+        return (Bits.test(opcode.encoding, 4))? -1:+1 ;
+        
+    }
+
 }
