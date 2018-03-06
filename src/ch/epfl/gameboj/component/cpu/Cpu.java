@@ -44,14 +44,9 @@ public class Cpu implements Component, Clocked {
     }
 
     public Cpu() {
-        regs8bits.set(Reg.A, 0);
-        regs8bits.set(Reg.F, 0);
-        regs8bits.set(Reg.B, 0);
-        regs8bits.set(Reg.C, 0);
-        regs8bits.set(Reg.D, 0);
-        regs8bits.set(Reg.E, 0);
-        regs8bits.set(Reg.H, 0);
-        regs8bits.set(Reg.L, 0);
+        for (Reg o : Reg.values()) {
+            regs8bits.set(o, 0);
+        }
         PC = 0;
         SP = 0;
 
@@ -225,11 +220,10 @@ public class Cpu implements Component, Clocked {
         }
 
     }
-    
-    
+
     private int extractHlIncrement(Opcode opcode) {
-        return (Bits.test(opcode.encoding, 4))? -1:+1 ;
-        
+        return (Bits.test(opcode.encoding, 4)) ? -1 : +1;
+
     }
 
 }
