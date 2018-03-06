@@ -167,7 +167,7 @@ public class Cpu implements Component, Clocked {
     private void setReg16SP(Reg16 r, int newV) {
         switch (r) {
         case AF:
-            SP = Bits.extract(newV, 8, 8) << 8;
+            SP = Preconditions.checkBits8(newV);
             break;
         default:
             setReg16(r, newV);
@@ -310,7 +310,7 @@ public class Cpu implements Component, Clocked {
         }
             break;
         case LD_SP_HL: {
-            //??????
+            
             setReg16SP(Reg16.AF, reg16(Reg16.HL));
         }
             break;
