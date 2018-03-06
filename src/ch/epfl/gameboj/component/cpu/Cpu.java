@@ -22,6 +22,7 @@ public class Cpu implements Component, Clocked {
             Opcode.Kind.DIRECT);
     private Bus bus;
     private RegisterFile<Reg> regs8bits = new RegisterFile<Reg>(Reg.values());
+    private long nextNonIdleCycle;
 
     private enum Reg16 implements Register {
 
@@ -69,7 +70,15 @@ public class Cpu implements Component, Clocked {
 
     @Override
     public void cycle(long cycle) {
-        // TODO Auto-generated method stub
+        int encoding;
+        Opcode opcode;
+        if (cycle==nextNonIdleCycle) {
+            encoding=read8(PC);
+            opcode=DIRECT_OPCODE_TABLE[encoding];
+            dispatch(opcode);
+            nextNonIdleCycle += opcode.cycles+ opcode.additionalCycles;
+            PC += opcode.totalBytes;
+        }
 
     }
 
