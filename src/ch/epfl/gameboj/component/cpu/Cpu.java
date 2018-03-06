@@ -1,6 +1,5 @@
 package ch.epfl.gameboj.component.cpu;
 
-import ch.epfl.gameboj.AddressMap;
 import ch.epfl.gameboj.Bus;
 import ch.epfl.gameboj.Preconditions;
 import ch.epfl.gameboj.Register;
@@ -243,7 +242,7 @@ public class Cpu implements Component, Clocked {
         }
             break;
         case LD_A_N8R: {
-            regs8bits.set(Reg.A , read8(AddressMap.REGS_START+read8AfterOpcode()));
+         //   regs8bits.set(Reg.A, read8());
         }
             break;
         case LD_A_CR: {
