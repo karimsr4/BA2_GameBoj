@@ -107,16 +107,18 @@ public class Cpu implements Component, Clocked {
     }
 
     private int read8AtHl() {
-        read8(Bits.make16(, lowB))
+        return read8(reg16(Reg16.HL));
         
     }
 
     private int read8AfterOpcode() {
-        return;
+        return read8(PC+1);
 
     }
 
     private int read16(int address) {
+        Preconditions.checkBits16(address);
+        
 
     }
 
@@ -162,7 +164,7 @@ public class Cpu implements Component, Clocked {
     private void setReg16SP(Reg16 r, int newV) {
         switch (r) {
         case AF:
-            
+            SP= Bits.extract(newV, 8, 8)<<8;
             break;
         default:
             regs8bits.set(r.getFirst(), Bits.extract(newV, 8, 8));
