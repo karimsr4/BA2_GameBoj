@@ -1,8 +1,10 @@
 package ch.epfl.gameboj.component.cpu;
 
 import ch.epfl.gameboj.Bus;
+import ch.epfl.gameboj.Preconditions;
 import ch.epfl.gameboj.Register;
 import ch.epfl.gameboj.RegisterFile;
+import ch.epfl.gameboj.bits.Bits;
 import ch.epfl.gameboj.component.Clocked;
 import ch.epfl.gameboj.component.Component;
 import ch.epfl.gameboj.component.cpu.Opcode.Kind;
@@ -18,24 +20,28 @@ public class Cpu implements Component, Clocked {
     private static final Opcode[] DIRECT_OPCODE_TABLE = buildOpcodeTable(
             Opcode.Kind.DIRECT);
     private Bus bus;
+    private RegisterFile<Reg> regs8bits = new RegisterFile<Reg>(Reg.values());
 
     private enum Reg16 implements Register {
-        
-        AF(Reg.A,Reg.F),
-        BC(Reg.B,Reg.C),
-        DE(Reg.D,Reg.E),
-        HL(Reg.H,Reg.L);
-        
-        
+
+        AF(Reg.A, Reg.F), BC(Reg.B, Reg.C), DE(Reg.D, Reg.E), HL(Reg.H, Reg.L);
+
         private Reg first;
         private Reg second;
+
         private Reg16(Reg first, Reg second) {
-            this.first=first;
-            this.second=second;
+            this.first = first;
+            this.second = second;
+        }
+
+        public Reg getFirst() {
+            return first;
+        }
+
+        public Reg getSecond() {
+            return second;
         }
     }
-
-    private RegisterFile<Reg> regs8bits = new RegisterFile<Reg>(Reg.values());
 
     public Cpu() {
         regs8bits.set(Reg.A, 0);
@@ -86,54 +92,82 @@ public class Cpu implements Component, Clocked {
     public void write(int address, int data) {
 
     }
+
     @Override
     public void attachTo(Bus bus) {
-        this.bus=bus;
+        this.bus = bus;
         bus.attach(this);
     }
-    
-    
+
+    // Acces au bus
     private int read8(int address) {
-        
+
+        return bus.read(address);
+
     }
-    
-    
+
     private int read8AtHl() {
-        
-    }
-    
-    
-    private int read8AfterOpcode() {
+        read8(Bits.make16(, lowB))
         
     }
 
-    
+    private int read8AfterOpcode() {
+        return;
+
+    }
+
     private int read16(int address) {
-        
+
     }
-    
-    
+
     private int read16AfterOpcode() {
-        
+
     }
-    
-    
+
     private void write8(int address, int v) {
-        
+
     }
-    
-    
+
     private void write16(int address, int v) {
-        
+
     }
-    
-    
+
     private void write8AtHl(int v) {
-        
+
     }
-    
-    
+
     private void push16(int v) {
+
+    }
+
+    // gestion des paires de registres
+    private int reg16(Reg16 r) {
+        return Bits.make16(regs8bits.get(r.getFirst()),
+                regs8bits.get(r.getSecond()));
+    }
+
+    private void setReg16(Reg16 r, int newV) {
+        Preconditions.checkBits16(newV);
+        switch (r) {
+        case AF:
+            regs8bits.set(Reg.A, Bits.extract(newV, 8, 8));
+            regs8bits.set(Reg.F, 0);
+            break;
+        default:
+            regs8bits.set(r.getFirst(), Bits.extract(newV, 8, 8));
+            regs8bits.set(r.getSecond(), Bits.clip(newV, 8));
+        }
+
+    }
+    private void setReg16SP(Reg16 r, int newV) {
+        switch (r) {
+        case AF:
+            
+            break;
+        default:
+            regs8bits.set(r.getFirst(), Bits.extract(newV, 8, 8));
+            regs8bits.set(r.getSecond(), Bits.clip(newV, 8));
+        }
         
     }
 }
