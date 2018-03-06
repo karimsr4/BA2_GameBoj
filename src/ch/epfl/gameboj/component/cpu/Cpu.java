@@ -164,7 +164,7 @@ public class Cpu implements Component, Clocked {
         switch (r) {
         case AF:
             regs8bits.set(Reg.A, Bits.extract(newV, 8, 8));
-            regs8bits.set(Reg.F, 0);
+            regs8bits.set(Reg.F, Bits.clip(8, newV)& ~0xFF);
             break;
         default:
             regs8bits.set(r.first, Bits.extract(newV, 8, 8));
