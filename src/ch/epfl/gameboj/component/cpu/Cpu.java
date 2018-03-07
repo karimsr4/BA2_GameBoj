@@ -241,7 +241,7 @@ public class Cpu implements Component, Clocked {
             break;
         case LD_A_HLRU: {
             regs8bits.set(Reg.A, read8AtHl());
-            setReg16(Reg16.HL, reg16(Reg16.HL)+extractHlIncrement(opcode));
+            setReg16(Reg16.HL, Bits.clip(16, reg16(Reg16.HL)+extractHlIncrement(opcode)));
         }
             break;
         case LD_A_N8R: {
@@ -282,7 +282,7 @@ public class Cpu implements Component, Clocked {
             break;
         case LD_HLRU_A: {
             write(reg16(Reg16.HL),regs8bits.get(Reg.A));
-            setReg16(Reg16.HL, reg16(Reg16.HL)+extractHlIncrement(opcode));
+            setReg16(Reg16.HL, Bits.clip(16, reg16(Reg16.HL)+extractHlIncrement(opcode)));
         }
             break;
         case LD_N8R_A: {
