@@ -78,6 +78,8 @@ public class Cpu implements Component, Clocked {
             dispatch(opcode);
             nextNonIdleCycle += opcode.cycles+ opcode.additionalCycles;
             PC += opcode.totalBytes;
+        }else {
+            return ;
         }
 
     }
@@ -138,7 +140,7 @@ public class Cpu implements Component, Clocked {
     }
 
     private void write8AtHl(int v) {
-        write(reg16(Reg16.HL), v);
+        write8(reg16(Reg16.HL), v);
 
     }
 
@@ -164,7 +166,7 @@ public class Cpu implements Component, Clocked {
         switch (r) {
         case AF:
             regs8bits.set(Reg.A, Bits.extract(newV, 8, 8));
-            regs8bits.set(Reg.F, Bits.clip(8, newV)& ~0xFF);
+            regs8bits.set(Reg.F, Bits.clip(8, newV)& 0xF0);
             break;
         default:
             regs8bits.set(r.first, Bits.extract(newV, 8, 8));
@@ -176,7 +178,7 @@ public class Cpu implements Component, Clocked {
     private void setReg16SP(Reg16 r, int newV) {
         switch (r) {
         case AF:
-            SP = Preconditions.checkBits8(newV);
+            SP = Preconditions.checkBits16(newV);
             break;
         default:
             setReg16(r, newV);
@@ -277,32 +279,32 @@ public class Cpu implements Component, Clocked {
         }
             break;
         case LD_HLR_R8: {
-            write(reg16(Reg16.HL),regs8bits.get(extractReg(opcode, 0)));
+            write8(reg16(Reg16.HL),regs8bits.get(extractReg(opcode, 0)));
         }
             break;
         case LD_HLRU_A: {
-            write(reg16(Reg16.HL),regs8bits.get(Reg.A));
+            write8(reg16(Reg16.HL),regs8bits.get(Reg.A));
             setReg16(Reg16.HL, Bits.clip(16, reg16(Reg16.HL)+extractHlIncrement(opcode)));
         }
             break;
         case LD_N8R_A: {
-            write(AddressMap.REGS_START+read8AfterOpcode(),regs8bits.get(Reg.A));
+            write8(AddressMap.REGS_START+read8AfterOpcode(),regs8bits.get(Reg.A));
         }
             break;
         case LD_CR_A: {
-            write(AddressMap.REGS_START+regs8bits.get(Reg.C),regs8bits.get(Reg.A));
+            write8(AddressMap.REGS_START+regs8bits.get(Reg.C),regs8bits.get(Reg.A));
         }
             break;
         case LD_N16R_A: {
-            write(read16AfterOpcode(),regs8bits.get(Reg.A));
+            write8(read16AfterOpcode(),regs8bits.get(Reg.A));
         }
             break;
         case LD_BCR_A: {
-            write(reg16(Reg16.BC),regs8bits.get(Reg.A));
+            write8(reg16(Reg16.BC),regs8bits.get(Reg.A));
         }
             break;
         case LD_DER_A: {
-            write(reg16(Reg16.DE),regs8bits.get(Reg.A)); 
+            write8(reg16(Reg16.DE),regs8bits.get(Reg.A)); 
         }
             break;
         case LD_HLR_N8: {
