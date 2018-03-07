@@ -1,5 +1,7 @@
 package ch.epfl.gameboj.component.cpu;
 
+import java.util.Objects;
+
 import ch.epfl.gameboj.AddressMap;
 import ch.epfl.gameboj.Bus;
 import ch.epfl.gameboj.Preconditions;
@@ -16,14 +18,6 @@ public class Cpu implements Component, Clocked {
         A, F, B, C, D, E, H, L
     }
 
-    private int PC;
-    private int SP;
-    private static final Opcode[] DIRECT_OPCODE_TABLE = buildOpcodeTable(
-            Opcode.Kind.DIRECT);
-    private Bus bus;
-    private RegisterFile<Reg> regs8bits = new RegisterFile<Reg>(Reg.values());
-    private long nextNonIdleCycle;
-
     private enum Reg16 implements Register {
 
         AF(Reg.A, Reg.F), BC(Reg.B, Reg.C), DE(Reg.D, Reg.E), HL(Reg.H, Reg.L);
@@ -35,30 +29,26 @@ public class Cpu implements Component, Clocked {
             this.first = first;
             this.second = second;
         }
-
-        
     }
+
+    private int PC;
+    private int SP;
+    private static final Opcode[] DIRECT_OPCODE_TABLE = buildOpcodeTable(
+            Opcode.Kind.DIRECT);
+    private Bus bus;
+    private RegisterFile<Reg> regs8bits = new RegisterFile<Reg>(Reg.values());
+    private long nextNonIdleCycle;
 
     public Cpu() {
         for (Reg o : Reg.values()) {
             regs8bits.set(o, 0);
         }
+
         PC = 0;
         SP = 0;
 
     }
-
-    private static Opcode[] buildOpcodeTable(Kind kind) {
-        Opcode[] opcodes = new Opcode[256];
-        for (Opcode o : Opcode.values()) {
-            if (o.kind == kind) {
-                opcodes[o.encoding] = o;
-            }
-        }
-
-        return opcodes;
-    }
-
+    
     public int[] _testGetPcSpAFBCDEHL() {
 
         return new int[] { PC, SP, regs8bits.get(Reg.A), regs8bits.get(Reg.F),
@@ -72,14 +62,14 @@ public class Cpu implements Component, Clocked {
     public void cycle(long cycle) {
         int encoding;
         Opcode opcode;
-        if (cycle==nextNonIdleCycle) {
-            encoding=read8(PC);
-            opcode=DIRECT_OPCODE_TABLE[encoding];
+        if (cycle == nextNonIdleCycle) {
+            encoding = read8(PC);
+            opcode = DIRECT_OPCODE_TABLE[encoding];
             dispatch(opcode);
-            nextNonIdleCycle += opcode.cycles+ opcode.additionalCycles;
+            nextNonIdleCycle += opcode.cycles + opcode.additionalCycles;
             PC += opcode.totalBytes;
-        }else {
-            return ;
+        } else {
+            return;
         }
 
     }
@@ -99,6 +89,21 @@ public class Cpu implements Component, Clocked {
         this.bus = bus;
         bus.attach(this);
     }
+    
+    
+
+    private static Opcode[] buildOpcodeTable(Kind kind) {
+        Opcode[] opcodes = new Opcode[256];
+        for (Opcode o : Opcode.values()) {
+            if (o.kind == kind) {
+                opcodes[o.encoding] = o;
+            }
+        }
+
+        return opcodes;
+    }
+
+    
 
     // Acces au bus
     private int read8(int address) {
@@ -118,7 +123,7 @@ public class Cpu implements Component, Clocked {
     }
 
     private int read16(int address) {
-        
+
         return Bits.make16(read8(address + 1), read8(address));
 
     }
@@ -157,8 +162,7 @@ public class Cpu implements Component, Clocked {
 
     // gestion des paires de registres
     private int reg16(Reg16 r) {
-        return Bits.make16(regs8bits.get(r.first),
-                regs8bits.get(r.second));
+        return Bits.make16(regs8bits.get(r.first), regs8bits.get(r.second));
     }
 
     private void setReg16(Reg16 r, int newV) {
@@ -166,7 +170,7 @@ public class Cpu implements Component, Clocked {
         switch (r) {
         case AF:
             regs8bits.set(Reg.A, Bits.extract(newV, 8, 8));
-            regs8bits.set(Reg.F, Bits.clip(8, newV)& 0xF0);
+            regs8bits.set(Reg.F, Bits.clip(8, newV) & 0xF0);
             break;
         default:
             regs8bits.set(r.first, Bits.extract(newV, 8, 8));
@@ -182,14 +186,16 @@ public class Cpu implements Component, Clocked {
             break;
         default:
             setReg16(r, newV);
-            
+
         }
 
     }
 
     // extraction de paramètres
     private Reg extractReg(Opcode opcode, int startBit) {
-        int r = Bits.extract(opcode.encoding, startBit, 3);
+
+        int r = Bits.extract(opcode.encoding, Objects.checkIndex(startBit, 5),
+                3);
         switch (r) {
         case 0b000:
             return Reg.B;
@@ -205,9 +211,10 @@ public class Cpu implements Component, Clocked {
             return Reg.L;
         case 0b111:
             return Reg.A;
+        default:
+            throw new Error("impossible");
         }
-        // ???????
-        return null;
+
     }
 
     private Reg16 extractReg16(Opcode opcode) {
@@ -238,24 +245,27 @@ public class Cpu implements Component, Clocked {
         }
             break;
         case LD_R8_HLR: {
-           regs8bits.set(extractReg(opcode, 3), read8AtHl());
+            regs8bits.set(extractReg(opcode, 3), read8AtHl());
         }
             break;
         case LD_A_HLRU: {
             regs8bits.set(Reg.A, read8AtHl());
-            setReg16(Reg16.HL, Bits.clip(16, reg16(Reg16.HL)+extractHlIncrement(opcode)));
+            setReg16(Reg16.HL, Bits.clip(16,
+                    reg16(Reg16.HL) + extractHlIncrement(opcode)));
         }
             break;
         case LD_A_N8R: {
-            regs8bits.set(Reg.A, read8(AddressMap.REGS_START+read8AfterOpcode()));
+            regs8bits.set(Reg.A,
+                    read8(AddressMap.REGS_START + read8AfterOpcode()));
         }
             break;
         case LD_A_CR: {
-            regs8bits.set(Reg.A, read8(AddressMap.REGS_START+regs8bits.get(Reg.C)));
+            regs8bits.set(Reg.A,
+                    read8(AddressMap.REGS_START + regs8bits.get(Reg.C)));
         }
             break;
         case LD_A_N16R: {
-            regs8bits.set(Reg.A, read8(read16AfterOpcode())); 
+            regs8bits.set(Reg.A, read8(read16AfterOpcode()));
         }
             break;
         case LD_A_BCR: {
@@ -271,40 +281,43 @@ public class Cpu implements Component, Clocked {
         }
             break;
         case LD_R16SP_N16: {
-            setReg16SP(extractReg16(opcode),read16AfterOpcode() );  
+            setReg16SP(extractReg16(opcode), read16AfterOpcode());
         }
             break;
         case POP_R16: {
-            setReg16(extractReg16(opcode),pop16());  
+            setReg16(extractReg16(opcode), pop16());
         }
             break;
         case LD_HLR_R8: {
-            write8(reg16(Reg16.HL),regs8bits.get(extractReg(opcode, 0)));
+            write8(reg16(Reg16.HL), regs8bits.get(extractReg(opcode, 0)));
         }
             break;
         case LD_HLRU_A: {
-            write8(reg16(Reg16.HL),regs8bits.get(Reg.A));
-            setReg16(Reg16.HL, Bits.clip(16, reg16(Reg16.HL)+extractHlIncrement(opcode)));
+            write8(reg16(Reg16.HL), regs8bits.get(Reg.A));
+            setReg16(Reg16.HL, Bits.clip(16,
+                    reg16(Reg16.HL) + extractHlIncrement(opcode)));
         }
             break;
         case LD_N8R_A: {
-            write8(AddressMap.REGS_START+read8AfterOpcode(),regs8bits.get(Reg.A));
+            write8(AddressMap.REGS_START + read8AfterOpcode(),
+                    regs8bits.get(Reg.A));
         }
             break;
         case LD_CR_A: {
-            write8(AddressMap.REGS_START+regs8bits.get(Reg.C),regs8bits.get(Reg.A));
+            write8(AddressMap.REGS_START + regs8bits.get(Reg.C),
+                    regs8bits.get(Reg.A));
         }
             break;
         case LD_N16R_A: {
-            write8(read16AfterOpcode(),regs8bits.get(Reg.A));
+            write8(read16AfterOpcode(), regs8bits.get(Reg.A));
         }
             break;
         case LD_BCR_A: {
-            write8(reg16(Reg16.BC),regs8bits.get(Reg.A));
+            write8(reg16(Reg16.BC), regs8bits.get(Reg.A));
         }
             break;
         case LD_DER_A: {
-            write8(reg16(Reg16.DE),regs8bits.get(Reg.A)); 
+            write8(reg16(Reg16.DE), regs8bits.get(Reg.A));
         }
             break;
         case LD_HLR_N8: {
@@ -312,16 +325,17 @@ public class Cpu implements Component, Clocked {
         }
             break;
         case LD_N16R_SP: {
-            write16(read16AfterOpcode(), SP );
+            write16(read16AfterOpcode(), SP);
         }
             break;
         case LD_R8_R8: {
-    
-            regs8bits.set(extractReg(opcode, 3), regs8bits.get(extractReg(opcode, 0)));
+
+            regs8bits.set(extractReg(opcode, 3),
+                    regs8bits.get(extractReg(opcode, 0)));
         }
             break;
         case LD_SP_HL: {
-            
+
             setReg16SP(Reg16.AF, reg16(Reg16.HL));
         }
             break;

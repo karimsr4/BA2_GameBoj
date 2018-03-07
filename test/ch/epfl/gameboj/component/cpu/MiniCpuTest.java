@@ -32,4 +32,15 @@ public class MiniCpuTest {
         cycleCpu(c, Opcode.NOP.cycles);
         assertArrayEquals(new int[] {1,0,0,0,0,0,0,0,0,0}, c._testGetPcSpAFBCDEHL());
     }
+    @Test 
+    void LD_R8_HLR_WorksOnKnowValues(){
+        Cpu c = new Cpu();
+        Ram r = new Ram(10);
+        Bus b = connect(c, r);
+        b.write(1, 0x11);
+        b.write(0, Opcode.LD_A_HLR.encoding);
+        cycleCpu(c, Opcode.LD_A_HLR.cycles);
+        assertArrayEquals(new int[] { 1,0,0x11,0,0,0,0,0,0,0}, c._testGetPcSpAFBCDEHL());
+        
+    }
 }
