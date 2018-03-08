@@ -39,7 +39,7 @@ public class MiniCpuTest {
         Cpu c = new Cpu();
         Ram r = new Ram(10);
         Bus b = connect(c, r);
-<<<<<<< HEAD
+
         b.write(0, Opcode.LD_A_HLR.encoding);
         b.write(1, 0x11);
         cycleCpu(c, Opcode.LD_A_HLR.cycles);
@@ -53,18 +53,18 @@ public class MiniCpuTest {
         Cpu c = new Cpu();
         Ram r = new Ram(10);
         Bus b = connect(c, r);
-        //b.write(1, 0x11);
+      /*  //b.write(1, 0x11);
         b.write(0, Opcode.LD_A_HLRI.encoding);
         cycleCpu(c, Opcode.LD_A_HLRI.cycles);
         assertArrayEquals(new int[] { 1,0,42,0,0,0,0,0,0,1}, c._testGetPcSpAFBCDEHL());
-=======
+*/
         c.setReg16(Reg16.HL, 1);
         b.write(1, 1);
         b.write(0, Opcode.LD_B_HLR.encoding);
         b.write(1, 0xAF);
         cycleCpu(c, Opcode.LD_B_HLR.cycles);
         assertArrayEquals(new int[] { Opcode.LD_B_HLR.totalBytes,0,0,0,0xAF,0,0,0,0,1}, c._testGetPcSpAFBCDEHL());
->>>>>>> 5dd242cc9166fb60ed66a69c0139e811cf545721
+
         
     }
     @Test
