@@ -269,7 +269,8 @@ public class Cpu implements Component, Clocked {
         }
             break;
         case LD_A_BCR: {
-            regs8bits.set(Reg.A, read16(reg16(Reg16.BC)));
+            regs8bits.set(Reg.A, read8(reg16(Reg16.BC)));
+            //regs8bits.set(Reg.A, read16(reg16(Reg16.BC)));
         }
             break;
         case LD_A_DER: {
@@ -289,7 +290,8 @@ public class Cpu implements Component, Clocked {
         }
             break;
         case LD_HLR_R8: {
-            write8(reg16(Reg16.HL), regs8bits.get(extractReg(opcode, 0)));
+            write8AtHl(regs8bits.get(extractReg(opcode, 0)));
+         //   write8(reg16(Reg16.HL), regs8bits.get(extractReg(opcode, 0)));
         }
             break;
         case LD_HLRU_A: {

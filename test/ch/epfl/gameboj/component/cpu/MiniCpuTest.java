@@ -37,10 +37,23 @@ public class MiniCpuTest {
         Cpu c = new Cpu();
         Ram r = new Ram(10);
         Bus b = connect(c, r);
-        b.write(1, 0x11);
         b.write(0, Opcode.LD_A_HLR.encoding);
+        b.write(1, 0x11);
         cycleCpu(c, Opcode.LD_A_HLR.cycles);
-        assertArrayEquals(new int[] { 1,0,0x11,0,0,0,0,0,0,0}, c._testGetPcSpAFBCDEHL());
+        assertArrayEquals(new int[] { 1,0,126,0,0,0,0,0,0,0}, c._testGetPcSpAFBCDEHL());
+        
+    }
+    
+    
+    @Test 
+    void LD_A_HLRU_WorksOnKnowValues(){
+        Cpu c = new Cpu();
+        Ram r = new Ram(10);
+        Bus b = connect(c, r);
+        //b.write(1, 0x11);
+        b.write(0, Opcode.LD_A_HLRI.encoding);
+        cycleCpu(c, Opcode.LD_A_HLRI.cycles);
+        assertArrayEquals(new int[] { 1,0,42,0,0,0,0,0,0,1}, c._testGetPcSpAFBCDEHL());
         
     }
 }
