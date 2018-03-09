@@ -27,7 +27,8 @@ public final class RegisterFile <E extends Register> {
     /**
      * retourne la valeur 8 bits contenue dans le registre donné, 
      * sous la forme d'un entier compris entre 0 (inclus) et FF16 (inclus)
-     * @param reg registre donné
+     * @param reg 
+     *           registre donné
      * @return la valeur 8 bits contenue dans reg
      */
     public int get(E reg) {
@@ -38,20 +39,40 @@ public final class RegisterFile <E extends Register> {
     
     
     
+    /**
+     * modifie le contenu du registre donné pour qu'il soit égal à la valeur 8 bits donnée
+     * @param reg
+     *           registre donné 
+     * @param newValue
+     *           valeur 8 bits 
+     * @throws IllegalArgumentException si newValue n'est pas une valeur 8 bits          
+     */
     public void set(E reg, int newValue) {
-        Preconditions.checkBits8(newValue);
-        this.registerArray[reg.index()]=(byte) newValue;
+        this.registerArray[reg.index()]=(byte) (Preconditions.checkBits8(newValue));
         
         
     }
     
     
+    /**
+     * retourne vrai si et seulement si le bit donné du registre donné vaut 1
+     * @param reg
+     *           registre donné
+     * @param b
+     * @return
+     */
     public boolean testBit(E reg, Bit b) {
         return Bits.test(this.registerArray[reg.index()], b);
         
     }
     
     
+    /**
+     * 
+     * @param reg
+     * @param bit
+     * @param newValue
+     */
     public void setBit(E reg, Bit bit, boolean newValue) {
         
         set(reg,Bits.set(get(reg),bit.index(), newValue));

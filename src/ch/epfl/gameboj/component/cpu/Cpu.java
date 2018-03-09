@@ -14,11 +14,11 @@ import ch.epfl.gameboj.component.cpu.Opcode.Kind;
 
 public class Cpu implements Component, Clocked {
 
-    public enum Reg implements Register {
+    private enum Reg implements Register {
         A, F, B, C, D, E, H, L
     }
 
-    public enum Reg16 implements Register {
+    private enum Reg16 implements Register {
 
         AF(Reg.A, Reg.F), BC(Reg.B, Reg.C), DE(Reg.D, Reg.E), HL(Reg.H, Reg.L);
 
@@ -31,13 +31,13 @@ public class Cpu implements Component, Clocked {
         }
     }
 
-    public int PC;
-    public int SP;
+    private int PC;
+    private int SP;
     private static final Opcode[] DIRECT_OPCODE_TABLE = buildOpcodeTable(
             Opcode.Kind.DIRECT);
     private Bus bus;
-    public RegisterFile<Reg> regs8bits = new RegisterFile<Reg>(Reg.values());
-    public long nextNonIdleCycle;
+    private RegisterFile<Reg> regs8bits = new RegisterFile<Reg>(Reg.values());
+    private long nextNonIdleCycle;
 
     public Cpu() {
         for (Reg o : Reg.values()) {
@@ -86,13 +86,14 @@ public class Cpu implements Component, Clocked {
 
     @Override
     public void attachTo(Bus bus) {
+        Objects.requireNonNull(bus);// a verifier
         this.bus = bus;
         bus.attach(this);
     }
     
     
 
-    public static Opcode[] buildOpcodeTable(Kind kind) {
+    private static Opcode[] buildOpcodeTable(Kind kind) {
         Opcode[] opcodes = new Opcode[256];
         for (Opcode o : Opcode.values()) {
             if (o.kind == kind) {
@@ -106,66 +107,67 @@ public class Cpu implements Component, Clocked {
     
 
     // Acces au bus
-    public int read8(int address) {
+    private int read8(int address) {
 
         return bus.read(address);
 
     }
 
-    public int read8AtHl() {
+    private int read8AtHl() {
         return read8(reg16(Reg16.HL));
 
     }
 
-    public int read8AfterOpcode() {
+    private int read8AfterOpcode() {
         return read8(PC + 1);
 
     }
 
-    public int read16(int address) {
+    private int read16(int address) {
 
         return Bits.make16(read8(address + 1), read8(address));
+        
 
     }
 
-    public int read16AfterOpcode() {
+    private int read16AfterOpcode() {
         return read16(PC + 1);
 
     }
 
-    public void write8(int address, int v) {
+    private void write8(int address, int v) {
         bus.write(address, v);
 
     }
 
-    public void write16(int address, int v) {
+    private void write16(int address, int v) {
         Preconditions.checkBits16(v);
         write8(address, Bits.clip(8, v));
         write8(address + 1, Bits.extract(v, 8, 8));
     }
 
-    public void write8AtHl(int v) {
+    private void write8AtHl(int v) {
         write8(reg16(Reg16.HL), v);
 
     }
 
-    public void push16(int v) {
+    private void push16(int v) {
         SP =Bits.clip(16, SP-2);
         write16(SP, v);
     }
 
-    public int pop16() {
+    private int pop16() {
         int v = read16(SP);
         SP =Bits.clip(16, SP+2);
         return v;
     }
 
     // gestion des paires de registres
-    public int reg16(Reg16 r) {
+    private int reg16(Reg16 r) {
         return Bits.make16(regs8bits.get(r.first), regs8bits.get(r.second));
     }
 
-    public void setReg16(Reg16 r, int newV) {
+    private void setReg16(Reg16 r, int newV) {
         Preconditions.checkBits16(newV);
         switch (r) {
         case AF:
@@ -179,7 +181,7 @@ public class Cpu implements Component, Clocked {
 
     }
 
-    public void setReg16SP(Reg16 r, int newV) {
+    private void setReg16SP(Reg16 r, int newV) {
         switch (r) {
         case AF:
             SP = Preconditions.checkBits16(newV);
@@ -192,7 +194,7 @@ public class Cpu implements Component, Clocked {
     }
 
     // extraction de paramètres
-    public Reg extractReg(Opcode opcode, int startBit) {
+    private Reg extractReg(Opcode opcode, int startBit) {
 
         int r = Bits.extract(opcode.encoding, Objects.checkIndex(startBit, 5),
                 3);
@@ -217,7 +219,7 @@ public class Cpu implements Component, Clocked {
 
     }
 
-    public Reg16 extractReg16(Opcode opcode) {
+    private Reg16 extractReg16(Opcode opcode) {
         int r = Bits.extract(opcode.encoding, 4, 2);
         switch (r) {
         case 0b00:
@@ -233,13 +235,13 @@ public class Cpu implements Component, Clocked {
 
     }
 
-    public int extractHlIncrement(Opcode opcode) {
+    private int extractHlIncrement(Opcode opcode) {
         return (Bits.test(opcode.encoding, 4)) ? -1 : +1;
 
     }
 
     // dispatch method
-    public void dispatch(Opcode opcode) {
+    private void dispatch(Opcode opcode) {
         switch (opcode.family) {
         case NOP: {
         }
