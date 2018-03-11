@@ -12,6 +12,13 @@ import ch.epfl.gameboj.component.Clocked;
 import ch.epfl.gameboj.component.Component;
 import ch.epfl.gameboj.component.cpu.Opcode.Kind;
 
+/**
+ * classe simulant le processeur du GameBoy
+ * 
+ * @author Karim HADIDANE (271018)
+ * @author Ahmed JELLOULI (274056)
+ *
+ */
 public class Cpu implements Component, Clocked {
 
     private enum Reg implements Register {
@@ -39,6 +46,10 @@ public class Cpu implements Component, Clocked {
     private RegisterFile<Reg> regs8bits = new RegisterFile<Reg>(Reg.values());
     private long nextNonIdleCycle;
 
+    /**
+     * Constructeur publique du CPU
+     * 
+     */
     public Cpu() {
         for (Reg o : Reg.values()) {
             regs8bits.set(o, 0);
@@ -48,7 +59,13 @@ public class Cpu implements Component, Clocked {
         SP = 0;
 
     }
-    
+
+    /**
+     * methode utilisée pour faciliter les tests
+     * 
+     * @return un tableau representant les valeurs stockées dans les registres
+     *         du CPU
+     */
     public int[] _testGetPcSpAFBCDEHL() {
 
         return new int[] { PC, SP, regs8bits.get(Reg.A), regs8bits.get(Reg.F),
@@ -66,10 +83,8 @@ public class Cpu implements Component, Clocked {
             encoding = read8(PC);
             opcode = DIRECT_OPCODE_TABLE[encoding];
             dispatch(opcode);
-            nextNonIdleCycle += opcode.cycles + opcode.additionalCycles;
+            nextNonIdleCycle += opcode.cycles;
             PC += opcode.totalBytes;
-        } else {
-            return;
         }
 
     }
@@ -86,12 +101,10 @@ public class Cpu implements Component, Clocked {
 
     @Override
     public void attachTo(Bus bus) {
-        Objects.requireNonNull(bus);// a verifier
+
         this.bus = bus;
         bus.attach(this);
     }
-    
-    
 
     private static Opcode[] buildOpcodeTable(Kind kind) {
         Opcode[] opcodes = new Opcode[256];
@@ -103,8 +116,6 @@ public class Cpu implements Component, Clocked {
 
         return opcodes;
     }
-
-    
 
     // Acces au bus
     private int read8(int address) {
@@ -126,7 +137,6 @@ public class Cpu implements Component, Clocked {
     private int read16(int address) {
 
         return Bits.make16(read8(address + 1), read8(address));
-        
 
     }
 
@@ -141,8 +151,7 @@ public class Cpu implements Component, Clocked {
     }
 
     private void write16(int address, int v) {
-        Preconditions.checkBits16(v);
-        write8(address, Bits.clip(8, v));
+        write8(address, Bits.clip(8, Preconditions.checkBits16(v)));
         write8(address + 1, Bits.extract(v, 8, 8));
     }
 
@@ -152,13 +161,14 @@ public class Cpu implements Component, Clocked {
     }
 
     private void push16(int v) {
-        SP =Bits.clip(16, SP-2);
-        write16(SP, v);
+        SP = Bits.clip(16, SP - 2);
+        write16(SP, Preconditions.checkBits16(v));
+
     }
 
     private int pop16() {
         int v = read16(SP);
-        SP =Bits.clip(16, SP+2);
+        SP = Bits.clip(16, SP + 2);
         return v;
     }
 
@@ -272,7 +282,7 @@ public class Cpu implements Component, Clocked {
             break;
         case LD_A_BCR: {
             regs8bits.set(Reg.A, read8(reg16(Reg16.BC)));
-            //regs8bits.set(Reg.A, read16(reg16(Reg16.BC)));
+
         }
             break;
         case LD_A_DER: {
@@ -293,11 +303,11 @@ public class Cpu implements Component, Clocked {
             break;
         case LD_HLR_R8: {
             write8AtHl(regs8bits.get(extractReg(opcode, 0)));
-         //   write8(reg16(Reg16.HL), regs8bits.get(extractReg(opcode, 0)));
+
         }
             break;
         case LD_HLRU_A: {
-            write8(reg16(Reg16.HL), regs8bits.get(Reg.A));
+            write8AtHl(regs8bits.get(Reg.A));
             setReg16(Reg16.HL, Bits.clip(16,
                     reg16(Reg16.HL) + extractHlIncrement(opcode)));
         }
@@ -344,7 +354,7 @@ public class Cpu implements Component, Clocked {
         }
             break;
         case PUSH_R16: {
-            push16(read16AfterOpcode());
+            push16(reg16(extractReg16(opcode)));
         }
             break;
         }
