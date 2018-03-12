@@ -525,21 +525,42 @@ public final class Cpu implements Component, Clocked {
         }
             break;
         case SLA_R8: {
+            Reg register= extractReg(opcode, 0);
+            int result =Alu.shiftLeft(regs8bits.get(register));
+            regs8bits.set(register, Alu.unpackValue(result));
+            regs8bits.set(register, Alu.unpackFlags(result));
         }
             break;
         case SRA_R8: {
+            Reg register= extractReg(opcode, 0);
+            int result =Alu.shiftRightA(regs8bits.get(register));
+            regs8bits.set(register, Alu.unpackValue(result));
+            regs8bits.set(register, Alu.unpackFlags(result));
         }
             break;
         case SRL_R8: {
+            Reg register= extractReg(opcode, 0);
+            int result =Alu.shiftRightL(regs8bits.get(register));
+            regs8bits.set(register, Alu.unpackValue(result));
+            regs8bits.set(register, Alu.unpackFlags(result));
         }
             break;
         case SLA_HLR: {
+            int result = Alu.shiftLeft(read8AtHl());
+            write8AtHl(Alu.unpackValue(result));
+            regs8bits.set(Reg.F, Alu.unpackFlags(result));
         }
             break;
         case SRA_HLR: {
+            int result = Alu.shiftRightA(read8AtHl());
+            write8AtHl(Alu.unpackValue(result));
+            regs8bits.set(Reg.F, Alu.unpackFlags(result));
         }
             break;
         case SRL_HLR: {
+            int result = Alu.shiftRightL(read8AtHl());
+            write8AtHl(Alu.unpackValue(result));
+            regs8bits.set(Reg.F, Alu.unpackFlags(result));
         }
             break;
 
