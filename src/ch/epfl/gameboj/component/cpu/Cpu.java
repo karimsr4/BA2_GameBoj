@@ -487,25 +487,36 @@ public final class Cpu implements Component, Clocked {
         // Rotate, shift
         case ROTCA: {
             // averifier
-            
-             Reg register=extractReg(opcode, 0);
-             int result=Alu.rotate(rotationDir(opcode), regs8bits.get(register));
-             setRegFlags(register, result);
+             int result=Alu.rotate(rotationDir(opcode), regs8bits.get(Reg.A));
+             setRegFlags(Reg.A, result);
         }
             break;
         case ROTA: {
+            int result=Alu.rotate(rotationDir(opcode), regs8bits.get(Reg.A), Bits.test(regs8bits.get(Reg.F), 4));
+            setRegFlags(Reg.A, result);
+            
         }
             break;
         case ROTC_R8: {
+            Reg register = extractReg(opcode, 0);
+            int result=Alu.rotate(rotationDir(opcode), regs8bits.get(register));
+            setRegFlags(register, result);
         }
             break;
         case ROT_R8: {
+            Reg register = extractReg(opcode, 0);
+            int result=Alu.rotate(rotationDir(opcode), regs8bits.get(register), Bits.test(regs8bits.get(Reg.F), 4));
+            setRegFlags(register, result);
         }
             break;
         case ROTC_HLR: {
+            int result=Alu.rotate(rotationDir(opcode), read8AtHl());
+            write8AtHlAndSetFlags(result);
         }
             break;
         case ROT_HLR: {
+            int result=Alu.rotate(rotationDir(opcode), read8AtHl(),Bits.test(regs8bits.get(Reg.F), 4));
+            write8AtHlAndSetFlags(result);
         }
             break;
         case SWAP_R8: {
