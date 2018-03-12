@@ -487,6 +487,7 @@ public final class Cpu implements Component, Clocked {
         // Rotate, shift
         case ROTCA: {
             // averifier
+            
              Reg register=extractReg(opcode, 0);
              int result=Alu.rotate(rotationDir(opcode), regs8bits.get(register));
              setRegFlags(register, result);
@@ -582,6 +583,12 @@ public final class Cpu implements Component, Clocked {
          return (Bits.test(opcode.encoding, 3)) ? RotDir.RIGHT   : RotDir.LEFT;
          
           }
+      
+      
+      private boolean combineFanionCBit3(Opcode opcode) {
+        return Bits.test(opcode.encoding, 3) && Bits.test(regs8bits.get(Reg.F), 4);
+          
+      }
      
     private void setRegFromAlu(Reg r, int vf) {
         regs8bits.set(r, Alu.unpackValue(vf));
