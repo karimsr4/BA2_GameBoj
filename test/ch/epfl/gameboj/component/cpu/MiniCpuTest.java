@@ -6,13 +6,13 @@ import org.junit.jupiter.api.Test;
 
 import ch.epfl.gameboj.AddressMap;
 import ch.epfl.gameboj.Bus;
-import ch.epfl.gameboj.component.cpu.Cpu.Reg16;
+
 import ch.epfl.gameboj.component.memory.Ram;
 import ch.epfl.gameboj.component.memory.RamController;
 
 
 public class MiniCpuTest {
-    private Bus connect(Cpu cpu, Ram ram) {
+  /*  private Bus connect(Cpu cpu, Ram ram) {
         RamController rc = new RamController(ram, 0);
         Bus b = new Bus();
         cpu.attachTo(b);
@@ -57,7 +57,7 @@ public class MiniCpuTest {
         b.write(0, Opcode.LD_A_HLRI.encoding);
         cycleCpu(c, Opcode.LD_A_HLRI.cycles);
         assertArrayEquals(new int[] { 1,0,42,0,0,0,0,0,0,1}, c._testGetPcSpAFBCDEHL());
-*/
+
         c.setReg16(Reg16.HL, 1);
         b.write(1, 1);
         b.write(0, Opcode.LD_B_HLR.encoding);
@@ -124,6 +124,6 @@ public class MiniCpuTest {
 
     
     
-    
+ */   
     
 }
