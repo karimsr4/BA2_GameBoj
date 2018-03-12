@@ -525,22 +525,22 @@ public final class Cpu implements Component, Clocked {
         }
             break;
         case SLA_R8: {
-            Reg register= extractReg(opcode, 0);
-            int result =Alu.shiftLeft(regs8bits.get(register));
+            Reg register = extractReg(opcode, 0);
+            int result = Alu.shiftLeft(regs8bits.get(register));
             regs8bits.set(register, Alu.unpackValue(result));
             regs8bits.set(register, Alu.unpackFlags(result));
         }
             break;
         case SRA_R8: {
-            Reg register= extractReg(opcode, 0);
-            int result =Alu.shiftRightA(regs8bits.get(register));
+            Reg register = extractReg(opcode, 0);
+            int result = Alu.shiftRightA(regs8bits.get(register));
             regs8bits.set(register, Alu.unpackValue(result));
             regs8bits.set(register, Alu.unpackFlags(result));
         }
             break;
         case SRL_R8: {
-            Reg register= extractReg(opcode, 0);
-            int result =Alu.shiftRightL(regs8bits.get(register));
+            Reg register = extractReg(opcode, 0);
+            int result = Alu.shiftRightL(regs8bits.get(register));
             regs8bits.set(register, Alu.unpackValue(result));
             regs8bits.set(register, Alu.unpackFlags(result));
         }
@@ -592,5 +592,45 @@ public final class Cpu implements Component, Clocked {
     /*
      * private static RotDir directionDeRotation(int v) { RotDir.valueOf(arg0) }
      */
+    private void setRegFromAlu(Reg r, int vf) {
+        regs8bits.set(r, Alu.unpackValue(vf));
+    }
+
+    private void setFlags(int valueFlags) {
+        regs8bits.set(Reg.F, Alu.unpackFlags(valueFlags));
+    }
+
+    private void setRegFlags(Reg r, int vf) {
+        setRegFromAlu(r, vf);
+        setFlags(vf);
+    }
+
+    private void write8AtHlAndSetFlags(int vf) {
+        write8(reg16(Reg16.HL), Alu.unpackValue(vf));
+        setFlags(vf);
+    }
+
+    private enum FlagSrc implements Bit {
+        V0, V1, ALU, CPU
+        
+    }
+    private void combineAluFlags(int vf, FlagSrc z, FlagSrc n, FlagSrc h, FlagSrc c) {
+        FlagSrc[] tab  = new FlagSrc[] {z,n,h,c};
+        for(int i=0;i<4;i++) {
+            switch (tab[i]) {
+                case V0 :
+                    regs8bits.setBit(Reg.F, , false);
+                case V1 :
+                    regs8bits.setBit(Reg.F, , true);
+                case ALU :
+                    regs8bits.setBit(Reg.F, , true);
+            }
+            
+            
+        }
+        
+        
+        
+    }
 
 }
