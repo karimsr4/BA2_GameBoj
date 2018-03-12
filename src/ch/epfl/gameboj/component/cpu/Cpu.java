@@ -10,6 +10,7 @@ import ch.epfl.gameboj.RegisterFile;
 import ch.epfl.gameboj.bits.Bits;
 import ch.epfl.gameboj.component.Clocked;
 import ch.epfl.gameboj.component.Component;
+import ch.epfl.gameboj.component.cpu.Alu.RotDir;
 import ch.epfl.gameboj.component.cpu.Opcode.Kind;
 
 /**
@@ -359,146 +360,216 @@ public final class Cpu implements Component, Clocked {
             push16(reg16(extractReg16(opcode)));
         }
             break;
-         // Add
+        // Add
         case ADD_A_R8: {
-            regs8bits.set(Reg.A, Bits.extract(Alu.add(regs8bits.get(Reg.A), regs8bits.get(extractReg(opcode, 0))), 8, 8));
-        } break;
+            int result = Alu.add(regs8bits.get(Reg.A),
+                    regs8bits.get(extractReg(opcode, 0)));
+            regs8bits.set(Reg.A, Alu.unpackValue(result));
+            regs8bits.set(Reg.F, result);
+        }
+            break;
         case ADD_A_N8: {
-            //regs8bits.set(Reg.A, newValue);
-        } break;
+            int result = Alu.add(regs8bits.get(Reg.A), read8AfterOpcode());
+            regs8bits.set(Reg.A, Alu.unpackValue(result));
+            regs8bits.set(Reg.F, result);
+        }
+            break;
         case ADD_A_HLR: {
-        } break;
+            int result = Alu.add(regs8bits.get(Reg.A), read8AtHl());
+            regs8bits.set(Reg.A, Alu.unpackValue(result));
+            regs8bits.set(Reg.F, result);
+        }
+            break;
         case INC_R8: {
-        } break;
+        }
+            break;
         case INC_HLR: {
-        } break;
+        }
+            break;
         case INC_R16SP: {
-        } break;
+        }
+            break;
         case ADD_HL_R16SP: {
-        } break;
+        }
+            break;
         case LD_HLSP_S8: {
-        } break;
+        }
+            break;
 
         // Subtract
         case SUB_A_R8: {
-        } break;
+        }
+            break;
         case SUB_A_N8: {
-        } break;
+        }
+            break;
         case SUB_A_HLR: {
-        } break;
+        }
+            break;
         case DEC_R8: {
-        } break;
+        }
+            break;
         case DEC_HLR: {
-        } break;
+        }
+            break;
         case CP_A_R8: {
-        } break;
+        }
+            break;
         case CP_A_N8: {
-        } break;
+        }
+            break;
         case CP_A_HLR: {
-        } break;
+        }
+            break;
         case DEC_R16SP: {
-        } break;
+        }
+            break;
 
         // And, or, xor, complement
         case AND_A_N8: {
-            int result=Alu.and(regs8bits.get(Reg.A), read8AfterOpcode());
-            regs8bits.set(Reg.A , Alu.unpackValue(result));
+            int result = Alu.and(regs8bits.get(Reg.A), read8AfterOpcode());
+            regs8bits.set(Reg.A, Alu.unpackValue(result));
             regs8bits.set(Reg.F, Alu.unpackFlags(result));
-            
-        } break;
+
+        }
+            break;
         case AND_A_R8: {
-            int result=Alu.and(regs8bits.get(Reg.A), regs8bits.get(extractReg(opcode, 0)));
-            regs8bits.set(Reg.A , Alu.unpackValue(result));
+            int result = Alu.and(regs8bits.get(Reg.A),
+                    regs8bits.get(extractReg(opcode, 0)));
+            regs8bits.set(Reg.A, Alu.unpackValue(result));
             regs8bits.set(Reg.F, Alu.unpackFlags(result));
-        } break;
+        }
+            break;
         case AND_A_HLR: {
-            int result=Alu.and(regs8bits.get(Reg.A), read8AtHl());
-            regs8bits.set(Reg.A , Alu.unpackValue(result));
+            int result = Alu.and(regs8bits.get(Reg.A), read8AtHl());
+            regs8bits.set(Reg.A, Alu.unpackValue(result));
             regs8bits.set(Reg.F, Alu.unpackFlags(result));
-        } break;
+        }
+            break;
         case OR_A_R8: {
-            int result=Alu.or(regs8bits.get(Reg.A), regs8bits.get(extractReg(opcode, 0)));
-            regs8bits.set(Reg.A , Alu.unpackValue(result));
+            int result = Alu.or(regs8bits.get(Reg.A),
+                    regs8bits.get(extractReg(opcode, 0)));
+            regs8bits.set(Reg.A, Alu.unpackValue(result));
             regs8bits.set(Reg.F, Alu.unpackFlags(result));
-        } break;
+        }
+            break;
         case OR_A_N8: {
-            int result=Alu.or(regs8bits.get(Reg.A), read8AfterOpcode());
-            regs8bits.set(Reg.A , Alu.unpackValue(result));
+            int result = Alu.or(regs8bits.get(Reg.A), read8AfterOpcode());
+            regs8bits.set(Reg.A, Alu.unpackValue(result));
             regs8bits.set(Reg.F, Alu.unpackFlags(result));
-        } break;
+        }
+            break;
         case OR_A_HLR: {
-            int result=Alu.or(regs8bits.get(Reg.A), read8AtHl());
-            regs8bits.set(Reg.A , Alu.unpackValue(result));
+            int result = Alu.or(regs8bits.get(Reg.A), read8AtHl());
+            regs8bits.set(Reg.A, Alu.unpackValue(result));
             regs8bits.set(Reg.F, Alu.unpackFlags(result));
-        } break;
+        }
+            break;
         case XOR_A_R8: {
-            int result=Alu.xor(regs8bits.get(Reg.A), regs8bits.get(extractReg(opcode, 0)));
-            regs8bits.set(Reg.A , Alu.unpackValue(result));
+            int result = Alu.xor(regs8bits.get(Reg.A),
+                    regs8bits.get(extractReg(opcode, 0)));
+            regs8bits.set(Reg.A, Alu.unpackValue(result));
             regs8bits.set(Reg.F, Alu.unpackFlags(result));
-        } break;
+        }
+            break;
         case XOR_A_N8: {
-            int result=Alu.xor(regs8bits.get(Reg.A), read8AfterOpcode());
-            regs8bits.set(Reg.A , Alu.unpackValue(result));
+            int result = Alu.xor(regs8bits.get(Reg.A), read8AfterOpcode());
+            regs8bits.set(Reg.A, Alu.unpackValue(result));
             regs8bits.set(Reg.F, Alu.unpackFlags(result));
-        } break;
+        }
+            break;
         case XOR_A_HLR: {
-            int result=Alu.xor(regs8bits.get(Reg.A), read8AtHl());
-            regs8bits.set(Reg.A , Alu.unpackValue(result));
+            int result = Alu.xor(regs8bits.get(Reg.A), read8AtHl());
+            regs8bits.set(Reg.A, Alu.unpackValue(result));
             regs8bits.set(Reg.F, Alu.unpackFlags(result));
-        } break;
+        }
+            break;
         case CPL: {
-            int result=~regs8bits.get(Reg.A);
-            regs8bits.set(Reg.A , Alu.unpackValue(result));
+            int result = ~regs8bits.get(Reg.A);
+            regs8bits.set(Reg.A, Alu.unpackValue(result));
             regs8bits.set(Reg.F, Alu.unpackFlags(result));
-        } break;
+        }
+            break;
 
         // Rotate, shift
         case ROTCA: {
-        } break;
+            // int result=Alu.
+        }
+            break;
         case ROTA: {
-        } break;
+        }
+            break;
         case ROTC_R8: {
-        } break;
+        }
+            break;
         case ROT_R8: {
-        } break;
+        }
+            break;
         case ROTC_HLR: {
-        } break;
+        }
+            break;
         case ROT_HLR: {
-        } break;
+        }
+            break;
         case SWAP_R8: {
-        } break;
+            Reg register = extractReg(opcode, 0);
+            int result = Alu.swap(regs8bits.get(register));
+            regs8bits.set(register, Alu.unpackValue(result));
+            regs8bits.set(Reg.F, Alu.unpackFlags(result));
+        }
+            break;
         case SWAP_HLR: {
-        } break;
+            int result = Alu.swap(read8AtHl());
+            write8AtHl(Alu.unpackValue(result));
+            regs8bits.set(Reg.F, Alu.unpackFlags(result));
+        }
+            break;
         case SLA_R8: {
-        } break;
+        }
+            break;
         case SRA_R8: {
-        } break;
+        }
+            break;
         case SRL_R8: {
-        } break;
+        }
+            break;
         case SLA_HLR: {
-        } break;
+        }
+            break;
         case SRA_HLR: {
-        } break;
+        }
+            break;
         case SRL_HLR: {
-        } break;
+        }
+            break;
 
         // Bit test and set
         case BIT_U3_R8: {
-        } break;
+        }
+            break;
         case BIT_U3_HLR: {
-        } break;
+        }
+            break;
         case CHG_U3_R8: {
-        } break;
+        }
+            break;
         case CHG_U3_HLR: {
-        } break;
+        }
+            break;
 
         // Misc. ALU
         case DAA: {
-        } break;
+        }
+            break;
         case SCCF: {
-        } break;  
+        }
+            break;
         }
 
     }
+
+    /*
+     * private static RotDir directionDeRotation(int v) { RotDir.valueOf(arg0) }
+     */
 
 }
