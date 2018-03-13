@@ -367,18 +367,20 @@ public final class Cpu implements Component, Clocked {
         // Add
         case ADD_A_R8: {
             int result = Alu.add(regs8bits.get(Reg.A),
-                    regs8bits.get(extractReg(opcode, 0)),withCarry(opcode));
-            setRegFlags(Reg.A,result);
+                    regs8bits.get(extractReg(opcode, 0)), withCarry(opcode));
+            setRegFlags(Reg.A, result);
         }
             break;
         case ADD_A_N8: {
-            int result = Alu.add(regs8bits.get(Reg.A), read8AfterOpcode(),withCarry(opcode));
-            setRegFlags(Reg.A,result);
+            int result = Alu.add(regs8bits.get(Reg.A), read8AfterOpcode(),
+                    withCarry(opcode));
+            setRegFlags(Reg.A, result);
         }
             break;
         case ADD_A_HLR: {
-            int result = Alu.add(regs8bits.get(Reg.A), read8AtHl(),withCarry(opcode));
-            setRegFlags(Reg.A,result);
+            int result = Alu.add(regs8bits.get(Reg.A), read8AtHl(),
+                    withCarry(opcode));
+            setRegFlags(Reg.A, result);
         }
             break;
         case INC_R8: {
@@ -389,40 +391,46 @@ public final class Cpu implements Component, Clocked {
         }
             break;
         case INC_HLR: {
-            int result=Alu.add(read8AtHl(),1);
+            int result = Alu.add(read8AtHl(), 1);
             write8AtHl(result);
             combineAluFlags(result, FlagSrc.ALU, FlagSrc.V0, FlagSrc.ALU,
                     FlagSrc.CPU);
         }
             break;
         case INC_R16SP: {
-            int result= Alu.add16H(reg16(extractReg16(opcode)), 1);
-            setReg16SP(extractReg16(opcode),Alu.unpackValue(result));
+            int result = Alu.add16H(reg16(extractReg16(opcode)), 1);
+            setReg16SP(extractReg16(opcode), Alu.unpackValue(result));
         }
             break;
         case ADD_HL_R16SP: {
-            int result=0;
-            Reg16 reg=extractReg16(opcode);
-            if(reg==Reg16.AF) {
-                result=Alu.add16H(reg16(Reg16.HL), SP);
-            }
-            else {
-                result=Alu.add16H(reg16(Reg16.HL), reg16(reg));
+            int result = 0;
+            Reg16 reg = extractReg16(opcode);
+            if (reg == Reg16.AF) {
+                result = Alu.add16H(reg16(Reg16.HL), SP);
+            } else {
+                result = Alu.add16H(reg16(Reg16.HL), reg16(reg));
             }
             setReg16(Reg16.HL, Alu.unpackValue(result));
             combineAluFlags(result, FlagSrc.CPU, FlagSrc.V0, FlagSrc.ALU,
                     FlagSrc.ALU);
-            
+
         }
             break;
         case LD_HLSP_S8: {
-            
-            
+
         }
             break;
 
         // Subtract
         case SUB_A_R8: {
+            int result;
+              if (Bits.test(opcode.encoding, 4)) {
+                  result=Alu.sub(regs8bits.get(Reg.A), regs8bits.get(extractReg(opcode, 0)), Bits.test(regs8bits.get(Reg.F), 4));
+                  setRegFlags(Reg.A, result);
+              }else {
+                  result=Alu.sub(regs8bits.get(Reg.A), regs8bits.get(extractReg(opcode, 0)));
+                  setRegFlags(Reg.A, result); 
+              }
         }
             break;
         case SUB_A_N8: {
@@ -453,7 +461,7 @@ public final class Cpu implements Component, Clocked {
         // And, or, xor, complement
         case AND_A_N8: {
             int result = Alu.and(regs8bits.get(Reg.A), read8AfterOpcode());
-            setRegFlags(Reg.A,result);
+            setRegFlags(Reg.A, result);
 
         }
             break;
@@ -501,7 +509,7 @@ public final class Cpu implements Component, Clocked {
         }
             break;
         case CPL: {
-            int result= Bits.complement8(regs8bits.get(Reg.A));
+            int result = Bits.complement8(regs8bits.get(Reg.A));
             setRegFromAlu(Reg.A, result);
             combineAluFlags(result, FlagSrc.CPU, FlagSrc.V1, FlagSrc.V1,
                     FlagSrc.CPU);
@@ -510,39 +518,42 @@ public final class Cpu implements Component, Clocked {
 
         // Rotate, shift
         case ROTCA: {
-           
 
-
-             int result=Alu.rotate(rotationDir(opcode), regs8bits.get(Reg.A));
-             setRegFlags(Reg.A, result);
+            int result = Alu.rotate(rotationDir(opcode), regs8bits.get(Reg.A));
+            setRegFlags(Reg.A, result);
 
         }
             break;
         case ROTA: {
-            int result=Alu.rotate(rotationDir(opcode), regs8bits.get(Reg.A), Bits.test(regs8bits.get(Reg.F), 4));
+            int result = Alu.rotate(rotationDir(opcode), regs8bits.get(Reg.A),
+                    Bits.test(regs8bits.get(Reg.F), 4));
             setRegFlags(Reg.A, result);
-            
+
         }
             break;
         case ROTC_R8: {
             Reg register = extractReg(opcode, 0);
-            int result=Alu.rotate(rotationDir(opcode), regs8bits.get(register));
+            int result = Alu.rotate(rotationDir(opcode),
+                    regs8bits.get(register));
             setRegFlags(register, result);
         }
             break;
         case ROT_R8: {
             Reg register = extractReg(opcode, 0);
-            int result=Alu.rotate(rotationDir(opcode), regs8bits.get(register), Bits.test(regs8bits.get(Reg.F), 4));
+            int result = Alu.rotate(rotationDir(opcode),
+                    regs8bits.get(register),
+                    Bits.test(regs8bits.get(Reg.F), 4));
             setRegFlags(register, result);
         }
             break;
         case ROTC_HLR: {
-            int result=Alu.rotate(rotationDir(opcode), read8AtHl());
+            int result = Alu.rotate(rotationDir(opcode), read8AtHl());
             write8AtHlAndSetFlags(result);
         }
             break;
         case ROT_HLR: {
-            int result=Alu.rotate(rotationDir(opcode), read8AtHl(),Bits.test(regs8bits.get(Reg.F), 4));
+            int result = Alu.rotate(rotationDir(opcode), read8AtHl(),
+                    Bits.test(regs8bits.get(Reg.F), 4));
             write8AtHlAndSetFlags(result);
         }
             break;
@@ -641,7 +652,7 @@ public final class Cpu implements Component, Clocked {
     }
 
     private void write8AtHlAndSetFlags(int vf) {
-        write8AtHl( Alu.unpackValue(vf));
+        write8AtHl(Alu.unpackValue(vf));
         setFlags(vf);
     }
 
