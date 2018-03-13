@@ -367,17 +367,17 @@ public final class Cpu implements Component, Clocked {
         // Add
         case ADD_A_R8: {
             int result = Alu.add(regs8bits.get(Reg.A),
-                    regs8bits.get(extractReg(opcode, 0)),withCarry(opcode.encoding));
+                    regs8bits.get(extractReg(opcode, 0)),withCarry(opcode));
             setRegFlags(Reg.A,result);
         }
             break;
         case ADD_A_N8: {
-            int result = Alu.add(regs8bits.get(Reg.A), read8AfterOpcode(),withCarry(opcode.encoding));
+            int result = Alu.add(regs8bits.get(Reg.A), read8AfterOpcode(),withCarry(opcode));
             setRegFlags(Reg.A,result);
         }
             break;
         case ADD_A_HLR: {
-            int result = Alu.add(regs8bits.get(Reg.A), read8AtHl(),withCarry(opcode.encoding));
+            int result = Alu.add(regs8bits.get(Reg.A), read8AtHl(),withCarry(opcode));
             setRegFlags(Reg.A,result);
         }
             break;
@@ -507,15 +507,11 @@ public final class Cpu implements Component, Clocked {
         // Rotate, shift
         case ROTCA: {
             // averifier
-<<<<<<< HEAD
-            Reg register = extractReg(opcode, 0);
-            int result = Alu.rotate(rotationDir(opcode),
-                    regs8bits.get(register));
-            setRegFlags(register, result);
-=======
+
+
              int result=Alu.rotate(rotationDir(opcode), regs8bits.get(Reg.A));
              setRegFlags(Reg.A, result);
->>>>>>> ff7cd9f0351df785894396159028f61f8754b8bc
+
         }
             break;
         case ROTA: {
@@ -616,21 +612,17 @@ public final class Cpu implements Component, Clocked {
 
     }
 
-<<<<<<< HEAD
-=======
-    
-      private static RotDir rotationDir(Opcode opcode) {
-         return (Bits.test(opcode.encoding, 3)) ? RotDir.RIGHT   : RotDir.LEFT;
-         
-          }
-      
-      
-      private boolean combineFanionCBit3(Opcode opcode) {
-        return Bits.test(opcode.encoding, 3) && Bits.test(regs8bits.get(Reg.F), 4);
-          
-      }
-     
->>>>>>> ff7cd9f0351df785894396159028f61f8754b8bc
+    private static RotDir rotationDir(Opcode opcode) {
+        return (Bits.test(opcode.encoding, 3)) ? RotDir.RIGHT : RotDir.LEFT;
+
+    }
+
+    private boolean combineFanionCBit3(Opcode opcode) {
+        return Bits.test(opcode.encoding, 3)
+                && Bits.test(regs8bits.get(Reg.F), 4);
+
+    }
+
     private void setRegFromAlu(Reg r, int vf) {
         regs8bits.set(r, Alu.unpackValue(vf));
     }
@@ -673,24 +665,18 @@ public final class Cpu implements Component, Clocked {
         return Alu.maskZNHC(z == Test, n == Test, h == Test, c == Test);
     }
 
-    private RotDir extractRotationDirection(int v) {
-        Preconditions.checkBits8(v);
-        return Bits.test(v, 3) ? RotDir.RIGHT : RotDir.LEFT;
+    private int bitIndex(Opcode o) {
+
+        return Bits.extract(o.encoding, 3, 3);
     }
 
-    private int bitIndex(int v) {
-        Preconditions.checkBits8(v);
-        return Bits.extract(v, 3, 3);
+    private int bitValue(Opcode o) {
+        return Bits.extract(o.encoding, 6, 1);
     }
 
-    private int bitValue(int v) {
-        Preconditions.checkBits8(v);
-        return Bits.extract(v, 6, 1);
-    }
+    private boolean withCarry(Opcode o) {
 
-    private boolean withCarry(int v) {
-        Preconditions.checkBits8(v);
-        return Bits.test(v, 3) && Bits.test(regs8bits.get(Reg.F), 4);
+        return Bits.test(o.encoding, 3) && Bits.test(regs8bits.get(Reg.F), 4);
     }
 
 }
