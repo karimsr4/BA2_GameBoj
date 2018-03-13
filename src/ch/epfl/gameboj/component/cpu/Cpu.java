@@ -389,8 +389,8 @@ public final class Cpu implements Component, Clocked {
         }
             break;
         case INC_HLR: {
-            int result=Alu.add(reg16(Reg16.HL), 1);
-            write8AtHl(Alu.unpackValue(result));
+            int result=Alu.add(read8AtHl(),1);
+            write8AtHl(result);
             combineAluFlags(result, FlagSrc.ALU, FlagSrc.V0, FlagSrc.ALU,
                     FlagSrc.CPU);
         }
@@ -416,6 +416,7 @@ public final class Cpu implements Component, Clocked {
         }
             break;
         case LD_HLSP_S8: {
+            
             
         }
             break;
@@ -500,13 +501,16 @@ public final class Cpu implements Component, Clocked {
         }
             break;
         case CPL: {
-
+            int result= Bits.complement8(regs8bits.get(Reg.A));
+            setRegFromAlu(Reg.A, result);
+            combineAluFlags(result, FlagSrc.CPU, FlagSrc.V1, FlagSrc.V1,
+                    FlagSrc.CPU);
         }
             break;
 
         // Rotate, shift
         case ROTCA: {
-            // averifier
+           
 
 
              int result=Alu.rotate(rotationDir(opcode), regs8bits.get(Reg.A));
@@ -637,7 +641,7 @@ public final class Cpu implements Component, Clocked {
     }
 
     private void write8AtHlAndSetFlags(int vf) {
-        write8(reg16(Reg16.HL), Alu.unpackValue(vf));
+        write8AtHl( Alu.unpackValue(vf));
         setFlags(vf);
     }
 
