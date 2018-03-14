@@ -85,7 +85,14 @@ public final class Cpu implements Component, Clocked {
         Opcode opcode;
         if (cycle == nextNonIdleCycle) {
             encoding = read8(PC);
-            opcode = DIRECT_OPCODE_TABLE[encoding];
+            if(encoding ==0xCB) {
+                encoding=read8(PC+1);
+                opcode = PREFIXED_OPCODE_TABLE[encoding];
+            } 
+            else {
+                opcode = DIRECT_OPCODE_TABLE[encoding];  
+            }
+            
             dispatch(opcode);
             nextNonIdleCycle += opcode.cycles;
             PC += opcode.totalBytes;
