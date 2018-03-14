@@ -417,7 +417,18 @@ public final class Cpu implements Component, Clocked {
         }
             break;
         case LD_HLSP_S8: {
-
+            int result = Alu.add16H(SP,(byte)read8AfterOpcode());
+            if(bitValue(opcode)) {
+                setReg16(Reg16.HL, Alu.unpackValue(result));
+            }
+            else {
+                SP=Alu.unpackValue(result);
+            }
+            
+            combineAluFlags(result, FlagSrc.V0, FlagSrc.V0, FlagSrc.ALU,
+                    FlagSrc.ALU);
+            
+           
         }
             break;
 
@@ -755,7 +766,7 @@ public final class Cpu implements Component, Clocked {
     }
 
     private boolean bitValue(Opcode o) {
-        return Bits.extract(o.encoding, 6, 1) == 1 ? true : false;
+        return Bits.test(o.encoding, 6);
     }
 
     private boolean withCarry(Opcode o) {
