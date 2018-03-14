@@ -426,35 +426,73 @@ public final class Cpu implements Component, Clocked {
             int result;
               if (Bits.test(opcode.encoding, 4)) {
                   result=Alu.sub(regs8bits.get(Reg.A), regs8bits.get(extractReg(opcode, 0)), Bits.test(regs8bits.get(Reg.F), 4));
-                  setRegFlags(Reg.A, result);
               }else {
                   result=Alu.sub(regs8bits.get(Reg.A), regs8bits.get(extractReg(opcode, 0)));
-                  setRegFlags(Reg.A, result); 
               }
+              setRegFlags(Reg.A, result); 
         }
             break;
         case SUB_A_N8: {
+            int result;
+            if (Bits.test(opcode.encoding, 4)) {
+                result=Alu.sub(regs8bits.get(Reg.A), read8AfterOpcode(), Bits.test(regs8bits.get(Reg.F), 4));
+            }else {
+                result=Alu.sub(regs8bits.get(Reg.A), read8AfterOpcode());
+                 
+            }
+            setRegFlags(Reg.A, result);
         }
             break;
         case SUB_A_HLR: {
+            int result;
+            if (Bits.test(opcode.encoding, 4)) {
+                result=Alu.sub(regs8bits.get(Reg.A), read8AtHl(), Bits.test(regs8bits.get(Reg.F), 4));
+            }else {
+                result=Alu.sub(regs8bits.get(Reg.A), read8AtHl());
+                 
+            }
+            setRegFlags(Reg.A, result);
         }
             break;
         case DEC_R8: {
+            Reg register = extractReg(opcode, 3);
+            int result=Alu.sub(regs8bits.get(register), 1);
+            setRegFromAlu(register, result);
+            combineAluFlags(result, FlagSrc.ALU, FlagSrc.V1, FlagSrc.ALU, FlagSrc.CPU);
+                   
         }
             break;
         case DEC_HLR: {
+            int result=Alu.sub(read8AtHl(), 1);
+            write8AtHl(result);
+            combineAluFlags(result, FlagSrc.ALU, FlagSrc.V1, FlagSrc.ALU, FlagSrc.CPU);
         }
             break;
         case CP_A_R8: {
+            int  result=Alu.sub(regs8bits.get(Reg.A), regs8bits.get(extractReg(opcode, 0)));
+            setFlags(result); 
         }
             break;
         case CP_A_N8: {
+           
+              int  result=Alu.sub(regs8bits.get(Reg.A), read8AfterOpcode());
+              setFlags(result);   
+            
         }
             break;
         case CP_A_HLR: {
+            int  result=Alu.sub(regs8bits.get(Reg.A), read8AtHl());
+            setFlags(result);
         }
             break;
         case DEC_R16SP: {
+            Reg16 register=extractReg16(opcode);
+            if (register==Reg16.AF) {
+                setReg16SP(register, SP-1);
+            }
+            else {
+                setReg16(register, reg16(register)-1);
+            }
         }
             break;
 
