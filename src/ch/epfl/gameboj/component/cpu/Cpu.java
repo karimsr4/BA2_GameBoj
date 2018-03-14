@@ -398,27 +398,32 @@ public final class Cpu implements Component, Clocked {
         }
             break;
         case INC_R16SP: {
-            int result = Alu.add16H(reg16(extractReg16(opcode)), 1);
+            int result = Alu.add16H(extractReg16SPValue(opcode), 1);
             setReg16SP(extractReg16(opcode), Alu.unpackValue(result));
         }
             break;
         case ADD_HL_R16SP: {
-            int result = 0;
-            Reg16 reg = extractReg16(opcode);
-            if (reg == Reg16.AF) {
+            
+            int result = Alu.add16H(reg16(Reg16.HL), extractReg16SPValue(opcode));
+            setReg16(Reg16.HL, Alu.unpackValue(result));
+            combineAluFlags(result, FlagSrc.CPU, FlagSrc.V0, FlagSrc.ALU,
+                    FlagSrc.ALU);
+            
+        /*    if (reg == Reg16.AF) {
                 result = Alu.add16H(reg16(Reg16.HL), SP);
             } else {
                 result = Alu.add16H(reg16(Reg16.HL), reg16(reg));
             }
             setReg16(Reg16.HL, Alu.unpackValue(result));
             combineAluFlags(result, FlagSrc.CPU, FlagSrc.V0, FlagSrc.ALU,
-                    FlagSrc.ALU);
+                    FlagSrc.ALU);*/
 
         }
             break;
         case LD_HLSP_S8: {
-            int result = Alu.add16H(SP,(byte)read8AfterOpcode());
-            if(bitValue(opcode)) {
+          //  int result = Alu.add16H(SP,(byte)read8AfterOpcode());
+            int result = Alu.add16H(SP,Bits.signExtend8(read8AfterOpcode()));
+            if(Bits.test(opcode.encoding, 4)) {
                 setReg16(Reg16.HL, Alu.unpackValue(result));
             }
             else {
@@ -434,34 +439,17 @@ public final class Cpu implements Component, Clocked {
 
         // Subtract
         case SUB_A_R8: {
-            int result;
-              if (Bits.test(opcode.encoding, 4)) {
-                  result=Alu.sub(regs8bits.get(Reg.A), regs8bits.get(extractReg(opcode, 0)), Bits.test(regs8bits.get(Reg.F), 4));
-              }else {
-                  result=Alu.sub(regs8bits.get(Reg.A), regs8bits.get(extractReg(opcode, 0)));
-              }
+            int result=Alu.sub(regs8bits.get(Reg.A), regs8bits.get(extractReg(opcode, 0)), withCarry(opcode));
               setRegFlags(Reg.A, result); 
         }
             break;
         case SUB_A_N8: {
-            int result;
-            if (Bits.test(opcode.encoding, 4)) {
-                result=Alu.sub(regs8bits.get(Reg.A), read8AfterOpcode(), Bits.test(regs8bits.get(Reg.F), 4));
-            }else {
-                result=Alu.sub(regs8bits.get(Reg.A), read8AfterOpcode());
-                 
-            }
+            int result=Alu.sub(regs8bits.get(Reg.A), read8AfterOpcode(), withCarry(opcode));
             setRegFlags(Reg.A, result);
         }
             break;
         case SUB_A_HLR: {
-            int result;
-            if (Bits.test(opcode.encoding, 4)) {
-                result=Alu.sub(regs8bits.get(Reg.A), read8AtHl(), Bits.test(regs8bits.get(Reg.F), 4));
-            }else {
-                result=Alu.sub(regs8bits.get(Reg.A), read8AtHl());
-                 
-            }
+            int result=Alu.sub(regs8bits.get(Reg.A), read8AtHl(), withCarry(opcode));    
             setRegFlags(Reg.A, result);
         }
             break;
@@ -497,14 +485,9 @@ public final class Cpu implements Component, Clocked {
         }
             break;
         case DEC_R16SP: {
-            Reg16 register=extractReg16(opcode);
-            if (register==Reg16.AF) {
-                setReg16SP(register, SP-1);
-            }
-            else {
-                setReg16(register, reg16(register)-1);
-            }
-        }
+         int result=Alu.sub(extractReg16SPValue(opcode), 1)  ;
+         setReg16SP(extractReg16(opcode), Alu.unpackValue(result));
+         }
             break;
 
         // And, or, xor, complement
@@ -687,34 +670,16 @@ public final class Cpu implements Component, Clocked {
         }
             break;
         case SCCF: {
-            if((setOrReset(opcode)) && (Bits.test(regs8bits.get(Reg.F), 4))) {
-                combineAluFlags(1, FlagSrc.CPU, FlagSrc.V0, FlagSrc.V0,
-                        FlagSrc.V0);
-                
-            }
-            else {
-                combineAluFlags(1, FlagSrc.CPU, FlagSrc.V0, FlagSrc.V0,
-                        FlagSrc.V1);
-            }
-            
-        }
+         int result=Bits.set(regs8bits.get(Reg.F), 4, !(withCarry(opcode)));
+         combineAluFlags(result, FlagSrc.CPU, FlagSrc.V0, FlagSrc.V0, FlagSrc.ALU);
             break;
         }
-
+        }
     }
-    private boolean setOrReset(Opcode opcode) {
-        return Bits.test(opcode.encoding, 3)? true : false;
-        
-    }
+ 
 
     private static RotDir rotationDir(Opcode opcode) {
         return (Bits.test(opcode.encoding, 3)) ? RotDir.RIGHT : RotDir.LEFT;
-
-    }
-
-    private boolean combineFanionCBit3(Opcode opcode) {
-        return Bits.test(opcode.encoding, 3)
-                && Bits.test(regs8bits.get(Reg.F), 4);
 
     }
 
@@ -772,6 +737,23 @@ public final class Cpu implements Component, Clocked {
     private boolean withCarry(Opcode o) {
 
         return Bits.test(o.encoding, 3) && Bits.test(regs8bits.get(Reg.F), 4);
+    }
+    
+    
+    private  int extractReg16SPValue(Opcode opcode) {
+        int r = Bits.extract(opcode.encoding, 4, 2);
+        switch (r) {
+        case 0b00:
+            return reg16(Reg16.BC);
+        case 0b01:
+            return reg16(Reg16.DE);
+        case 0b10:
+            return reg16(Reg16.HL);
+        default:
+            return SP;
+
+        }
+   
     }
 
 }
