@@ -642,27 +642,58 @@ public final class Cpu implements Component, Clocked {
 
         // Bit test and set
         case BIT_U3_R8: {
+            int result=Alu.testBit(regs8bits.get(extractReg(opcode, 0)), bitIndex(opcode));
+            combineAluFlags(result, FlagSrc.ALU, FlagSrc.V0, FlagSrc.V1,
+                    FlagSrc.CPU);
         }
             break;
         case BIT_U3_HLR: {
+            int result=Alu.testBit(read8AtHl(), bitIndex(opcode));
+            combineAluFlags(result, FlagSrc.ALU, FlagSrc.V0, FlagSrc.V1,
+                    FlagSrc.CPU);
+            
         }
             break;
         case CHG_U3_R8: {
+            Reg reg=extractReg(opcode, 0);
+            regs8bits.set(reg,Bits.set(regs8bits.get(reg), bitIndex(opcode),bitValue(opcode)));
+            
         }
             break;
         case CHG_U3_HLR: {
+            write8AtHl(Bits.set(read8AtHl(), bitIndex(opcode),bitValue(opcode)));
         }
             break;
 
         // Misc. ALU
         case DAA: {
+            int Fvalue=regs8bits.get(Reg.F);
+            int result = Alu.bcdAdjust(regs8bits.get(Reg.A), Bits.test(Fvalue, 6),Bits.test(Fvalue,5), Bits.test(Fvalue,4));
+            setRegFromAlu(Reg.A, result);
+            combineAluFlags(result, FlagSrc.ALU, FlagSrc.CPU, FlagSrc.V0,
+                    FlagSrc.ALU);
+            
         }
             break;
         case SCCF: {
+            if((setOrReset(opcode)) && (Bits.test(regs8bits.get(Reg.F), 4))) {
+                combineAluFlags(1, FlagSrc.CPU, FlagSrc.V0, FlagSrc.V0,
+                        FlagSrc.V0);
+                
+            }
+            else {
+                combineAluFlags(1, FlagSrc.CPU, FlagSrc.V0, FlagSrc.V0,
+                        FlagSrc.V1);
+            }
+            
         }
             break;
         }
 
+    }
+    private boolean setOrReset(Opcode opcode) {
+        return Bits.test(opcode.encoding, 3)? true : false;
+        
     }
 
     private static RotDir rotationDir(Opcode opcode) {
@@ -723,8 +754,8 @@ public final class Cpu implements Component, Clocked {
         return Bits.extract(o.encoding, 3, 3);
     }
 
-    private int bitValue(Opcode o) {
-        return Bits.extract(o.encoding, 6, 1);
+    private boolean bitValue(Opcode o) {
+        return Bits.extract(o.encoding, 6, 1) == 1 ? true : false;
     }
 
     private boolean withCarry(Opcode o) {
