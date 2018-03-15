@@ -300,7 +300,8 @@ public final class Cpu implements Component, Clocked {
         }
             break;
         case LD_A_DER: {
-            regs8bits.set(Reg.A, read16(reg16(Reg16.DE)));
+            regs8bits.set(Reg.A, read8(reg16(Reg16.DE)));
+           // regs8bits.set(Reg.A, read16(reg16(Reg16.DE)));
         }
             break;
         case LD_R8_N8: {
