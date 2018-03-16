@@ -86,7 +86,7 @@ public final class Cpu implements Component, Clocked {
         if (cycle == nextNonIdleCycle) {
             encoding = read8(PC);
             if(encoding ==0xCB) {
-                encoding=read8(PC+1);
+                encoding=read8AfterOpcode();
                 opcode = PREFIXED_OPCODE_TABLE[encoding];
             } 
             else {
@@ -560,14 +560,18 @@ public final class Cpu implements Component, Clocked {
         case ROTCA: {
 
             int result = Alu.rotate(rotationDir(opcode), regs8bits.get(Reg.A));
-            setRegFlags(Reg.A, result);
+            setRegFromAlu(Reg.A, result);
+            combineAluFlags(result, FlagSrc.V0, FlagSrc.V0, FlagSrc.ALU, FlagSrc.ALU);
 
         }
             break;
         case ROTA: {
-            int result = Alu.rotate(rotationDir(opcode), regs8bits.get(Reg.A),
-                    Bits.test(regs8bits.get(Reg.F), 4));
-            setRegFlags(Reg.A, result);
+            int result = Alu.rotate(rotationDir(opcode), regs8bits.get(Reg.A),Bits.test(regs8bits.get(Reg.F), 4));
+            setRegFromAlu(Reg.A, result);
+            combineAluFlags(result, FlagSrc.V0, FlagSrc.V0, FlagSrc.ALU, FlagSrc.ALU);
+         //   int result = Alu.rotate(rotationDir(opcode), regs8bits.get(Reg.A),
+           //         Bits.test(regs8bits.get(Reg.F), 4));
+          //  setRegFlags(Reg.A, result);
 
         }
             break;
