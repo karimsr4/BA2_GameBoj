@@ -24,6 +24,8 @@ public class MiniCpuTest1 {
         for (long c = 0; c < cycles; ++c)
             cpu.cycle(c);
     }
+    
+    @Test
     public void testDAA() {
         Cpu c = new Cpu();
         Ram r = new Ram(10);
