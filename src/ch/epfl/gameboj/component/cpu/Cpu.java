@@ -47,7 +47,7 @@ public final class Cpu implements Component, Clocked {
     private static final Opcode[] PREFIXED_OPCODE_TABLE = buildOpcodeTable(
             Opcode.Kind.PREFIXED);
     private Bus bus;
-    private RegisterFile<Reg> regs8bits = new RegisterFile<Reg>(Reg.values());
+    private static RegisterFile<Reg> regs8bits = new RegisterFile<Reg>(Reg.values());
     private long nextNonIdleCycle;
 
     /**
@@ -400,7 +400,7 @@ public final class Cpu implements Component, Clocked {
             break;
         case INC_HLR: {
             int result = Alu.add(read8AtHl(), 1);
-            write8AtHl(result);
+            write8AtHl(Alu.unpackValue(result));
             combineAluFlags(result, FlagSrc.ALU, FlagSrc.V0, FlagSrc.ALU,
                     FlagSrc.CPU);
         }
@@ -430,7 +430,7 @@ public final class Cpu implements Component, Clocked {
             break;
         case LD_HLSP_S8: {
           //  int result = Alu.add16H(SP,(byte)read8AfterOpcode());
-            int result = Alu.add16H(SP,Bits.signExtend8(read8AfterOpcode()));
+            int result = Alu.add16L(SP,Bits.signExtend8(read8AfterOpcode()));
             if(Bits.test(opcode.encoding, 4)) {
                 setReg16(Reg16.HL, Alu.unpackValue(result));
             }
@@ -550,8 +550,8 @@ public final class Cpu implements Component, Clocked {
             break;
         case CPL: {
             int result = Bits.complement8(regs8bits.get(Reg.A));
-            setRegFromAlu(Reg.A, result);
-            combineAluFlags(result, FlagSrc.CPU, FlagSrc.V1, FlagSrc.V1,
+            regs8bits.set(Reg.A, result);
+            combineAluFlags(555555555, FlagSrc.CPU, FlagSrc.V1, FlagSrc.V1,
                     FlagSrc.CPU);
         }
             break;
@@ -713,25 +713,26 @@ public final class Cpu implements Component, Clocked {
         setFlags(vf);
     }
 
-    private enum FlagSrc implements Bit {
+    public enum FlagSrc implements Bit {
         V0, V1, ALU, CPU
 
     }
 
-    private void combineAluFlags(int vf, FlagSrc z, FlagSrc n, FlagSrc h,
+    public static void combineAluFlags(int vf, FlagSrc z, FlagSrc n, FlagSrc h,
             FlagSrc c) {
         int V1_mask = getFlagSrcMask(FlagSrc.V1, z, n, h, c);
         int ALU_mask = getFlagSrcMask(FlagSrc.ALU, z, n, h, c);
         int CPU_mask = getFlagSrcMask(FlagSrc.CPU, z, n, h, c);
 
-        int result = (V1_mask) | (ALU_mask & Alu.unpackFlags(vf))
+        int result = (V1_mask) | (ALU_mask & vf)
                 | (CPU_mask & regs8bits.get(Reg.F));
+        System.out.println(result);
 
         regs8bits.set(Reg.F, result);
 
     }
 
-    private int getFlagSrcMask(FlagSrc Test, FlagSrc z, FlagSrc n, FlagSrc h,
+    private static int getFlagSrcMask(FlagSrc Test, FlagSrc z, FlagSrc n, FlagSrc h,
             FlagSrc c) {
 
         return Alu.maskZNHC(z == Test, n == Test, h == Test, c == Test);

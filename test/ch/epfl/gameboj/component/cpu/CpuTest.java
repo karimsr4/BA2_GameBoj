@@ -579,6 +579,22 @@ class CpuTest {
             }
         }
     }
+    
+    
+    @Test
+    void cP_A_N8Works() throws IOException {
+        Opcode[] os = new Opcode[] {
+                CP_A_N8
+        };
+        try (ByteArrayOutputStream s = new ByteArrayOutputStream()) {
+            emitN8(s, os[0], 0x12);
+           
+            int[] e = cpuState(2, 0, 0, 0x80, 0, 0, 0, 0, 0, 0);
+            assertCpuStateEquals(e, stateAfter(s, totalCycles(os)));
+        }
+    }
+    
+    
 
     private static int combine(int h, int l) {
         return (h << 8) | l;
@@ -656,6 +672,12 @@ class CpuTest {
     }
 }
 
+
+
+
+
+
+
 class ProgRom implements Component {
     private final byte[] p;
 
@@ -673,4 +695,13 @@ class ProgRom implements Component {
 
     @Override
     public void write(int address, int data) { }
+    
+    
+    
+    
+    
+    
+    
+    
+    
 }
