@@ -2,13 +2,14 @@ package ch.epfl.gameboj.component.cpu;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
+
 import ch.epfl.gameboj.AddressMap;
 import ch.epfl.gameboj.Bus;
 import ch.epfl.gameboj.RandomGenerator;
 import ch.epfl.gameboj.bits.Bits;
+import ch.epfl.gameboj.component.cpu.Alu.RotDir;
 import ch.epfl.gameboj.component.memory.Ram;
 import ch.epfl.gameboj.component.memory.RamController;
 
@@ -1638,4 +1639,38 @@ public class MiniCpuTest {
 		}
 	}
 
+	
+	@Test 
+    void RotCALeft () {
+            for(int i = 0; i < RandomGenerator.RANDOM_ITERATIONS; i++) {
+                Cpu cpu = new Cpu();
+                Ram ram = new Ram(5);
+                Bus bus = connect(cpu, ram);
+                int valueA = RandomGenerator.randomBit(8);
+                bus.write(0, Opcode.LD_A_N8.encoding);
+                bus.write(1, valueA);
+                bus.write(2, Opcode.RLCA.encoding);
+                cycleCpu(cpu, Opcode.LD_A_N8.cycles + Opcode.RLCA.cycles);
+                assertEquals(Alu.unpackValue(Alu.rotate(RotDir.LEFT, valueA)), cpu._testGetPcSpAFBCDEHL()[2]);
+                assertEquals(3, cpu._testGetPcSpAFBCDEHL()[0]);
+                assertEquals(Alu.unpackFlags(Alu.rotate(RotDir.LEFT, valueA)) & (1 << 4), cpu._testGetPcSpAFBCDEHL()[3]);
+            }
+    }
+    
+    @Test 
+    void RotCARight () {
+            for(int i = 0; i < RandomGenerator.RANDOM_ITERATIONS; i++) {
+                Cpu cpu = new Cpu();
+                Ram ram = new Ram(5);
+                Bus bus = connect(cpu, ram);
+                int valueA = RandomGenerator.randomBit(8);
+                bus.write(0, Opcode.LD_A_N8.encoding);
+                bus.write(1, valueA);
+                bus.write(2, Opcode.RRCA.encoding);
+                cycleCpu(cpu, Opcode.LD_A_N8.cycles + Opcode.RRCA.cycles);
+                assertEquals(Alu.unpackValue(Alu.rotate(RotDir.RIGHT, valueA)), cpu._testGetPcSpAFBCDEHL()[2]);
+                assertEquals(3, cpu._testGetPcSpAFBCDEHL()[0]);
+                assertEquals(Alu.unpackFlags(Alu.rotate(RotDir.RIGHT, valueA)) & (1 << 4), cpu._testGetPcSpAFBCDEHL()[3]);
+            }
+    }
 }
