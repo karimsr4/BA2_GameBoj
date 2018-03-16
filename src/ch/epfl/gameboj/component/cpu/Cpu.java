@@ -418,12 +418,18 @@ public final class Cpu implements Component, Clocked {
             combineAluFlags(result, FlagSrc.CPU, FlagSrc.V0, FlagSrc.ALU,
                     FlagSrc.ALU);
 
+<<<<<<< HEAD
             
 
         }
             break;
         case LD_HLSP_S8: {
             
+=======
+        }
+            break;
+        case LD_HLSP_S8: {
+>>>>>>> 45798feefe7cd6aa4f9763060d976f9d485a60d1
             int result = Alu.add16L(SP,
                     Bits.clip(16, Bits.signExtend8(read8AfterOpcode())));
             if (Bits.test(opcode.encoding, 4)) {
@@ -468,7 +474,7 @@ public final class Cpu implements Component, Clocked {
             break;
         case DEC_HLR: {
             int result = Alu.sub(read8AtHl(), 1);
-            write8AtHl(result);
+            write8AtHl(Alu.unpackValue(result));
             combineAluFlags(result, FlagSrc.ALU, FlagSrc.V1, FlagSrc.ALU,
                     FlagSrc.CPU);
         }
@@ -550,7 +556,7 @@ public final class Cpu implements Component, Clocked {
         case CPL: {
             int result = Bits.complement8(regs8bits.get(Reg.A));
             regs8bits.set(Reg.A, result);
-            combineAluFlags(555555555, FlagSrc.CPU, FlagSrc.V1, FlagSrc.V1,
+            combineAluFlags(0, FlagSrc.CPU, FlagSrc.V1, FlagSrc.V1,
                     FlagSrc.CPU);
         }
             break;

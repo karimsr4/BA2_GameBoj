@@ -24,6 +24,10 @@ public class MiniCpuTest1 {
         for (long c = 0; c < cycles; ++c)
             cpu.cycle(c);
     }
+<<<<<<< HEAD
+=======
+    
+>>>>>>> 45798feefe7cd6aa4f9763060d976f9d485a60d1
     @Test
     public void testDAA() {
         Cpu c = new Cpu();
