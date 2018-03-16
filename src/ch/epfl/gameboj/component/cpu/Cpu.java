@@ -418,18 +418,11 @@ public final class Cpu implements Component, Clocked {
             combineAluFlags(result, FlagSrc.CPU, FlagSrc.V0, FlagSrc.ALU,
                     FlagSrc.ALU);
 
-<<<<<<< HEAD
-            
 
         }
             break;
         case LD_HLSP_S8: {
-            
-=======
-        }
-            break;
-        case LD_HLSP_S8: {
->>>>>>> 45798feefe7cd6aa4f9763060d976f9d485a60d1
+
             int result = Alu.add16L(SP,
                     Bits.clip(16, Bits.signExtend8(read8AfterOpcode())));
             if (Bits.test(opcode.encoding, 4)) {
