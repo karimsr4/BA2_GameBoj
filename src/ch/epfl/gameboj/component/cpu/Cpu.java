@@ -498,8 +498,8 @@ public final class Cpu implements Component, Clocked {
         }
             break;
         case DEC_R16SP: {
-            int result = Alu.sub(extractReg16SPValue(opcode), 1);
-            setReg16SP(extractReg16(opcode), Alu.unpackValue(result));
+            int result = Bits.clip(16, extractReg16SPValue(opcode)-1);
+            setReg16SP(extractReg16(opcode), result);
         }
             break;
 

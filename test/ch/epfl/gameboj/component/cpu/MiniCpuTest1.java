@@ -24,11 +24,26 @@ public class MiniCpuTest1 {
         for (long c = 0; c < cycles; ++c)
             cpu.cycle(c);
     }
+    public void testDAA() {
+        Cpu c = new Cpu();
+        Ram r = new Ram(10);
+        Bus b = connect(c, r);
+        b.write(0, Opcode.LD_A_N8.encoding);
+        b.write(1, 0b00110101);
+        b.write(2, Opcode.ADD_A_N8.encoding);
+        b.write(3, 0b00111000);
+        b.write(4,Opcode.DAA.encoding);
+        assertArrayEquals(new int[] {4,0,0b01110011,0b0,0,0,0,0,0,0}, c._testGetPcSpAFBCDEHL());
+    }
+        
+   
+        
+    
 
  /*   @Test
     void nopDoesNothing() {
         Cpu c = new Cpu();
-        Ram r = new Ram(10);
+        Ram r = new Ramb10);
         Bus b = connect(c, r);
         b.write(0, Opcode.NOP.encoding);
         cycleCpu(c, Opcode.NOP.cycles);
