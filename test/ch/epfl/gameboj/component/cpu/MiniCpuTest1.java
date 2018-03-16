@@ -143,15 +143,18 @@ public class MiniCpuTest1 {
     
     
     @Test 
-    void LD_R8_HLR_WorksOnKnowValues(){
+    void SCF_WorksOnKnowValues(){
         Cpu c = new Cpu();
         Ram r = new Ram(10);
         Bus b = connect(c, r);
+        
+        b.write(0, Opcode.ADD_A_N8.encoding);
+        b.write(1, 0);
+    
 
-        b.write(0, Opcode.LD_A_HLR.encoding);
-        b.write(1, 0x11);
-        cycleCpu(c, Opcode.LD_A_HLR.cycles);
-        assertArrayEquals(new int[] { 1,0,126,0,0,0,0,0,0,0}, c._testGetPcSpAFBCDEHL());
+        b.write(2, Opcode.SCF.encoding);
+        cycleCpu(c, 3);
+        assertArrayEquals(new int[] { 3,0,0,144,0,0,0,0,0,0}, c._testGetPcSpAFBCDEHL());
         
     }
     
