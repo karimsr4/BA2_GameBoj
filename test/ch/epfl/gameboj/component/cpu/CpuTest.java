@@ -38,6 +38,21 @@ class CpuTest {
         for (long c = 0; c < cycles; ++c)
             cpu.cycle(c);
     }
+    @Test
+    public void ChgWorks() {
+        Cpu c = new Cpu();
+        Ram r = new Ram(10);
+        Bus b = connect(c, r);
+        b.write(2, 0xCB);
+        b.write(0, Opcode.LD_A_N8.encoding);
+        b.write(1, 0b00100011);
+        b.write(3,Opcode.RES_0_A.encoding);
+        cycleCpu(c, Opcode.SET_2_A.cycles+Opcode.LD_A_N8.cycles);
+        assertArrayEquals(new int [] {4, 0, 0b00100010, 0, 0, 0, 0, 0, 0, 0}, c._testGetPcSpAFBCDEHL());
+        
+        
+    }
+    
     
 
     
