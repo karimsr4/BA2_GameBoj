@@ -724,12 +724,12 @@ public final class Cpu implements Component, Clocked {
         setFlags(vf);
     }
 
-    public enum FlagSrc implements Bit {
+    private enum FlagSrc implements Bit {
         V0, V1, ALU, CPU
 
     }
 
-    public static void combineAluFlags(int vf, FlagSrc z, FlagSrc n, FlagSrc h,
+    private static void combineAluFlags(int vf, FlagSrc z, FlagSrc n, FlagSrc h,
             FlagSrc c) {
         int V1_mask = getFlagSrcMask(FlagSrc.V1, z, n, h, c);
         int ALU_mask = getFlagSrcMask(FlagSrc.ALU, z, n, h, c);
