@@ -266,6 +266,7 @@ public final class Cpu implements Component, Clocked {
      * @param opcode
      */
     private void dispatch(Opcode opcode) {
+        System.out.println(opcode.family);
         switch (opcode.family) {
         case NOP: {
         }
@@ -661,6 +662,7 @@ public final class Cpu implements Component, Clocked {
             break;
         case CHG_U3_R8: {
             Reg reg = extractReg(opcode, 0);
+            System.out.println(regs8bits.get(reg));
             regs8bits.set(reg, Bits.set(regs8bits.get(reg), bitIndex(opcode),
                     bitValue(opcode)));
 
