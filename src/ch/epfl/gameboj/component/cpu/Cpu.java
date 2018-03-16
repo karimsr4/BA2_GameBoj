@@ -301,7 +301,7 @@ public final class Cpu implements Component, Clocked {
             break;
         case LD_A_DER: {
             regs8bits.set(Reg.A, read8(reg16(Reg16.DE)));
-            // regs8bits.set(Reg.A, read16(reg16(Reg16.DE)));
+           
         }
             break;
         case LD_R8_N8: {
@@ -418,18 +418,12 @@ public final class Cpu implements Component, Clocked {
             combineAluFlags(result, FlagSrc.CPU, FlagSrc.V0, FlagSrc.ALU,
                     FlagSrc.ALU);
 
-            /*
-             * if (reg == Reg16.AF) { result = Alu.add16H(reg16(Reg16.HL), SP);
-             * } else { result = Alu.add16H(reg16(Reg16.HL), reg16(reg)); }
-             * setReg16(Reg16.HL, Alu.unpackValue(result));
-             * combineAluFlags(result, FlagSrc.CPU, FlagSrc.V0, FlagSrc.ALU,
-             * FlagSrc.ALU);
-             */
+            
 
         }
             break;
         case LD_HLSP_S8: {
-            // int result = Alu.add16L(SP,(byte)read8AfterOpcode());
+            
             int result = Alu.add16L(SP,
                     Bits.clip(16, Bits.signExtend8(read8AfterOpcode())));
             if (Bits.test(opcode.encoding, 4)) {
