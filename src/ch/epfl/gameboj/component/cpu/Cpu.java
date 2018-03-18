@@ -50,6 +50,9 @@ public final class Cpu implements Component, Clocked {
     private static RegisterFile<Reg> regs8bits = new RegisterFile<Reg>(
             Reg.values());
     private long nextNonIdleCycle;
+    public enum Interrupt implements Bit {
+        VBLANK, LCD_STAT, TIMER, SERIAL, JOYPAD
+      }
 
     /**
      * Constructeur publique du CPU
@@ -116,6 +119,21 @@ public final class Cpu implements Component, Clocked {
         this.bus = bus;
         bus.attach(this);
     }
+    
+    
+    //ajouté a l'etape 5
+    public void requestInterrupt(Interrupt i) {
+        int bit=i.index();
+        
+        
+        
+    }
+    
+    
+    
+    
+    
+    
 
     private static Opcode[] buildOpcodeTable(Kind kind) {
         Opcode[] opcodes = new Opcode[256];
@@ -260,6 +278,11 @@ public final class Cpu implements Component, Clocked {
         return (Bits.test(opcode.encoding, 4)) ? -1 : +1;
 
     }
+    
+    
+    
+    
+    
 
     // dispatch method
     /**
@@ -302,7 +325,7 @@ public final class Cpu implements Component, Clocked {
             break;
         case LD_A_DER: {
             regs8bits.set(Reg.A, read8(reg16(Reg16.DE)));
-           
+
         }
             break;
         case LD_R8_N8: {
@@ -419,7 +442,6 @@ public final class Cpu implements Component, Clocked {
             combineAluFlags(result, FlagSrc.CPU, FlagSrc.V0, FlagSrc.ALU,
                     FlagSrc.ALU);
 
-
         }
             break;
         case LD_HLSP_S8: {
@@ -492,7 +514,7 @@ public final class Cpu implements Component, Clocked {
         }
             break;
         case DEC_R16SP: {
-            int result = Bits.clip(16, extractReg16SPValue(opcode)-1);
+            int result = Bits.clip(16, extractReg16SPValue(opcode) - 1);
             setReg16SP(extractReg16(opcode), result);
         }
             break;
@@ -693,6 +715,62 @@ public final class Cpu implements Component, Clocked {
                     FlagSrc.ALU);
             break;
         }
+        // Jumps
+        case JP_HL: {
+            PC=reg16(Reg16.HL);
+        }
+            break;
+        case JP_N16: {
+            PC=read16AfterOpcode();
+        }
+            break;
+        case JP_CC_N16: {
+           if (testCondition(opcode))
+               PC=read16AfterOpcode();
+        }
+            break;
+        case JR_E8: {
+            PC=PC+1+Bits.signExtend8(read8AfterOpcode());
+        }
+            break;
+        case JR_CC_E8: {
+            if (testCondition(opcode))
+                PC=PC+1+Bits.signExtend8(read8AfterOpcode());
+        }
+            break;
+
+        // Calls and returns
+        case CALL_N16: {
+        }
+            break;
+        case CALL_CC_N16: {
+        }
+            break;
+        case RST_U3: {
+        }
+            break;
+        case RET: {
+        }
+            break;
+        case RET_CC: {
+        }
+            break;
+
+        // Interrupts
+        case EDI: {
+        }
+            break;
+        case RETI: {
+        }
+            break;
+
+        // Misc control
+        case HALT: {
+        }
+            break;
+        case STOP:
+            throw new Error("STOP is not implemented");
+
         }
     }
 
@@ -772,6 +850,21 @@ public final class Cpu implements Component, Clocked {
 
         }
 
+    }
+
+    private boolean testCondition(Opcode o) {
+        int condition = Bits.extract(o.encoding, 3, 2);
+        switch (condition) {
+        case 0b00:
+            return Bits.test(regs8bits.get(Reg.F), 7) == false;
+        case 0b01:
+            return Bits.test(regs8bits.get(Reg.F), 7) == true;
+        case 0b10:
+            return Bits.test(regs8bits.get(Reg.F), 4) == false;
+        default:
+            return Bits.test(regs8bits.get(Reg.F), 4) == true;
+
+        }
     }
 
 }
