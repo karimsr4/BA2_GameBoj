@@ -53,9 +53,10 @@ public final class Cpu implements Component, Clocked {
     private static RegisterFile<Reg> regs8bits = new RegisterFile<Reg>(
             Reg.values());
     private long nextNonIdleCycle;
+
     public enum Interrupt implements Bit {
         VBLANK, LCD_STAT, TIMER, SERIAL, JOYPAD
-      }
+    }
 
     /**
      * Constructeur publique du CPU
@@ -122,21 +123,14 @@ public final class Cpu implements Component, Clocked {
         this.bus = bus;
         bus.attach(this);
     }
-    
-    
-    //ajouté a l'etape 5
+
+    // ajouté a l'etape 5
     public void requestInterrupt(Interrupt i) {
-        int bit=i.index();
+        int bit = i.index();
+        IF=Bits.set(IF, bit, true);
         
-        
-        
+
     }
-    
-    
-    
-    
-    
-    
 
     private static Opcode[] buildOpcodeTable(Kind kind) {
         Opcode[] opcodes = new Opcode[256];
@@ -281,11 +275,6 @@ public final class Cpu implements Component, Clocked {
         return (Bits.test(opcode.encoding, 4)) ? -1 : +1;
 
     }
-    
-    
-    
-    
-    
 
     // dispatch method
     /**
@@ -720,33 +709,39 @@ public final class Cpu implements Component, Clocked {
         }
         // Jumps
         case JP_HL: {
-            PC=reg16(Reg16.HL);
+            PC = reg16(Reg16.HL);
         }
             break;
         case JP_N16: {
-            PC=read16AfterOpcode();
+            PC = read16AfterOpcode();
         }
             break;
         case JP_CC_N16: {
-           if (testCondition(opcode))
-               PC=read16AfterOpcode();
+            if (testCondition(opcode))
+                PC = read16AfterOpcode();
         }
             break;
         case JR_E8: {
-            PC=PC+1+Bits.signExtend8(read8AfterOpcode());
+            PC = PC + 1 + Bits.signExtend8(read8AfterOpcode());
         }
             break;
         case JR_CC_E8: {
             if (testCondition(opcode))
-                PC=PC+1+Bits.signExtend8(read8AfterOpcode());
+                PC = PC + 1 + Bits.signExtend8(read8AfterOpcode());
         }
             break;
 
         // Calls and returns
         case CALL_N16: {
+            push16(PC+1);
+            PC=read16AfterOpcode();
         }
             break;
         case CALL_CC_N16: {
+            push16(PC+1);
+            if (testCondition(opcode))
+                PC=read16AfterOpcode();
+                
         }
             break;
         case RST_U3: {
