@@ -69,6 +69,9 @@ public final class Cpu implements Component, Clocked {
 
         PC = 0;
         SP = 0;
+        IME=false;
+        IE=0;
+        IF=0;
 
     }
 
@@ -101,8 +104,7 @@ public final class Cpu implements Component, Clocked {
             }
 
             dispatch(opcode);
-            nextNonIdleCycle += opcode.cycles;
-            PC += opcode.totalBytes;
+           
         }
 
     }
@@ -282,6 +284,8 @@ public final class Cpu implements Component, Clocked {
      */
     private void dispatch(Opcode opcode) {
         System.out.println(opcode.family);
+        int nextPC=PC+opcode.totalBytes;
+        boolean needAdditionnalCycles=false;
         switch (opcode.family) {
         case NOP: {
         }
@@ -717,29 +721,36 @@ public final class Cpu implements Component, Clocked {
         }
             break;
         case JP_CC_N16: {
-            if (testCondition(opcode))
+            if (testCondition(opcode)) {
                 PC = read16AfterOpcode();
+                needAdditionnalCycles=true;
+            }
+               
         }
             break;
         case JR_E8: {
-            PC = PC + opcode.totalBytes + Bits.signExtend8(read8AfterOpcode());
+            PC = nextPC+ Bits.signExtend8(read8AfterOpcode());
         }
             break;
         case JR_CC_E8: {
-            if (testCondition(opcode))
-                PC = PC + opcode.totalBytes + Bits.signExtend8(read8AfterOpcode());
+            if (testCondition(opcode)) {
+                PC = nextPC + Bits.signExtend8(read8AfterOpcode());
+                needAdditionnalCycles=true;
+            }
+                
         }
             break;
 
         // Calls and returns
         case CALL_N16: {
-            push16(PC+opcode.totalBytes);
+            push16(nextPC);
             PC=read16AfterOpcode();
         }
             break;
         case CALL_CC_N16: {
             if (testCondition(opcode)) {
-                push16(PC+opcode.totalBytes);
+                needAdditionnalCycles=true;
+                push16(nextPC);
                 PC=read16AfterOpcode();
             }
                
@@ -747,7 +758,7 @@ public final class Cpu implements Component, Clocked {
         }
             break;
         case RST_U3: {
-            push16(PC+1);
+            push16(nextPC);
             PC=8 * bitIndex(opcode);
         }
             break;
@@ -756,8 +767,11 @@ public final class Cpu implements Component, Clocked {
         }
             break;
         case RET_CC: {
-            if (testCondition(opcode))
+            if (testCondition(opcode)) {
+                needAdditionnalCycles=true;
                 PC=pop16();
+            }
+                
                 
         }
             break;
@@ -776,6 +790,7 @@ public final class Cpu implements Component, Clocked {
 
         // Misc control
         case HALT: {
+            nextNonIdleCycle=Long.MAX_VALUE;
             
         }
             break;
@@ -783,6 +798,14 @@ public final class Cpu implements Component, Clocked {
             throw new Error("STOP is not implemented");
 
         }
+        
+        nextNonIdleCycle += opcode.cycles;
+        if (needAdditionnalCycles) {
+            nextNonIdleCycle+=opcode.additionalCycles;
+        }
+           
+        PC += opcode.totalBytes;
+        
     }
 
     private static RotDir rotationDir(Opcode opcode) {
