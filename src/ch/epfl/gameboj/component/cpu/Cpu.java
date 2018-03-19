@@ -722,25 +722,27 @@ public final class Cpu implements Component, Clocked {
         }
             break;
         case JR_E8: {
-            PC = PC + 1 + Bits.signExtend8(read8AfterOpcode());
+            PC = PC + opcode.totalBytes + Bits.signExtend8(read8AfterOpcode());
         }
             break;
         case JR_CC_E8: {
             if (testCondition(opcode))
-                PC = PC + 1 + Bits.signExtend8(read8AfterOpcode());
+                PC = PC + opcode.totalBytes + Bits.signExtend8(read8AfterOpcode());
         }
             break;
 
         // Calls and returns
         case CALL_N16: {
-            push16(PC+1);
+            push16(PC+opcode.totalBytes);
             PC=read16AfterOpcode();
         }
             break;
         case CALL_CC_N16: {
-            push16(PC+1);
-            if (testCondition(opcode))
+            if (testCondition(opcode)) {
+                push16(PC+opcode.totalBytes);
                 PC=read16AfterOpcode();
+            }
+               
                 
         }
             break;
