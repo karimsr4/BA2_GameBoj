@@ -745,20 +745,30 @@ public final class Cpu implements Component, Clocked {
         }
             break;
         case RST_U3: {
+            push16(PC+1);
+            PC=8 * bitIndex(opcode);
         }
             break;
         case RET: {
+            PC=pop16();
         }
             break;
         case RET_CC: {
+            if (testCondition(opcode))
+                PC=pop16();
+                
         }
             break;
 
         // Interrupts
         case EDI: {
+            IME=Bits.test(opcode.encoding, 3);
         }
             break;
         case RETI: {
+            IME=true;
+            PC=pop16();
+            
         }
             break;
 
