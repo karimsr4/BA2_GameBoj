@@ -42,6 +42,9 @@ public final class Cpu implements Component, Clocked {
 
     private int PC;
     private int SP;
+    private boolean IME;
+    private int IE;
+    private int IF;
     private static final Opcode[] DIRECT_OPCODE_TABLE = buildOpcodeTable(
             Opcode.Kind.DIRECT);
     private static final Opcode[] PREFIXED_OPCODE_TABLE = buildOpcodeTable(
