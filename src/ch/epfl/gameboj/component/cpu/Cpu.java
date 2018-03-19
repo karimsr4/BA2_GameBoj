@@ -776,6 +776,7 @@ public final class Cpu implements Component, Clocked {
 
         // Misc control
         case HALT: {
+            
         }
             break;
         case STOP:
