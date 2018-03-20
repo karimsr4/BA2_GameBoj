@@ -92,7 +92,12 @@ public final class Cpu implements Component, Clocked {
 
     @Override
     public void cycle(long cycle) {
-        int encoding;
+        if (cycle == nextNonIdleCycle)
+            reallyCycle();
+        
+        
+        
+   /*     int encoding;
         Opcode opcode;
         if (cycle == nextNonIdleCycle) {
             encoding = read8(PC);
@@ -105,8 +110,13 @@ public final class Cpu implements Component, Clocked {
 
             dispatch(opcode);
            
-        }
+        }*/
 
+    }
+
+    private void reallyCycle() {
+        // TODO Auto-generated method stub
+        
     }
 
     @Override
