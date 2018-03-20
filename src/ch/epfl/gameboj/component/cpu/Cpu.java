@@ -13,6 +13,7 @@ import ch.epfl.gameboj.component.Clocked;
 import ch.epfl.gameboj.component.Component;
 import ch.epfl.gameboj.component.cpu.Alu.RotDir;
 import ch.epfl.gameboj.component.cpu.Opcode.Kind;
+import ch.epfl.gameboj.component.memory.Ram;
 
 /**
  * classe simulant le processeur du GameBoy
@@ -39,7 +40,7 @@ public final class Cpu implements Component, Clocked {
             this.second = second;
         }
     }
-
+    private Ram highRam;
     private int PC;
     private int SP;
     private boolean IME;
@@ -69,9 +70,10 @@ public final class Cpu implements Component, Clocked {
 
         PC = 0;
         SP = 0;
-        IME=false;
-        IE=0;
-        IF=0;
+        IME = false;
+        IE = 0;
+        IF = 0;
+        highRam=new Ram (AddressMap.HIGH_RAM_SIZE);
 
     }
 
@@ -92,14 +94,29 @@ public final class Cpu implements Component, Clocked {
 
     @Override
     public void cycle(long cycle) {
+        
+        if(nextNonIdleCycle==Long.MAX_VALUE && (IE & IF )!=0) {
+            nextNonIdleCycle=cycle;
+        }
+        
         if (cycle == nextNonIdleCycle)
             reallyCycle();
-        
-        
-        
-   /*     int encoding;
-        Opcode opcode;
-        if (cycle == nextNonIdleCycle) {
+
+    }
+
+    private void reallyCycle() {
+        int lowOneBit = Integer.lowestOneBit(IE & IF);
+        int indexInterruption = Integer.numberOfTrailingZeros(lowOneBit);
+        if (IME && lowOneBit != 0) {
+            IME = false;
+            Bits.set(IF, indexInterruption, false);
+            push16(PC);
+            nextNonIdleCycle+=5;
+            PC = AddressMap.INTERRUPTS[indexInterruption];
+        } else {
+
+            int encoding;
+            Opcode opcode;
             encoding = read8(PC);
             if (encoding == 0xCB) {
                 encoding = read8AfterOpcode();
@@ -109,23 +126,35 @@ public final class Cpu implements Component, Clocked {
             }
 
             dispatch(opcode);
-           
-        }*/
 
-    }
+        }
 
-    private void reallyCycle() {
-        // TODO Auto-generated method stub
-        
     }
 
     @Override
     public int read(int address) {
+        Preconditions.checkBits16(address);
+        if (address==AddressMap.REG_IE)
+            return IE;
+        if (address==AddressMap.REG_IF)
+            return IF;
+        if (address>=AddressMap.HIGH_RAM_START && address<AddressMap.HIGH_RAM_END) {
+           return highRam.read(address-AddressMap.HIGH_RAM_START);
+        }
         return NO_DATA;
     }
 
     @Override
     public void write(int address, int data) {
+        Preconditions.checkBits16(address);
+        Preconditions.checkBits8(data);
+        if (address==AddressMap.REG_IE)
+            IE=data;
+        if (address==AddressMap.REG_IF)
+            IF=data;
+        if (address>=AddressMap.HIGH_RAM_START && address<AddressMap.HIGH_RAM_END) {
+           highRam.write(address-AddressMap.HIGH_RAM_START, data);
+        }
 
     }
 
@@ -139,8 +168,7 @@ public final class Cpu implements Component, Clocked {
     // ajouté a l'etape 5
     public void requestInterrupt(Interrupt i) {
         int bit = i.index();
-        IF=Bits.set(IF, bit, true);
-        
+        IF = Bits.set(IF, bit, true);
 
     }
 
@@ -294,8 +322,8 @@ public final class Cpu implements Component, Clocked {
      */
     private void dispatch(Opcode opcode) {
         System.out.println(opcode.family);
-        int nextPC=PC+opcode.totalBytes;
-        boolean needAdditionnalCycles=false;
+        int nextPC = PC + opcode.totalBytes;
+        boolean needAdditionnalCycles = false;
         switch (opcode.family) {
         case NOP: {
         }
@@ -733,89 +761,87 @@ public final class Cpu implements Component, Clocked {
         case JP_CC_N16: {
             if (testCondition(opcode)) {
                 PC = read16AfterOpcode();
-                needAdditionnalCycles=true;
+                needAdditionnalCycles = true;
             }
-               
+
         }
             break;
         case JR_E8: {
-            PC = nextPC+ Bits.signExtend8(read8AfterOpcode());
+            PC = nextPC + Bits.signExtend8(read8AfterOpcode());
         }
             break;
         case JR_CC_E8: {
             if (testCondition(opcode)) {
                 PC = nextPC + Bits.signExtend8(read8AfterOpcode());
-                needAdditionnalCycles=true;
+                needAdditionnalCycles = true;
             }
-                
+
         }
             break;
 
         // Calls and returns
         case CALL_N16: {
             push16(nextPC);
-            PC=read16AfterOpcode();
+            PC = read16AfterOpcode();
         }
             break;
         case CALL_CC_N16: {
             if (testCondition(opcode)) {
-                needAdditionnalCycles=true;
+                needAdditionnalCycles = true;
                 push16(nextPC);
-                PC=read16AfterOpcode();
+                PC = read16AfterOpcode();
             }
-               
-                
+
         }
             break;
         case RST_U3: {
             push16(nextPC);
-            PC=8 * bitIndex(opcode);
+            PC = 8 * bitIndex(opcode);
         }
             break;
         case RET: {
-            PC=pop16();
+            PC = pop16();
         }
             break;
         case RET_CC: {
             if (testCondition(opcode)) {
-                needAdditionnalCycles=true;
-                PC=pop16();
+                needAdditionnalCycles = true;
+                PC = pop16();
             }
-                
-                
+
         }
             break;
 
         // Interrupts
         case EDI: {
-            IME=Bits.test(opcode.encoding, 3);
+            IME = Bits.test(opcode.encoding, 3);
         }
             break;
         case RETI: {
-            IME=true;
-            PC=pop16();
-            
+            IME = true;
+            PC = pop16();
+
         }
             break;
 
         // Misc control
         case HALT: {
-            nextNonIdleCycle=Long.MAX_VALUE;
-            
+            nextNonIdleCycle = Long.MAX_VALUE;
+
         }
             break;
         case STOP:
             throw new Error("STOP is not implemented");
 
         }
-        
+
         nextNonIdleCycle += opcode.cycles;
         if (needAdditionnalCycles) {
-            nextNonIdleCycle+=opcode.additionalCycles;
+            nextNonIdleCycle += opcode.additionalCycles;
         }
-           
+
         PC += opcode.totalBytes;
-        
+
     }
 
     private static RotDir rotationDir(Opcode opcode) {
