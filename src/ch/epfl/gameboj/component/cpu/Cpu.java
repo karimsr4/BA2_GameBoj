@@ -320,7 +320,7 @@ public final class Cpu implements Component, Clocked {
     /**
      * @param opcode
      */
-    private void dispatch(Opcode opcode) {
+    public void dispatch(Opcode opcode) {
         System.out.println(opcode.family);
         int nextPC = PC + opcode.totalBytes;
         boolean needAdditionnalCycles = false;
@@ -751,28 +751,28 @@ public final class Cpu implements Component, Clocked {
         }
         // Jumps
         case JP_HL: {
-            PC = reg16(Reg16.HL);
+            nextPC = reg16(Reg16.HL);
         }
             break;
         case JP_N16: {
-            PC = read16AfterOpcode();
+            nextPC = read16AfterOpcode();
         }
             break;
         case JP_CC_N16: {
             if (testCondition(opcode)) {
-                PC = read16AfterOpcode();
+                nextPC = read16AfterOpcode();
                 needAdditionnalCycles = true;
             }
 
         }
             break;
         case JR_E8: {
-            PC = nextPC + Bits.signExtend8(read8AfterOpcode());
+            nextPC = nextPC + Bits.signExtend8(read8AfterOpcode());
         }
             break;
         case JR_CC_E8: {
             if (testCondition(opcode)) {
-                PC = nextPC + Bits.signExtend8(read8AfterOpcode());
+                nextPC = nextPC + Bits.signExtend8(read8AfterOpcode());
                 needAdditionnalCycles = true;
             }
 
@@ -782,32 +782,32 @@ public final class Cpu implements Component, Clocked {
         // Calls and returns
         case CALL_N16: {
             push16(nextPC);
-            PC = read16AfterOpcode();
+            nextPC = read16AfterOpcode();
         }
             break;
         case CALL_CC_N16: {
             if (testCondition(opcode)) {
                 needAdditionnalCycles = true;
                 push16(nextPC);
-                PC = read16AfterOpcode();
+                nextPC = read16AfterOpcode();
             }
 
         }
             break;
         case RST_U3: {
             push16(nextPC);
-            PC=AddressMap.RESETS[bitIndex(opcode)];
+            nextPC=AddressMap.RESETS[bitIndex(opcode)];
             //PC = 8 * bitIndex(opcode);
         }
             break;
         case RET: {
-            PC = pop16();
+            nextPC = pop16();
         }
             break;
         case RET_CC: {
             if (testCondition(opcode)) {
                 needAdditionnalCycles = true;
-                PC = pop16();
+                nextPC = pop16();
             }
 
         }
@@ -820,7 +820,7 @@ public final class Cpu implements Component, Clocked {
             break;
         case RETI: {
             IME = true;
-            PC = pop16();
+            nextPC = pop16();
 
         }
             break;
@@ -841,7 +841,7 @@ public final class Cpu implements Component, Clocked {
             nextNonIdleCycle += opcode.additionalCycles;
         }
 
-        PC += opcode.totalBytes;
+        PC =nextPC;
 
     }
 
