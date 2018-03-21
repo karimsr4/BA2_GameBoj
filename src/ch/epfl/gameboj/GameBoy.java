@@ -15,6 +15,7 @@ public class GameBoy {
     private RamController echoRamController;
     private Bus bus;
     private Cpu cpu;
+    private long cycles;
 
     /**
      * Construit une nouvelle Gameboy en créant ses composants : une ram et deux
@@ -55,5 +56,18 @@ public class GameBoy {
         return bus;
 
     }
-
+    public void runUntil(long cycle) {
+        if(cycles>cycle) {
+            throw new IllegalArgumentException();
+         
+        }else {
+            while(cycles<cycle) {
+                cpu.cycle(cycles);
+                cycles++;
+            }
+        }
+    }
+    public long cycles() {
+        return cycles;
+    }
 }
