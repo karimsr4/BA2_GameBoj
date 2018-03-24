@@ -40,6 +40,7 @@ public final class Cpu implements Component, Clocked {
             this.second = second;
         }
     }
+
     private Ram highRam;
     private int PC;
     private int SP;
@@ -73,7 +74,7 @@ public final class Cpu implements Component, Clocked {
         IME = false;
         IE = 0;
         IF = 0;
-        highRam=new Ram (AddressMap.HIGH_RAM_SIZE);
+        highRam = new Ram(AddressMap.HIGH_RAM_SIZE);
 
     }
 
@@ -94,11 +95,11 @@ public final class Cpu implements Component, Clocked {
 
     @Override
     public void cycle(long cycle) {
-        
-        if(nextNonIdleCycle==Long.MAX_VALUE && (IE & IF )!=0) {
-            nextNonIdleCycle=cycle;
+
+        if (nextNonIdleCycle == Long.MAX_VALUE && (IE & IF) != 0) {
+            nextNonIdleCycle = cycle;
         }
-        
+
         if (cycle == nextNonIdleCycle)
             reallyCycle();
 
@@ -108,11 +109,11 @@ public final class Cpu implements Component, Clocked {
         int lowOneBit = Integer.lowestOneBit(IE & IF);
         int indexInterruption = Integer.numberOfTrailingZeros(lowOneBit);
         if (IME && lowOneBit != 0) {
-            System.out.println("a");
+
             IME = false;
-            IF=Bits.set(IF, indexInterruption, false);
+            IF = Bits.set(IF, indexInterruption, false);
             push16(PC);
-            nextNonIdleCycle+=5;
+            nextNonIdleCycle += 5;
             PC = AddressMap.INTERRUPTS[indexInterruption];
         } else {
 
@@ -135,12 +136,13 @@ public final class Cpu implements Component, Clocked {
     @Override
     public int read(int address) {
         Preconditions.checkBits16(address);
-        if (address==AddressMap.REG_IE)
+        if (address == AddressMap.REG_IE)
             return IE;
-        if (address==AddressMap.REG_IF)
+        if (address == AddressMap.REG_IF)
             return IF;
-        if (address>=AddressMap.HIGH_RAM_START && address<AddressMap.HIGH_RAM_END) {
-           return highRam.read(address-AddressMap.HIGH_RAM_START);
+        if (address >= AddressMap.HIGH_RAM_START
+                && address < AddressMap.HIGH_RAM_END) {
+            return highRam.read(address - AddressMap.HIGH_RAM_START);
         }
         return NO_DATA;
     }
@@ -149,12 +151,13 @@ public final class Cpu implements Component, Clocked {
     public void write(int address, int data) {
         Preconditions.checkBits16(address);
         Preconditions.checkBits8(data);
-        if (address==AddressMap.REG_IE)
-            IE=data;
-        if (address==AddressMap.REG_IF)
-            IF=data;
-        if (address>=AddressMap.HIGH_RAM_START && address<AddressMap.HIGH_RAM_END) {
-           highRam.write(address-AddressMap.HIGH_RAM_START, data);
+        if (address == AddressMap.REG_IE)
+            IE = data;
+        if (address == AddressMap.REG_IF)
+            IF = data;
+        if (address >= AddressMap.HIGH_RAM_START
+                && address < AddressMap.HIGH_RAM_END) {
+            highRam.write(address - AddressMap.HIGH_RAM_START, data);
         }
 
     }
@@ -187,7 +190,7 @@ public final class Cpu implements Component, Clocked {
     // Acces au bus
     private int read8(int address) {
 
-        return bus.read(address);
+        return Bits.clip(8, bus.read(address));
 
     }
 
@@ -718,7 +721,6 @@ public final class Cpu implements Component, Clocked {
             break;
         case CHG_U3_R8: {
             Reg reg = extractReg(opcode, 0);
-            System.out.println(regs8bits.get(reg));
             regs8bits.set(reg, Bits.set(regs8bits.get(reg), bitIndex(opcode),
                     bitValue(opcode)));
 
@@ -796,7 +798,7 @@ public final class Cpu implements Component, Clocked {
             break;
         case RST_U3: {
             push16(nextPC);
-            nextPC=AddressMap.RESETS[bitIndex(opcode)];
+            nextPC = AddressMap.RESETS[bitIndex(opcode)];
         }
             break;
         case RET: {
@@ -840,7 +842,7 @@ public final class Cpu implements Component, Clocked {
             nextNonIdleCycle += opcode.additionalCycles;
         }
 
-        PC =Bits.clip(16, nextPC);
+        PC = Bits.clip(16, nextPC);
 
     }
 
@@ -880,7 +882,6 @@ public final class Cpu implements Component, Clocked {
 
         int result = (V1_mask) | (ALU_mask & vf)
                 | (CPU_mask & regs8bits.get(Reg.F));
-        System.out.println(result);
 
         regs8bits.set(Reg.F, result);
 
@@ -938,14 +939,13 @@ public final class Cpu implements Component, Clocked {
     }
 
     public int[] _testIMEIFIE() {
-       int a= (IME)? 1:0;
-       
-        return new int[]{a, IF, IE} ;
+        int a = (IME) ? 1 : 0;
+
+        return new int[] { a, IF, IE };
     }
 
-    
     public void writeRegF(int num) {
         regs8bits.set(Reg.F, num);
     }
-    
+
 }

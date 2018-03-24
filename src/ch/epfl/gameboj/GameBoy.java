@@ -44,7 +44,7 @@ public class GameBoy {
 
         bus.attach(ramController);
         bus.attach(echoRamController);
-        bus.attach(cpu);
+        cpu.attachTo(bus);     
         bus.attach(bootRomController);
         bus.attach(timer);
     }
