@@ -2,8 +2,11 @@ package ch.epfl.gameboj.component;
 
 import java.util.Objects;
 
+import ch.epfl.gameboj.AddressMap;
+import ch.epfl.gameboj.Preconditions;
 import ch.epfl.gameboj.bits.Bits;
 import ch.epfl.gameboj.component.cpu.Cpu;
+import ch.epfl.gameboj.component.cpu.Cpu.Interrupt;
 
 public final class Timer implements Clocked, Component {
 
@@ -20,19 +23,57 @@ public final class Timer implements Clocked, Component {
 
     @Override
     public int read(int address) {
-        // TODO Auto-generated method stub
-        return 0;
+        Preconditions.checkBits16(address);
+        switch (address) {
+        case AddressMap.REG_DIV:
+            return Bits.extract(FIMA, 8, 8);
+        case AddressMap.REG_TIMA:
+            return TIMA;
+        case AddressMap.REG_TMA:
+            return TMA;
+        case AddressMap.REG_TAC:
+            return TAC;
+        default:
+            return cpu.read(address);
+        }
+
     }
 
     @Override
     public void write(int address, int data) {
-        // TODO Auto-generated method stub
+        Preconditions.checkBits16(address);
+        Preconditions.checkBits8(data);
+        boolean previousState = state();
+        switch (address) {
+        case AddressMap.REG_DIV: {
+            FIMA = 0;
+            incIfChange(previousState);
+        }
+            break;
+
+        case AddressMap.REG_TIMA: {
+            TIMA = data;
+        }
+            break;
+
+        case AddressMap.REG_TMA: {
+            TMA = data;
+        }
+            break;
+        case AddressMap.REG_TAC: {
+            TAC = data;
+            incIfChange(previousState);
+        }
+
+        }
 
     }
 
     @Override
     public void cycle(long cycle) {
-        // TODO Auto-generated method stub
+        boolean previousState = state();
+        FIMA = Bits.clip(16, FIMA + 4);
+        incIfChange(previousState);
 
     }
 
@@ -42,8 +83,12 @@ public final class Timer implements Clocked, Component {
     }
 
     private void incIfChange(boolean previousState) {
-        if ((previousState) && (!state()))
-            TIMA++;
+        if ((previousState) && (!state())) {
+            if (TIMA == 0xFF) {
+                cpu.requestInterrupt(Interrupt.TIMER);
+                TIMA = TMA;
+            }
+        }
 
     }
 
