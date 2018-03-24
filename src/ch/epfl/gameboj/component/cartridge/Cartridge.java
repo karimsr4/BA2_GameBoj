@@ -18,16 +18,17 @@ public final class Cartridge implements Component {
 
     public static Cartridge ofFile(File romFile) throws IOException {
         try {
-            FileInputStream input= new FileInputStream(romFile);
-            byte[] dataInFile=new byte[32768];
+            FileInputStream input = new FileInputStream(romFile);
+            byte[] dataInFile = new byte[32768];
             int e;
             // yes or no ? input.read(dataInFile);
-            if(dataInFile[0x147]!=0) 
+            if (dataInFile[0x147] != 0)
                 throw new IllegalArgumentException();
             return new Cartridge(new MBC0(new Rom(dataInFile)));
         } catch (FileNotFoundException e) {
             throw new IOException();
         }
+
     }
 
     @Override
