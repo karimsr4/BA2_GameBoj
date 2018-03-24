@@ -44,13 +44,7 @@ class Fibonnacci {
             (byte)0x00, (byte)0x81, (byte)0xC1, (byte)0xC9,
           };
     
- /*   void cycleTillPc(Cpu cpu, int pc) {
-        int cycle=0;
-        while(cpu._testGetPcSpAFBCDEHL()[0]!=pc) {
-            cpu.cycle(cycle);
-            cycle++;
-        }
-    }*/
+
     
     
     @Test
@@ -70,3 +64,10 @@ class Fibonnacci {
         assertEquals(89, c._testGetPcSpAFBCDEHL()[2]);
     }
 }
+ /*   void cycleTillPc(Cpu cpu, int pc) {
+        int cycle=0;
+        while(cpu._testGetPcSpAFBCDEHL()[0]!=pc) {
+            cpu.cycle(cycle);
+            cycle++;
+        }
+    }*/

@@ -108,8 +108,9 @@ public final class Cpu implements Component, Clocked {
         int lowOneBit = Integer.lowestOneBit(IE & IF);
         int indexInterruption = Integer.numberOfTrailingZeros(lowOneBit);
         if (IME && lowOneBit != 0) {
+            System.out.println("a");
             IME = false;
-            Bits.set(IF, indexInterruption, false);
+            IF=Bits.set(IF, indexInterruption, false);
             push16(PC);
             nextNonIdleCycle+=5;
             PC = AddressMap.INTERRUPTS[indexInterruption];
@@ -321,7 +322,6 @@ public final class Cpu implements Component, Clocked {
      * @param opcode
      */
     public void dispatch(Opcode opcode) {
-        System.out.println(opcode.family);
         int nextPC = PC + opcode.totalBytes;
         boolean needAdditionnalCycles = false;
         switch (opcode.family) {
@@ -781,14 +781,14 @@ public final class Cpu implements Component, Clocked {
 
         // Calls and returns
         case CALL_N16: {
-            push16(nextPC);
+            push16(Bits.clip(16, nextPC));
             nextPC = read16AfterOpcode();
         }
             break;
         case CALL_CC_N16: {
             if (testCondition(opcode)) {
                 needAdditionnalCycles = true;
-                push16(nextPC);
+                push16(Bits.clip(16, nextPC));
                 nextPC = read16AfterOpcode();
             }
 
@@ -797,7 +797,6 @@ public final class Cpu implements Component, Clocked {
         case RST_U3: {
             push16(nextPC);
             nextPC=AddressMap.RESETS[bitIndex(opcode)];
-            //PC = 8 * bitIndex(opcode);
         }
             break;
         case RET: {
@@ -841,7 +840,7 @@ public final class Cpu implements Component, Clocked {
             nextNonIdleCycle += opcode.additionalCycles;
         }
 
-        PC =nextPC;
+        PC =Bits.clip(16, nextPC);
 
     }
 
@@ -938,4 +937,15 @@ public final class Cpu implements Component, Clocked {
         }
     }
 
+    public int[] _testIMEIFIE() {
+       int a= (IME)? 1:0;
+       
+        return new int[]{a, IF, IE} ;
+    }
+
+    
+    public void writeRegF(int num) {
+        regs8bits.set(Reg.F, num);
+    }
+    
 }

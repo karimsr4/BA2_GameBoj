@@ -880,7 +880,7 @@ public class MiniCpuTest {
 				c._testGetPcSpAFBCDEHL());
 	}
 
-	//Test De Oscar
+	//TEST OSCAR
 	@Test
 	void addAR8WorksExceptA() {
 		Opcode[] opcodesAdd = new Opcode[] {
@@ -1018,7 +1018,7 @@ public class MiniCpuTest {
 				int addressHLCarry = RandomGenerator.randomBit(15) + 30;
 				int valueHLCarry = RandomGenerator.randomBit(8);
 				boolean carry = Bits.test(Alu.unpackFlags(Alu.add(valueHL, valueA)), 4);
-				
+
 				if(i == 0) {
 					bus.write(0, Opcode.LD_A_N8.encoding);
 					bus.write(1, valueA);
@@ -1544,7 +1544,7 @@ public class MiniCpuTest {
 		}
 	}
 
-	
+
 	@Test
 	void subAN8Works() {
 		for(int i = 0; i < 2; i++) {
@@ -1586,7 +1586,24 @@ public class MiniCpuTest {
 		}
 	}
 
-	
+	@Test
+	void subAAWorks() {
+		for(int i = 0; i < RandomGenerator.RANDOM_ITERATIONS; i++) {
+			Cpu cpu = new Cpu();
+			Ram ram = new Ram(5);
+			Bus bus = connect(cpu, ram);
+			int valueA = RandomGenerator.randomBit(8);
+			bus.write(0, Opcode.LD_A_N8.encoding);
+			bus.write(1, valueA);
+			bus.write(2, Opcode.SUB_A_A.encoding);
+			cycleCpu(cpu, Opcode.SUB_A_A.cycles + Opcode.LD_A_N8.cycles);
+			assertEquals(0, cpu._testGetPcSpAFBCDEHL()[2]);
+			assertEquals(0b11000000, cpu._testGetPcSpAFBCDEHL()[3]);
+
+		}
+	}
+
+
 	@Test
 	void subAHLRworks() {
 		for(int i = 0; i < 2; i++) {
@@ -1601,7 +1618,7 @@ public class MiniCpuTest {
 				int addressHLCarry = RandomGenerator.randomBit(15) + 30;
 				int valueHLCarry = RandomGenerator.randomBit(8);
 				boolean carry = Bits.test(Alu.unpackFlags(Alu.sub(valueA, valueHL)), 4);
-				
+
 				if(i == 0) {
 					bus.write(0, Opcode.LD_A_N8.encoding);
 					bus.write(1, valueA);
@@ -1639,38 +1656,731 @@ public class MiniCpuTest {
 		}
 	}
 
-	
+	@Test
+	void decR8Works() {
+		Opcode[] opcodesDec = new Opcode[] {
+				Opcode.DEC_A, Opcode.DEC_B,
+				Opcode.DEC_C, Opcode.DEC_D,
+				Opcode.DEC_E, Opcode.DEC_H,
+				Opcode.DEC_L
+		};
+		Opcode[] opcodesLoad = new Opcode[] {
+				Opcode.LD_A_N8,
+				Opcode.LD_B_N8, Opcode.LD_C_N8,
+				Opcode.LD_D_N8, Opcode.LD_E_N8, 
+				Opcode.LD_H_N8, Opcode.LD_L_N8
+		};
+
+		for(int i = 0; i < opcodesDec.length; i++) {
+			for(int j = 0; j < RandomGenerator.RANDOM_ITERATIONS; j++) {
+				Cpu cpu = new Cpu();
+				Ram ram = new Ram(5);
+				Bus bus = connect(cpu, ram);
+				int randomIncremented = RandomGenerator.randomBit(8);
+				bus.write(0, opcodesLoad[i].encoding);
+				bus.write(1, randomIncremented);
+				bus.write(2, opcodesDec[i].encoding);
+				cycleCpu(cpu, opcodesLoad[i].cycles + opcodesDec[i].cycles);
+				if(i == 0) 
+					assertEquals(Alu.unpackValue(Alu.sub(randomIncremented, 1)), cpu._testGetPcSpAFBCDEHL()[2]);
+				else
+					assertEquals(Alu.unpackValue(Alu.sub(randomIncremented, 1)), cpu._testGetPcSpAFBCDEHL()[3+i]);
+				assertEquals(Bits.set(Alu.unpackFlags(Alu.sub(randomIncremented, 1)),4 , false), cpu._testGetPcSpAFBCDEHL()[3]);
+				assertEquals(opcodesLoad[i].totalBytes + opcodesDec[i].totalBytes, cpu._testGetPcSpAFBCDEHL()[0]);
+
+			}
+		}
+	}
+
+	@Test
+	void decHLR() {
+		for(int i = 0; i < RandomGenerator.RANDOM_ITERATIONS; i++) {
+			Cpu cpu = new Cpu();
+			Ram ram = new Ram(0xFFFF);
+			Bus bus = connect(cpu, ram);
+			int addressHL  = RandomGenerator.randomBit(15) + 6;
+			int valueHL = RandomGenerator.randomBit(8);
+			bus.write(0, Opcode.LD_HL_N16.encoding);
+			bus.write(1, Bits.clip(8, addressHL));
+			bus.write(2, Bits.extract(addressHL, 8, 8));
+			bus.write(addressHL, valueHL);
+			bus.write(3, Opcode.DEC_HLR.encoding);
+			bus.write(4, Opcode.LD_A_HLR.encoding);
+			cycleCpu(cpu, Opcode.LD_HL_N16.cycles + Opcode.DEC_HLR.cycles + Opcode.LD_A_HLR.cycles);
+			assertEquals(Alu.unpackValue(Alu.sub(valueHL, 1)), cpu._testGetPcSpAFBCDEHL()[2]);
+			assertEquals(Bits.set(Alu.unpackFlags(Alu.sub(valueHL, 1)),4 , false), cpu._testGetPcSpAFBCDEHL()[3]);
+			assertEquals(Opcode.LD_HL_N16.totalBytes + Opcode.DEC_HLR.totalBytes + Opcode.LD_A_HLR.totalBytes, cpu._testGetPcSpAFBCDEHL()[0]);
+		}
+	}
+
+	@Test
+	void decR16SPWorks() {
+		Opcode[] opcodesLoadR16 =  new Opcode[] {
+				Opcode.LD_BC_N16, Opcode.LD_DE_N16, Opcode.LD_HL_N16, 
+				Opcode.LD_SP_N16
+		};
+		Opcode[] opcodesDecR16 = new Opcode[] {
+				Opcode.DEC_BC, Opcode.DEC_DE, Opcode.DEC_HL,
+				Opcode.DEC_SP
+		};
+		for(int i = 0; i < opcodesLoadR16.length; i++) {
+			for(int j = 0; j < RandomGenerator.RANDOM_ITERATIONS; j++) {
+				Cpu cpu = new Cpu();
+				Ram ram = new Ram(5);
+				Bus bus = connect(cpu, ram);
+				int randomDecremented = RandomGenerator.randomBit(15) + 5;
+				bus.write(0, opcodesLoadR16[i].encoding);
+				bus.write(1, Bits.clip(8, randomDecremented));
+				bus.write(2, Bits.extract(randomDecremented, 8, 8));
+				bus.write(3, opcodesDecR16[i].encoding);
+				cycleCpu(cpu, opcodesLoadR16[i].cycles + opcodesDecR16[i].cycles);
+				assertEquals(opcodesLoadR16[i].totalBytes + opcodesDecR16[i].totalBytes, cpu._testGetPcSpAFBCDEHL()[0]);
+				switch(opcodesDecR16[i]) {
+				case DEC_BC:
+					assertEquals(Bits.clip(16, randomDecremented - 1), Bits.make16(cpu._testGetPcSpAFBCDEHL()[4], cpu._testGetPcSpAFBCDEHL()[5]));
+					break;
+				case DEC_DE:
+					assertEquals(Bits.clip(16 , randomDecremented - 1), Bits.make16(cpu._testGetPcSpAFBCDEHL()[6], cpu._testGetPcSpAFBCDEHL()[7]));
+					break;
+				case DEC_HL:
+					assertEquals(Bits.clip(16, randomDecremented - 1), Bits.make16(cpu._testGetPcSpAFBCDEHL()[8], cpu._testGetPcSpAFBCDEHL()[9]));
+					break;
+				case DEC_SP:
+					assertEquals(Bits.clip(16, randomDecremented -  1), cpu._testGetPcSpAFBCDEHL()[1]);
+					break;
+				}
+			}
+		}
+	}
+
+	@Test
+	void cpAR8WorksExceptA() {
+		Opcode[] opcodesSub = new Opcode[] {
+				Opcode.CP_A_B, Opcode.CP_A_C,
+				Opcode.CP_A_D, Opcode.CP_A_E,
+				Opcode.CP_A_H, Opcode.CP_A_L,
+		};
+		Opcode[] opcodesLoad = new Opcode[] {
+				Opcode.LD_B_N8, Opcode.LD_C_N8,
+				Opcode.LD_D_N8, Opcode.LD_E_N8, 
+				Opcode.LD_H_N8, Opcode.LD_L_N8,
+		};
+
+		for(int i = 0; i < opcodesSub.length; i++) {
+			for(int j = 0; j < RandomGenerator.RANDOM_ITERATIONS; j++) {
+				Cpu cpu = new Cpu();
+				Ram ram = new Ram(10);
+				Bus bus = connect(cpu, ram);
+				int valueA = RandomGenerator.randomBit(8);
+				int valueReg = RandomGenerator.randomBit(8);
+				bus.write(0, opcodesLoad[i].encoding);
+				bus.write(1, valueReg);
+				bus.write(2, Opcode.LD_A_N8.encoding);
+				bus.write(3, valueA);
+				bus.write(4, opcodesSub[i].encoding);
+				cycleCpu(cpu, opcodesSub[i].cycles + opcodesLoad[i].cycles + Opcode.LD_A_N8.cycles);
+				assertEquals(cpu._testGetPcSpAFBCDEHL()[0], 5);
+				assertEquals(cpu._testGetPcSpAFBCDEHL()[3], Alu.unpackFlags(Alu.sub(valueA, valueReg)));
+			}
+		}
+	}
+
+	@Test
+	void cpAAWorks() {
+		for(int i = 0; i < RandomGenerator.RANDOM_ITERATIONS; i++) {
+			Cpu cpu = new Cpu();
+			Ram ram = new Ram(5);
+			Bus bus = connect(cpu, ram);
+			int valueA = RandomGenerator.randomBit(8);
+			bus.write(0, Opcode.LD_A_N8.encoding);
+			bus.write(1, valueA);
+			bus.write(2, Opcode.CP_A_A.encoding);
+			cycleCpu(cpu, Opcode.CP_A_A.cycles + Opcode.LD_A_N8.cycles);
+			assertEquals(0b11000000, cpu._testGetPcSpAFBCDEHL()[3]);
+
+		}
+	}
+
+	@Test
+	void cpAN8Works() {
+		for(int i = 0; i < 2; i++) {
+			for(int j = 0; j < RandomGenerator.RANDOM_ITERATIONS; j++) {
+				Cpu cpu = new Cpu();
+				Ram ram = new Ram(10);
+				Bus bus = connect(cpu, ram);
+				int valueA = RandomGenerator.randomBit(8);
+				int valueN8 = RandomGenerator.randomBit(8);
+				bus.write(0, Opcode.LD_A_N8.encoding);
+				bus.write(1, valueA);
+				bus.write(2, Opcode.SUB_A_N8.encoding);
+				bus.write(3, valueN8);
+				cycleCpu(cpu, Opcode.LD_A_N8.cycles + Opcode.SUB_A_N8.cycles);
+				assertEquals(4, cpu._testGetPcSpAFBCDEHL()[0]);
+				assertEquals(Alu.unpackFlags(Alu.sub(valueA, valueN8)), cpu._testGetPcSpAFBCDEHL()[3]);
+
+			}
+		}
+	}
+
+	@Test
+	void cpAHLRworks() {
+		for(int i = 0; i < 2; i++) {
+			for(int j = 0; j < RandomGenerator.RANDOM_ITERATIONS; j++) {
+				Cpu cpu = new Cpu();
+				Ram ram = new Ram(0xFFFF);
+				Bus bus = connect(cpu, ram);
+				int valueA = RandomGenerator.randomBit(8);
+				int addressHL  = RandomGenerator.randomBit(15) + 30;
+				int valueHL = RandomGenerator.randomBit(8);
+				bus.write(0, Opcode.LD_A_N8.encoding);
+				bus.write(1, valueA);
+				bus.write(2, Opcode.LD_HL_N16.encoding);
+				bus.write(3, Bits.clip(8, addressHL));
+				bus.write(4, Bits.extract(addressHL, 8, 8));
+				bus.write(addressHL, valueHL);
+				bus.write(5, Opcode.CP_A_HLR.encoding);
+				cycleCpu(cpu, Opcode.LD_A_N8.cycles + Opcode.LD_HL_N16.cycles + Opcode.CP_A_HLR.cycles );
+				assertEquals(Alu.unpackFlags(Alu.sub(valueA, valueHL)), cpu._testGetPcSpAFBCDEHL()[3]);
+			}
+
+		}
+	}
+
 	@Test 
-    void RotCALeft () {
-            for(int i = 0; i < RandomGenerator.RANDOM_ITERATIONS; i++) {
-                Cpu cpu = new Cpu();
-                Ram ram = new Ram(5);
-                Bus bus = connect(cpu, ram);
-                int valueA = RandomGenerator.randomBit(8);
-                bus.write(0, Opcode.LD_A_N8.encoding);
-                bus.write(1, valueA);
-                bus.write(2, Opcode.RLCA.encoding);
-                cycleCpu(cpu, Opcode.LD_A_N8.cycles + Opcode.RLCA.cycles);
-                assertEquals(Alu.unpackValue(Alu.rotate(RotDir.LEFT, valueA)), cpu._testGetPcSpAFBCDEHL()[2]);
-                assertEquals(3, cpu._testGetPcSpAFBCDEHL()[0]);
-                assertEquals(Alu.unpackFlags(Alu.rotate(RotDir.LEFT, valueA)) & (1 << 4), cpu._testGetPcSpAFBCDEHL()[3]);
-            }
-    }
-    
-    @Test 
-    void RotCARight () {
-            for(int i = 0; i < RandomGenerator.RANDOM_ITERATIONS; i++) {
-                Cpu cpu = new Cpu();
-                Ram ram = new Ram(5);
-                Bus bus = connect(cpu, ram);
-                int valueA = RandomGenerator.randomBit(8);
-                bus.write(0, Opcode.LD_A_N8.encoding);
-                bus.write(1, valueA);
-                bus.write(2, Opcode.RRCA.encoding);
-                cycleCpu(cpu, Opcode.LD_A_N8.cycles + Opcode.RRCA.cycles);
-                assertEquals(Alu.unpackValue(Alu.rotate(RotDir.RIGHT, valueA)), cpu._testGetPcSpAFBCDEHL()[2]);
-                assertEquals(3, cpu._testGetPcSpAFBCDEHL()[0]);
-                assertEquals(Alu.unpackFlags(Alu.rotate(RotDir.RIGHT, valueA)) & (1 << 4), cpu._testGetPcSpAFBCDEHL()[3]);
-            }
-    }
+	void RotCALeft () {
+		for(int i = 0; i < RandomGenerator.RANDOM_ITERATIONS; i++) {
+			Cpu cpu = new Cpu();
+			Ram ram = new Ram(5);
+			Bus bus = connect(cpu, ram);
+			int valueA = RandomGenerator.randomBit(8);
+			bus.write(0, Opcode.LD_A_N8.encoding);
+			bus.write(1, valueA);
+			bus.write(2, Opcode.RLCA.encoding);
+			cycleCpu(cpu, Opcode.LD_A_N8.cycles + Opcode.RLCA.cycles);
+			assertEquals(Alu.unpackValue(Alu.rotate(RotDir.LEFT, valueA)), cpu._testGetPcSpAFBCDEHL()[2]);
+			assertEquals(3, cpu._testGetPcSpAFBCDEHL()[0]);
+			assertEquals(Alu.unpackFlags(Alu.rotate(RotDir.LEFT, valueA)) & (1 << 4), cpu._testGetPcSpAFBCDEHL()[3]);
+		}
+	}
+
+	@Test 
+	void RotCARight () {
+		for(int i = 0; i < RandomGenerator.RANDOM_ITERATIONS; i++) {
+			Cpu cpu = new Cpu();
+			Ram ram = new Ram(5);
+			Bus bus = connect(cpu, ram);
+			int valueA = RandomGenerator.randomBit(8);
+			bus.write(0, Opcode.LD_A_N8.encoding);
+			bus.write(1, valueA);
+			bus.write(2, Opcode.RRCA.encoding);
+			cycleCpu(cpu, Opcode.LD_A_N8.cycles + Opcode.RRCA.cycles);
+			assertEquals(Alu.unpackValue(Alu.rotate(RotDir.RIGHT, valueA)), cpu._testGetPcSpAFBCDEHL()[2]);
+			assertEquals(3, cpu._testGetPcSpAFBCDEHL()[0]);
+			assertEquals(Alu.unpackFlags(Alu.rotate(RotDir.RIGHT, valueA)) & (1 << 4), cpu._testGetPcSpAFBCDEHL()[3]);
+		}
+	}
+
+	@Test
+	void bitU3R8works() {
+		Opcode[] opcodesTest = new Opcode[] {
+				Opcode.BIT_0_A, Opcode.BIT_0_B,
+				Opcode.BIT_0_C, Opcode.BIT_0_D,
+				Opcode.BIT_0_E, Opcode.BIT_0_H,
+				Opcode.BIT_0_L
+		};
+
+		Opcode[] opcodesLoad = new Opcode[] {
+				Opcode.LD_A_N8,
+				Opcode.LD_B_N8, Opcode.LD_C_N8,
+				Opcode.LD_D_N8, Opcode.LD_E_N8, 
+				Opcode.LD_H_N8, Opcode.LD_L_N8
+		};
+		for(int i = 0; i < opcodesTest.length; i++) {
+			for(int j = 0; j < RandomGenerator.RANDOM_ITERATIONS; j++) {
+				for(int k = 0; k < 8; k++) {
+					Cpu cpu = new Cpu();
+					Ram ram = new Ram(10);
+					Bus bus = connect(cpu, ram);
+					int valueTested = RandomGenerator.randomBit(8);
+				}
+			}
+		}
+	}
+
+	@Test 
+	void SCF_WorksOnKnowValues(){
+		Cpu c = new Cpu();
+		Ram r = new Ram(10);
+		Bus b = connect(c, r);
+
+		b.write(0, Opcode.SCF.encoding);
+		cycleCpu(c, Opcode.SCF.cycles);
+		assertArrayEquals(new int[] { 1,0,0,16,0,0,0,0,0,0}, c._testGetPcSpAFBCDEHL());
+	}
+
+	@Test
+	public void retWorks(){
+		for(int j = 0; j < 0x7E; j++) {
+			Cpu cpu = new Cpu();
+			Ram ram = new Ram(0xFFFF);
+			Bus bus = connect(cpu, ram);
+			int PCValue = RandomGenerator.randomBit(16);
+			int PCAddress = j + 0xFF80;
+			bus.write(0, Opcode.LD_SP_N16.encoding);
+			bus.write(1, Bits.clip(8, PCAddress));
+			bus.write(2, Bits.extract(PCAddress, 8, 8));
+			bus.write(PCAddress, Bits.clip(8, PCValue));
+			bus.write(PCAddress + 1, Bits.extract(PCValue, 8, 8));
+			bus.write(3, Opcode.RETI.encoding);
+			cycleCpu(cpu, Opcode.LD_SP_N16.cycles + Opcode.RETI.cycles);
+			assertEquals(PCValue, cpu._testGetPcSpAFBCDEHL()[0]);
+			assertEquals(j + 0xFF80 + 2, cpu._testGetPcSpAFBCDEHL()[1]);
+		}
+	}
+
+	@Test
+	public void retCCWorks(){
+		Opcode[] opcodes = new Opcode[] {
+				Opcode.RET_C, Opcode.RET_NC, Opcode.RET_NZ, Opcode.RET_Z
+		};
+		for(Opcode opcode : opcodes) {
+			for(int j = 0; j < 0x7E; j++) {
+				Cpu cpu = new Cpu();
+				Ram ram = new Ram(0xFFFF);
+				Bus bus = connect(cpu, ram);
+				long cyclesFlag = 0;
+				int startAddress = 0;
+				boolean carryOrZero = RandomGenerator.randomBoolean();
+				int PCValue = RandomGenerator.randomBit(15) + 10;
+				int PCAddress = j + 0xFF80;
+				switch(opcode) {
+				case RET_C: {
+					cyclesFlag = setC4(bus, carryOrZero);
+					startAddress = 4;
+				}break;
+				case RET_NC: {
+					cyclesFlag = setC4(bus, carryOrZero);
+					startAddress = 4;
+				}break;
+				case RET_NZ: {
+					cyclesFlag = setZ2(bus, carryOrZero);
+					startAddress = 2;
+				}break;
+				case RET_Z: {
+					cyclesFlag = setZ2(bus, carryOrZero);
+					startAddress = 2;
+				}break;
+				}
+				bus.write(startAddress, Opcode.LD_SP_N16.encoding);
+				bus.write(startAddress + 1, Bits.clip(8, PCAddress));
+				bus.write(startAddress + 2, Bits.extract(PCAddress, 8, 8));
+				bus.write(PCAddress, Bits.clip(8, PCValue));
+				bus.write(PCAddress + 1, Bits.extract(PCValue, 8, 8));
+				bus.write(startAddress + 3, opcode.encoding);
+				switch(opcode) {
+				case RET_C: {
+					if(carryOrZero) {
+						cycleCpu(cpu, Opcode.LD_SP_N16.cycles + opcode.cycles + opcode.additionalCycles + cyclesFlag);
+						assertEquals(PCValue, cpu._testGetPcSpAFBCDEHL()[0]);
+						assertEquals(j + 0xFF80 + 2, cpu._testGetPcSpAFBCDEHL()[1]);
+					} else {
+						cycleCpu(cpu, Opcode.LD_SP_N16.cycles + opcode.cycles + cyclesFlag);
+						assertEquals(startAddress +  3 + opcode.totalBytes, cpu._testGetPcSpAFBCDEHL()[0]);
+						assertEquals(j + 0xFF80, cpu._testGetPcSpAFBCDEHL()[1]);
+					}
+
+				}break;
+				case RET_NC: {
+					if(!carryOrZero) {
+						cycleCpu(cpu, Opcode.LD_SP_N16.cycles + opcode.cycles + opcode.additionalCycles + cyclesFlag);
+						assertEquals(PCValue, cpu._testGetPcSpAFBCDEHL()[0]);
+						assertEquals(j + 0xFF80 + 2, cpu._testGetPcSpAFBCDEHL()[1]);
+					} else {
+						cycleCpu(cpu, Opcode.LD_SP_N16.cycles + opcode.cycles + cyclesFlag);
+						assertEquals(startAddress +  3 + opcode.totalBytes, cpu._testGetPcSpAFBCDEHL()[0]);
+						assertEquals(j + 0xFF80, cpu._testGetPcSpAFBCDEHL()[1]);
+					}
+
+				}break;
+				case RET_NZ: {
+					if(!carryOrZero) {
+						cycleCpu(cpu, Opcode.LD_SP_N16.cycles + opcode.cycles + opcode.additionalCycles + cyclesFlag);
+						assertEquals(PCValue, cpu._testGetPcSpAFBCDEHL()[0]);
+						assertEquals(j + 0xFF80 + 2, cpu._testGetPcSpAFBCDEHL()[1]);
+					} else {
+						cycleCpu(cpu, Opcode.LD_SP_N16.cycles + opcode.cycles + cyclesFlag);
+						assertEquals(startAddress +  3 + opcode.totalBytes, cpu._testGetPcSpAFBCDEHL()[0]);
+						assertEquals(j + 0xFF80, cpu._testGetPcSpAFBCDEHL()[1]);
+					}
+				}break;
+				case RET_Z: {
+					if(carryOrZero) {
+						cycleCpu(cpu, Opcode.LD_SP_N16.cycles + opcode.cycles + opcode.additionalCycles + cyclesFlag);
+						assertEquals(PCValue, cpu._testGetPcSpAFBCDEHL()[0]);
+						assertEquals(j + 0xFF80 + 2, cpu._testGetPcSpAFBCDEHL()[1]);
+					} else {
+						cycleCpu(cpu, Opcode.LD_SP_N16.cycles + opcode.cycles + cyclesFlag);
+						assertEquals(startAddress +  3 + opcode.totalBytes, cpu._testGetPcSpAFBCDEHL()[0]);
+						assertEquals(j + 0xFF80, cpu._testGetPcSpAFBCDEHL()[1]);
+					}
+				}break;
+				}
+
+			}
+		}
+	}
+
+	@Test
+	public void cpuWriteHighRamWorks() {
+		int[] highRamContent = new int[AddressMap.HIGH_RAM_SIZE - 1];
+		Cpu cpu = new Cpu();
+		Ram ram = new Ram(0xFFFF);
+		Bus bus = connect(cpu, ram);
+		long cycles = 0;
+		for(int i = 0; i < AddressMap.HIGH_RAM_SIZE - 1; i++) {
+			highRamContent[i] = RandomGenerator.randomBit(8);
+			bus.write(AddressMap.HIGH_RAM_START + i, highRamContent[i]);
+		}
+		bus.write(0, Opcode.LD_SP_N16.encoding);
+		bus.write(1, Bits.clip(8, AddressMap.HIGH_RAM_START));
+		bus.write(2, Bits.extract(AddressMap.HIGH_RAM_START, 8, 8));
+		cycles += Opcode.LD_SP_N16.cycles;
+		cycleCpu(cpu, cycles);
+		for(int i = 0; i < highRamContent.length/2; i++) {
+			bus.write(3 + i, Opcode.POP_BC.encoding);
+			cycles += Opcode.POP_BC.cycles;
+			cycleCpu(cpu, cycles);
+			assertEquals(Bits.make16(highRamContent[2*i + 1], highRamContent[2*i]), Bits.make16(cpu._testGetPcSpAFBCDEHL()[4], cpu._testGetPcSpAFBCDEHL()[5]));
+		}
+
+	}
+
+	@Test
+	public void cpuWriteIEIFWorks() {
+		for(int i = 0; i < RandomGenerator.RANDOM_ITERATIONS; i++) {
+			Cpu cpu = new Cpu();
+			Ram ram = new Ram(1);
+			Bus bus = connect(cpu, ram);
+			int valueIE = RandomGenerator.randomBit(8);
+			int valueIF = RandomGenerator.randomBit(8);
+			bus.write(AddressMap.REG_IE, valueIE);
+			bus.write(AddressMap.REG_IF, valueIF);
+			assertEquals(valueIF, cpu._testIMEIFIE()[1]);
+			assertEquals(valueIE, cpu._testIMEIFIE()[2]);
+		}
+	}
+	@Test
+	void absolutJumpTest () {
+		for (int i = 0; i < RandomGenerator.RANDOM_ITERATIONS; ++i) {
+			Cpu cpu = new Cpu();
+			Ram ram = new Ram(0xFFFF);
+			Bus bus = connect(cpu, ram);
+			int value = RandomGenerator.randomBit(8);
+			int addressToJumpTo = RandomGenerator.randomBit(15) + 0x7a00;
+			bus.write(addressToJumpTo, Opcode.LD_A_N8.encoding);
+			bus.write(Bits.clip(16, addressToJumpTo + 1), value);
+			bus.write(0, Opcode.JP_N16.encoding);
+			bus.write(1, Bits.clip(8, addressToJumpTo));
+			bus.write(2, Bits.extract(addressToJumpTo, 8, 8));
+			int pc = Bits.clip(16, addressToJumpTo + Opcode.LD_A_N8.totalBytes); 
+			int cycles = Opcode.LD_A_N8.cycles + Opcode.JP_N16.cycles;
+			cycleCpu(cpu, cycles);
+			assertArrayEquals (new int [] {pc, 0, value, 0, 0, 0, 0, 0, 0, 0 }, cpu._testGetPcSpAFBCDEHL());
+		}
+	}
+
+	@Test
+	void absolutJumpTestHL () {
+		for (int i = 0; i < RandomGenerator.RANDOM_ITERATIONS; ++i) {
+			Cpu cpu = new Cpu();
+			Ram ram = new Ram(0xFFFF);
+			Bus bus = connect(cpu, ram);
+			int value = RandomGenerator.randomBit(8);
+			int addressToJumpTo = RandomGenerator.randomBit(15) + 0x7a00;
+			bus.write(addressToJumpTo, Opcode.LD_A_N8.encoding);
+			bus.write(Bits.clip(16, addressToJumpTo + 1), value);
+			bus.write(0, Opcode.LD_HL_N16.encoding);
+			bus.write(1, Bits.clip(8, addressToJumpTo));
+			bus.write(2, Bits.extract(addressToJumpTo, 8, 8));
+			bus.write(3, Opcode.JP_HL.encoding);
+			int pc = Bits.clip(16, addressToJumpTo + Opcode.LD_A_N8.totalBytes); 
+			int cycles = Opcode.LD_A_N8.cycles + Opcode.JP_HL.cycles + Opcode.LD_HL_N16.cycles;
+			cycleCpu(cpu, cycles);
+			assertArrayEquals (new int [] {pc, 0, value, 0, 0, 0, 0, 0,Bits.extract(addressToJumpTo, 8, 8),  Bits.clip(8, addressToJumpTo) }, cpu._testGetPcSpAFBCDEHL());
+		}
+	}
+
+	@Test
+	void relatifJumpTest () {
+		for (int i = 0; i < RandomGenerator.RANDOM_ITERATIONS; ++i) {
+			Cpu cpu = new Cpu();
+			Ram ram = new Ram(0xFFFF);
+			Bus bus = connect(cpu, ram);
+			int value = RandomGenerator.randomBit(8);
+			int jumpIndex = RandomGenerator.randomBit(6) << 2;
+			bus.write(Bits.clip(16, 2 + Bits.signExtend8(jumpIndex)), Opcode.LD_A_N8.encoding);
+			bus.write(Bits.clip(16, 3 + Bits.signExtend8(jumpIndex)), value);
+			bus.write(0, Opcode.JR_E8.encoding);
+			bus.write(1, jumpIndex);
+			int pc = Bits.clip(16, 2 + Bits.signExtend8(jumpIndex) + Opcode.LD_A_N8.totalBytes); 
+			int cycles = Opcode.LD_A_N8.cycles + Opcode.JR_E8.cycles;
+			cycleCpu(cpu, cycles);
+			assertArrayEquals (new int [] {pc, 0, value, 0, 0, 0, 0, 0, 0, 0 }, cpu._testGetPcSpAFBCDEHL());
+		}
+	}
+
+	@Test
+	public void cpuReadIEIFWorks() {
+		Cpu cpu = new Cpu();
+		Ram ram = new Ram(1);
+		Bus bus = connect(cpu, ram);
+		int valueIE = RandomGenerator.randomBit(8);
+		int valueIF = RandomGenerator.randomBit(8);
+		bus.write(AddressMap.REG_IE, valueIE);
+		bus.write(AddressMap.REG_IF, valueIF);
+		assertEquals(bus.read(AddressMap.REG_IF), cpu._testIMEIFIE()[1]);
+		assertEquals(bus.read(AddressMap.REG_IE), cpu._testIMEIFIE()[2]);
+	}
+	
+	
+	@Test
+	public void callCCN16Works() {
+		Opcode[] opcodes = new Opcode[] {
+				Opcode.CALL_C_N16, Opcode.CALL_NC_N16, 
+				Opcode.CALL_NZ_N16, Opcode.CALL_Z_N16
+		};
+		for(Opcode opcode : opcodes) {
+			for(int j = 0; j < 0x7E; j++) {
+				Cpu cpu = new Cpu();
+				Ram ram = new Ram(0xFFFF);
+				Bus bus = connect(cpu, ram);
+				long cyclesFlag = 0;
+				int startAddress = 0;
+				int valueA = RandomGenerator.randomBit(8);
+				int addressJump = RandomGenerator.randomBit(15) + 10;
+				boolean carryOrZero = RandomGenerator.randomBoolean();
+				int PCAddress = j + 0xFF80;
+				switch(opcode) {
+				case CALL_C_N16: {
+					cyclesFlag = setC4(bus, carryOrZero);
+					startAddress = 4;
+				}break;
+				case CALL_NC_N16: {
+					cyclesFlag = setC4(bus, carryOrZero);
+					startAddress = 4;
+				}break;
+				case CALL_NZ_N16: {
+					cyclesFlag = setZ2(bus, carryOrZero);
+					startAddress = 2;
+				}break;
+				case CALL_Z_N16: {
+					cyclesFlag = setZ2(bus, carryOrZero);
+					startAddress = 2;
+				}break;
+				}
+				bus.write(startAddress, Opcode.LD_SP_N16.encoding);
+				bus.write(startAddress + 1, 0xFF);
+				bus.write(startAddress + 2, 0xFF);
+				bus.write(startAddress + 3, opcode.encoding);
+				bus.write(startAddress + 4, Bits.clip(8, addressJump));
+				bus.write(startAddress + 5, Bits.extract(addressJump, 8, 8));
+				bus.write(addressJump, Opcode.LD_A_N8.encoding);
+				bus.write(addressJump + 1, valueA);
+				switch(opcode) {
+				case CALL_C_N16: {
+					if(carryOrZero) {
+						cycleCpu(cpu, Opcode.LD_SP_N16.cycles + opcode.cycles + opcode.additionalCycles + Opcode.LD_A_N8.cycles +cyclesFlag);
+						assertEquals(addressJump + Opcode.LD_A_N8.totalBytes, cpu._testGetPcSpAFBCDEHL()[0]);
+						assertEquals(0xFFFD, cpu._testGetPcSpAFBCDEHL()[1]);
+						assertEquals(valueA, cpu._testGetPcSpAFBCDEHL()[2]);
+					} else {
+						cycleCpu(cpu, Opcode.LD_SP_N16.cycles + opcode.cycles + cyclesFlag);
+						assertEquals(startAddress +  Opcode.LD_SP_N16.totalBytes + opcode.totalBytes, cpu._testGetPcSpAFBCDEHL()[0]);
+						assertEquals(0xFFFF, cpu._testGetPcSpAFBCDEHL()[1]);
+						
+					}
+
+				}break;
+				case CALL_NC_N16: {
+					if(!carryOrZero) {
+						cycleCpu(cpu, Opcode.LD_SP_N16.cycles + opcode.cycles + opcode.additionalCycles + cyclesFlag+ Opcode.LD_A_N8.cycles);
+						assertEquals(addressJump + Opcode.LD_A_N8.totalBytes, cpu._testGetPcSpAFBCDEHL()[0]);
+						assertEquals(valueA, cpu._testGetPcSpAFBCDEHL()[2]);
+						assertEquals(0xFFFD, cpu._testGetPcSpAFBCDEHL()[1]);
+					} else {
+						cycleCpu(cpu, Opcode.LD_SP_N16.cycles + opcode.cycles + cyclesFlag);
+						assertEquals(startAddress +  Opcode.LD_SP_N16.totalBytes + opcode.totalBytes, cpu._testGetPcSpAFBCDEHL()[0]);
+						assertEquals(0xFFFF, cpu._testGetPcSpAFBCDEHL()[1]);
+					}
+
+				}break;
+				case CALL_NZ_N16: {
+					if(!carryOrZero) {
+						cycleCpu(cpu, Opcode.LD_SP_N16.cycles + opcode.cycles + opcode.additionalCycles + cyclesFlag+ Opcode.LD_A_N8.cycles);
+						assertEquals(addressJump + Opcode.LD_A_N8.totalBytes, cpu._testGetPcSpAFBCDEHL()[0]);
+						assertEquals(valueA, cpu._testGetPcSpAFBCDEHL()[2]);
+						assertEquals(0xFFFD, cpu._testGetPcSpAFBCDEHL()[1]);
+					} else {
+						cycleCpu(cpu, Opcode.LD_SP_N16.cycles + opcode.cycles + cyclesFlag);
+						assertEquals(startAddress +  Opcode.LD_SP_N16.totalBytes + opcode.totalBytes, cpu._testGetPcSpAFBCDEHL()[0]);
+						assertEquals(0xFFFF, cpu._testGetPcSpAFBCDEHL()[1]);
+					}
+				}break;
+				case CALL_Z_N16: {
+					if(carryOrZero) {
+						cycleCpu(cpu, Opcode.LD_SP_N16.cycles + opcode.cycles + opcode.additionalCycles + cyclesFlag+ Opcode.LD_A_N8.cycles);
+						assertEquals(addressJump + Opcode.LD_A_N8.totalBytes, cpu._testGetPcSpAFBCDEHL()[0]);
+						assertEquals(0xFFFD, cpu._testGetPcSpAFBCDEHL()[1]);
+						assertEquals(valueA, cpu._testGetPcSpAFBCDEHL()[2]);
+					} else {
+						cycleCpu(cpu, Opcode.LD_SP_N16.cycles + opcode.cycles + cyclesFlag);
+						assertEquals(startAddress +  Opcode.LD_SP_N16.totalBytes + opcode.totalBytes, cpu._testGetPcSpAFBCDEHL()[0]);
+						assertEquals(0xFFFF, cpu._testGetPcSpAFBCDEHL()[1]);
+					}
+				}break;
+				}
+			}
+		}
+	}
+	
+	@Test
+	public void jrCCe8Works() {
+		Opcode[] opcodes = new Opcode[] {
+				Opcode.JR_C_E8, Opcode.JR_NC_E8,
+				Opcode.JR_NZ_E8, Opcode.JR_Z_E8
+		};
+		for(Opcode opcode : opcodes) {
+			for(int j = 0; j < RandomGenerator.RANDOM_ITERATIONS; j++) {
+				Cpu cpu = new Cpu();
+				Ram ram = new Ram(0xFFFF);
+				Bus bus = connect(cpu, ram);
+				long cyclesFlag = 0;
+				int startAddress = 0;
+				int valueA = RandomGenerator.randomBit(8);
+				int jumpValue = RandomGenerator.randomBit(5) << 3;
+				boolean carryOrZero = RandomGenerator.randomBoolean();
+				switch(opcode) {
+				case JR_C_E8: {
+					cyclesFlag = setC4(bus, carryOrZero);
+					startAddress = 4;
+				}break;
+				case JR_NC_E8: {
+					cyclesFlag = setC4(bus, carryOrZero);
+					startAddress = 4;
+				}break;
+				case JR_NZ_E8: {
+					cyclesFlag = setZ2(bus, carryOrZero);
+					startAddress = 2;
+				}break;
+				case JR_Z_E8: {
+					cyclesFlag = setZ2(bus, carryOrZero);
+					startAddress = 2;
+				}break;
+				}
+				int addressJump = Bits.clip(16, startAddress + opcode.totalBytes + Bits.signExtend8(jumpValue));
+				bus.write(startAddress, opcode.encoding);
+				bus.write(startAddress + 1, jumpValue);
+				bus.write(addressJump, Opcode.LD_A_N8.encoding);
+				bus.write(Bits.clip(16, addressJump + 1), valueA);
+				switch(opcode) {
+				case JR_C_E8: {
+					if(carryOrZero) {
+						cycleCpu(cpu,  opcode.cycles + opcode.additionalCycles + Opcode.LD_A_N8.cycles + cyclesFlag);
+						assertEquals(Bits.clip(16, addressJump + Opcode.LD_A_N8.totalBytes), cpu._testGetPcSpAFBCDEHL()[0]);
+						assertEquals(valueA, cpu._testGetPcSpAFBCDEHL()[2]);
+						assertEquals(valueA, cpu._testGetPcSpAFBCDEHL()[2]);
+
+					} else {
+						cycleCpu(cpu,  opcode.cycles + cyclesFlag);
+						assertEquals(startAddress + opcode.totalBytes, cpu._testGetPcSpAFBCDEHL()[0]);
+					}
+
+				}break;
+				case JR_NC_E8: {
+					if(!carryOrZero) {
+						cycleCpu(cpu, opcode.cycles + opcode.additionalCycles + cyclesFlag+ Opcode.LD_A_N8.cycles);
+						assertEquals(Bits.clip(16, addressJump + Opcode.LD_A_N8.totalBytes), cpu._testGetPcSpAFBCDEHL()[0]);
+						assertEquals(valueA, cpu._testGetPcSpAFBCDEHL()[2]);
+
+					} else {
+						cycleCpu(cpu, opcode.cycles + cyclesFlag);
+						assertEquals(startAddress + opcode.totalBytes, cpu._testGetPcSpAFBCDEHL()[0]);
+					}
+
+				}break;
+				case JR_NZ_E8: {
+					if(!carryOrZero) {
+						cycleCpu(cpu,  opcode.cycles + opcode.additionalCycles + cyclesFlag+ Opcode.LD_A_N8.cycles);
+						assertEquals(Bits.clip(16, addressJump + Opcode.LD_A_N8.totalBytes), cpu._testGetPcSpAFBCDEHL()[0]);
+						assertEquals(valueA, cpu._testGetPcSpAFBCDEHL()[2]);
+
+					} else {
+						cycleCpu(cpu,  opcode.cycles + cyclesFlag);
+						assertEquals(startAddress + opcode.totalBytes, cpu._testGetPcSpAFBCDEHL()[0]);
+					}
+				}break;
+				case JR_Z_E8: {
+					if(carryOrZero) {
+						cycleCpu(cpu, opcode.cycles + opcode.additionalCycles + cyclesFlag+ Opcode.LD_A_N8.cycles);
+						assertEquals(Bits.clip(16, addressJump + Opcode.LD_A_N8.totalBytes), cpu._testGetPcSpAFBCDEHL()[0]);
+						assertEquals(valueA, cpu._testGetPcSpAFBCDEHL()[2]);
+					} else {
+						cycleCpu(cpu, opcode.cycles + cyclesFlag);
+						assertEquals(startAddress + opcode.totalBytes, cpu._testGetPcSpAFBCDEHL()[0]);
+					}
+				}break;
+				}
+
+			}
+			
+		}
+		
+	}
+	
+	@Test
+	public void cpuReadHighRamWorks() {
+		for(int i = 0; i < AddressMap.HIGH_RAM_SIZE; i++) {
+			Cpu cpu = new Cpu();
+			Ram ram = new Ram(0xFFFF);
+			Bus bus = connect(cpu, ram);
+			int value = RandomGenerator.randomBit(8);
+			bus.write(i + 0xFF80, value);
+			assertEquals(value, bus.read(i + 0xFF80));
+		}
+	}
+
+	//Z takes boolean in argument
+	private long setZ2(Bus bus, boolean z) {
+		int n8;
+		if(z)
+			n8 = 0;
+		else
+			n8 = 1;
+		bus.write(0, Opcode.ADD_A_N8.encoding);
+		bus.write(1, n8);
+		return Opcode.ADD_A_N8.cycles;
+	}
+
+
+	//C takes value in argument. First 4 address taken
+	private long setC4(Bus bus, boolean z) {
+		int n8;
+		if(z)
+			n8 = 2;
+		else
+			n8 = 0;
+		bus.write(0, Opcode.LD_A_N8.encoding);
+		bus.write(1, 0xFF);
+		bus.write(2, Opcode.ADD_A_N8.encoding);
+		bus.write(3, n8);
+		return Opcode.ADD_A_N8.cycles + Opcode.LD_A_N8.cycles;
+	}
+
+	private int booleanToOneAndZero(boolean b) {
+		if(b)
+			return 1;
+		else
+			return 0;
+	}
+
 }
