@@ -10,9 +10,9 @@ import ch.epfl.gameboj.component.Component;
 import ch.epfl.gameboj.component.memory.Rom;
 
 public final class Cartridge implements Component {
-    private MBC0 controller;
+    private Component controller;
 
-    private Cartridge(MBC0 controller) {
+    private Cartridge(Component controller) {
         this.controller = controller;
     }
 
@@ -20,8 +20,7 @@ public final class Cartridge implements Component {
         try {
             FileInputStream input = new FileInputStream(romFile);
             byte[] dataInFile = new byte[32768];
-            int e;
-            // yes or no ? input.read(dataInFile);
+             input.read(dataInFile);
             if (dataInFile[0x147] != 0)
                 throw new IllegalArgumentException();
             return new Cartridge(new MBC0(new Rom(dataInFile)));
