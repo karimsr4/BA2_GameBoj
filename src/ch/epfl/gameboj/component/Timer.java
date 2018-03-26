@@ -34,7 +34,7 @@ public final class Timer implements Clocked, Component {
         case AddressMap.REG_TAC:
             return TAC;
         default:
-            return cpu.read(address);
+            return NO_DATA;
         }
 
     }
@@ -64,6 +64,7 @@ public final class Timer implements Clocked, Component {
             TAC = data;
             incIfChange(previousState);
         }
+        break;
 
         }
 
@@ -78,7 +79,7 @@ public final class Timer implements Clocked, Component {
     }
 
     private boolean state() {
-        return Bits.test(TAC, 3) && Bits.test(FIMA, bitIndex());
+        return Bits.test(TAC, 2) && Bits.test(FIMA, bitIndex());
 
     }
 
@@ -87,7 +88,10 @@ public final class Timer implements Clocked, Component {
             if (TIMA == 0xFF) {
                 cpu.requestInterrupt(Interrupt.TIMER);
                 TIMA = TMA;
+            }else {
+                TIMA++;
             }
+           
         }
 
     }
