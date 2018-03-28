@@ -1,5 +1,7 @@
 package ch.epfl.gameboj.component.cartridge;
 
+import java.util.Objects;
+
 import ch.epfl.gameboj.Preconditions;
 import ch.epfl.gameboj.component.Component;
 import ch.epfl.gameboj.component.memory.Rom;
@@ -9,8 +11,7 @@ public final class MBC0 implements Component {
     private Rom rom;
 
     public MBC0 (Rom rom) {
-        if (rom == null)
-            throw new NullPointerException();
+    Objects.requireNonNull(rom);
         if (rom.size() != 32768)
             throw new IllegalArgumentException();
         this.rom = rom;
