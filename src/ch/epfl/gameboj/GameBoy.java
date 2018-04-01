@@ -10,6 +10,7 @@ import ch.epfl.gameboj.component.memory.Ram;
 import ch.epfl.gameboj.component.memory.RamController;
 
 /**
+ * Classe qui simule le Gameboy
  * @author Karim HADIDANE (271018)
  * @author Ahmed JELLOULI (274056)
  *
@@ -25,8 +26,7 @@ public class GameBoy {
     private Timer timer;
 
     /**
-     * Construit une nouvelle Gameboy en créant ses composants : une ram et deux
-     * ram controllers et un bus et en attachant ces composants au bus
+     * Construit une nouvelle Gameboy en créant ses composants et en les attachant au bus
      * 
      * @param cartridge
      *            jeu a jouer
@@ -69,7 +69,9 @@ public class GameBoy {
     }
 
     /**
-     * @param cycle
+     * simule le fonctionnement du GameBoy jusqu'au cycle donné moins 1
+     * @param cycle le cycle donné
+     * @throws IllegalArgumentException si un nombre (strictement) supérieur de cycles a déjà été simulé
      */
     public void runUntil(long cycle) {
         if (cycles > cycle) {
@@ -77,7 +79,7 @@ public class GameBoy {
 
         } else {
             while (cycles < cycle) {
-                timer.cycle(cycle);
+                timer.cycle(cycles);
                 cpu.cycle(cycles);
                 cycles++;
             }
@@ -85,14 +87,16 @@ public class GameBoy {
     }
 
     /**
-     * @return
+     * retourne le nombre de cycles déjà simulés
+     * @return le nombre de cycles déjà simulés
      */
     public long cycles() {
         return cycles;
     }
 
     /**
-     * @return
+     * retourne le minuteur du GameBoy
+     * @return le minuteur du GameBoy
      */
     public Timer timer() {
         return this.timer;

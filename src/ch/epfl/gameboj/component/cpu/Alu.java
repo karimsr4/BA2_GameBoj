@@ -5,16 +5,25 @@ import ch.epfl.gameboj.bits.Bit;
 import ch.epfl.gameboj.bits.Bits;
 
 /**
- * Classe simulant l'unité arithmétique et logique du CPU 
+ * Classe qui simule l'unité arithmétique et logique du CPU 
  * @author Karim HADIDANE (271018)
  * @author Ahmed JELLOULI (274056)
  */
 public final class Alu {
 
+	/**
+	 * @author Karim HADIDANE (271018)
+     * @author Ahmed JELLOULI (274056)
+	 */
 	public enum RotDir {
 		LEFT, RIGHT
 	}
 
+	
+	/**
+	  * @author Karim HADIDANE (271018)
+      * @author Ahmed JELLOULI (274056)
+	 */
 	public enum Flag implements Bit {
 		UNUSED_0, UNUSED_1, UNUSED_2, UNUSED_3, C, H, N, Z
 	}

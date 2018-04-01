@@ -10,6 +10,11 @@ import ch.epfl.gameboj.Preconditions;
 import ch.epfl.gameboj.component.Component;
 import ch.epfl.gameboj.component.memory.Rom;
 
+/**
+ * Classe qui simule la cartouche
+ * @author Karim HADIDANE (271018)
+ * @author Ahmed JELLOULI (274056)
+ */
 public final class Cartridge implements Component {
     private Component controller;
 
@@ -17,6 +22,12 @@ public final class Cartridge implements Component {
         this.controller = controller;
     }
 
+    /**
+     * retourne une cartouche dont la mémoire morte contient les octets du fichier donné 
+     * @param romFile fichier contenant les octets
+     * @return une cartouche dont la mémoire morte contient les octets du fichier donné 
+     * @throws IOException en cas d'erreur d'entrée-sortie
+     */
     public static Cartridge ofFile(File romFile) throws IOException {
        
         try ( FileInputStream input = new FileInputStream(romFile)) {

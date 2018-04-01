@@ -3,6 +3,7 @@ package ch.epfl.gameboj.component.memory;
 import java.util.Arrays;
 
 /**
+ * Classe qui simule la memoire morte ROM
  * @author Karim HADIDANE (271018)
  * @author Ahmed JELLOULI (274056)
  */

@@ -7,10 +7,20 @@ import ch.epfl.gameboj.Preconditions;
 import ch.epfl.gameboj.component.Component;
 import ch.epfl.gameboj.component.cartridge.Cartridge;
 
+/**
+ * Classe qui simule le contrôleur de la mémoire morte de démarrage
+ * @author Karim HADIDANE (271018)
+ * @author Ahmed JELLOULI (274056)
+ */
 public final class BootRomController implements Component {
     private Cartridge cartridge;
     private boolean enabled = true;
 
+    /**
+     * construit un controleur de la memoire morte de demarrage
+     * @param cartridge la cartouche de jeu
+     * @throws NullPointerException si cartridge est null
+     */
     public BootRomController(Cartridge cartridge) {
         Objects.requireNonNull(cartridge);
         this.cartridge = cartridge;

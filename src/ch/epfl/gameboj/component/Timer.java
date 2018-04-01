@@ -8,6 +8,11 @@ import ch.epfl.gameboj.bits.Bits;
 import ch.epfl.gameboj.component.cpu.Cpu;
 import ch.epfl.gameboj.component.cpu.Cpu.Interrupt;
 
+/**
+ * Classe qui simule le minuteur
+ * @author Karim HADIDANE (271018)
+ * @author Ahmed JELLOULI (274056)
+ */
 public final class Timer implements Clocked, Component {
 
     private Cpu cpu;
@@ -16,6 +21,11 @@ public final class Timer implements Clocked, Component {
     private int TMA;
     private int TAC;
 
+    /**
+     * construit un timer pour le cpu donné
+     * @param cpu processeur
+     * @throws NullPointerException si le cpu est null
+     */
     public Timer(Cpu cpu) {
         Objects.requireNonNull(cpu);
         this.cpu = cpu;

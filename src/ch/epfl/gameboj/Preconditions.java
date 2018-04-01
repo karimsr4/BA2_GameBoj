@@ -1,6 +1,7 @@
 package ch.epfl.gameboj;
 
 /**
+ * Interface de verification des preconditions
  * @author Karim HADIDANE (271018)
  * @author Ahmed JELLOULI (274056)
  */

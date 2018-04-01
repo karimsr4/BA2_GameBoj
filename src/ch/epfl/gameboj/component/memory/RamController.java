@@ -6,6 +6,7 @@ import ch.epfl.gameboj.Preconditions;
 import ch.epfl.gameboj.component.Component;
 
 /**
+ * Classe qui simule le controleur de la memoire vive RAM
  * @author Karim HADIDANE (271018)
  * @author Ahmed JELLOULI (274056)
  */

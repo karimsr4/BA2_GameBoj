@@ -16,7 +16,7 @@ import ch.epfl.gameboj.component.cpu.Opcode.Kind;
 import ch.epfl.gameboj.component.memory.Ram;
 
 /**
- * classe simulant le processeur du GameBoy
+ * classe qui simule le processeur du GameBoy
  * 
  * @author Karim HADIDANE (271018)
  * @author Ahmed JELLOULI (274056)
@@ -169,7 +169,11 @@ public final class Cpu implements Component, Clocked {
         bus.attach(this);
     }
 
-    // ajouté a l'etape 5
+    
+    /**
+     * lève l'interruption donnée
+     * @param i l'interruption
+     */
     public void requestInterrupt(Interrupt i) {
         int bit = i.index();
         IF = Bits.set(IF, bit, true);
@@ -324,7 +328,7 @@ public final class Cpu implements Component, Clocked {
     /**
      * @param opcode
      */
-    public void dispatch(Opcode opcode) {
+    private void dispatch(Opcode opcode) {
         int nextPC = PC + opcode.totalBytes;
         boolean needAdditionnalCycles = false;
         switch (opcode.family) {
@@ -938,14 +942,6 @@ public final class Cpu implements Component, Clocked {
         }
     }
 
-    public int[] _testIMEIFIE() {
-        int a = (IME) ? 1 : 0;
-
-        return new int[] { a, IF, IE };
-    }
-
-    public void writeRegF(int num) {
-        regs8bits.set(Reg.F, num);
-    }
+  
 
 }

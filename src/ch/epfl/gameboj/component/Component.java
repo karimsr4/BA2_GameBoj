@@ -3,11 +3,15 @@ package ch.epfl.gameboj.component;
 import ch.epfl.gameboj.Bus;
 
 /**
+ * Interface qui represente l'abstraction d'un composant
  * @author Karim HADIDANE (271018)
  * @author Ahmed JELLOULI (274056)
  */
 public interface Component {
 
+    /**
+     * 
+     */
     int NO_DATA = 256;
 
     /**
@@ -37,6 +41,8 @@ public interface Component {
      */
     void write(int address, int data);
 
+    
+    
     /**
      * attache le composant au bus donné
      * 

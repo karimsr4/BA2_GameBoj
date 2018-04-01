@@ -5,14 +5,13 @@ import java.util.Objects;
 import ch.epfl.gameboj.Preconditions;
 
 /**
+ * Classe de manipulation des bits
  * @author Karim HADIDANE (271018)
  * @author Ahmed JELLOULI (274056)
  */
 public final class Bits {
 
-    /**
-     * constructeur privé
-     */
+   
     private Bits() {
     }
 
@@ -57,8 +56,6 @@ public final class Bits {
      * @param bit
      *            entier dont l'index sera utilisé
      * @return vrai ssi le bit d'index donné de bits vaut 1
-     * @throws IndexOutOfBoundsException
-     *             si l'index est invalide
      * 
      */
     public static boolean test(int bits, Bit bit) {
@@ -74,7 +71,7 @@ public final class Bits {
      * @param index
      *            entier representant l'index
      * @param newValue
-     *            booleen
+     *            booleen representant la nouvelle valeur
      * @return une valeur dont tous les bits sont égaux à ceux de bits, sauf
      *         celui d'index donné, qui est égal à newValue
      * @throws IndexOutOfBoundsException
@@ -152,7 +149,7 @@ public final class Bits {
      * @param distance
      *            donne la direction ( vers la gauche si positif, vers la droite
      *            si négatif) et la distance de la rotation
-     * @throws IndexOutOfBoundsException
+     * @throws IllegalArgumentException
      *             si size n'est pas compris entre 0(inclus) et 32 (exclus) ou
      *             si la valeur donnée n'est pas une valeur de size bits
      * @return une valeur dont les size bits de poids faible ont dubi une
@@ -174,12 +171,10 @@ public final class Bits {
      * copie le bit d'index 7 dans les bits d'index 8 à 31 et retourne cet
      * entier
      * 
-     * @param b
-     *            entier a traiter
+     * @param b  entier a traiter
      * @return entier dont les bits d'indexes 8 à 31 ont la même valeur que le
      *         bit d'index 7 de l'entier donné
-     * @throws IllegalArgument
-     *             Exception si la valeur donnée n'est pas une valeur 8 bits
+     * @throws IllegalArgumentException si la valeur donnée n'est pas une valeur 8 bits
      */
     public static int signExtend8(int b) {
         Preconditions.checkBits8(b);
@@ -193,7 +188,7 @@ public final class Bits {
      * poids faible qui ont été renversés
      * 
      * @param b
-     *            valeur donnée
+     *         valeur donnée
      * @return une valeur égale à celle donnée, à l'exception des 8 bits de
      *         poids faible qui ont été renversés
      * @throws IllegalArgument
