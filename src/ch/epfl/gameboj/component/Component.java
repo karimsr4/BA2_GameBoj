@@ -10,7 +10,7 @@ import ch.epfl.gameboj.Bus;
 public interface Component {
 
     /**
-     * 
+     * attribut utilisé pour signaler le fait qu'il n'a aucune donnée à lire à l'adresse reçue
      */
     int NO_DATA = 256;
 

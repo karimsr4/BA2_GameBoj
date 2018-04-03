@@ -1,7 +1,12 @@
 package ch.epfl.gameboj.component.memory;
 
+import java.util.Objects;
+
+import ch.epfl.gameboj.Preconditions;
+
 /**
  * Classe qui simule la mémoire vive RAM
+ * 
  * @author Karim HADIDANE (271018)
  * @author Ahmed JELLOULI (274056)
  */
@@ -19,12 +24,15 @@ public final class Ram {
      * 
      */
     public Ram(int size) {
-        if (size < 0) {
-            throw new IllegalArgumentException();
-        } else {
-            data = new byte[size];
+        // if (size < 0) {
+        // throw new IllegalArgumentException();
+        // } else {
+        // data = new byte[size];
+        //
+        // }
+        Preconditions.checkArgument(size >= 0);
+        data = new byte[size];
 
-        }
     }
 
     /**
@@ -33,13 +41,18 @@ public final class Ram {
      * @param index
      *            position en memoire
      * @return retourne l'octet se trouvant à l'index donne en parametre
+     * @throws IndexOutOfBoundsException
+     *             si l'index n'est pas valide
      */
     public int read(int index) {
-        if ((index >= 0) && (index < data.length)) {
-            return Byte.toUnsignedInt(data[index]);
-        } else {
-            throw new IndexOutOfBoundsException();
-        }
+        // if ((index >= 0) && (index < data.length)) {
+        // return Byte.toUnsignedInt(data[index]);
+        // } else {
+        // throw new IndexOutOfBoundsException();
+        // }
+
+        return Byte.toUnsignedInt(data[Objects.checkIndex(index, data.length)]);
+
     }
 
     /**
@@ -56,13 +69,15 @@ public final class Ram {
      * 
      */
     public void write(int index, int value) {
-        if ((index < 0) || (index >= data.length)) {
-            throw new IndexOutOfBoundsException();
-        } else if ((value < 0) || (value > 0x00FF)) {
-            throw new IllegalArgumentException();
-        } else {
-            data[index] = (byte) value;
-        }
+        // if ((index < 0) || (index >= data.length)) {
+        // throw new IndexOutOfBoundsException();
+        // } else if ((value < 0) || (value > 0x00FF)) {
+        // throw new IllegalArgumentException();
+        // } else {
+        // data[index] = (byte) value;
+        // }
+
+        data[Objects.checkIndex(index,data.length)] = (byte) (Preconditions.checkBits8(value));
     }
 
     /**

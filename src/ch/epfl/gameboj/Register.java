@@ -8,12 +8,14 @@ package ch.epfl.gameboj;
 public interface Register {
     
     /**
+     * 
      * @return 
      */
     int ordinal();
     
     /**
-     * @return
+     * retourne la meme valeur que la methode ordinal
+     * @return la meme valeur que la methode ordinal
      */
     default int index() {
         return this.ordinal();
