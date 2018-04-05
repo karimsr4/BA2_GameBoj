@@ -24,12 +24,6 @@ public final class Ram {
      * 
      */
     public Ram(int size) {
-        // if (size < 0) {
-        // throw new IllegalArgumentException();
-        // } else {
-        // data = new byte[size];
-        //
-        // }
         Preconditions.checkArgument(size >= 0);
         data = new byte[size];
 
@@ -45,11 +39,7 @@ public final class Ram {
      *             si l'index n'est pas valide
      */
     public int read(int index) {
-        // if ((index >= 0) && (index < data.length)) {
-        // return Byte.toUnsignedInt(data[index]);
-        // } else {
-        // throw new IndexOutOfBoundsException();
-        // }
+
 
         return Byte.toUnsignedInt(data[Objects.checkIndex(index, data.length)]);
 
@@ -69,13 +59,6 @@ public final class Ram {
      * 
      */
     public void write(int index, int value) {
-        // if ((index < 0) || (index >= data.length)) {
-        // throw new IndexOutOfBoundsException();
-        // } else if ((value < 0) || (value > 0x00FF)) {
-        // throw new IllegalArgumentException();
-        // } else {
-        // data[index] = (byte) value;
-        // }
 
         data[Objects.checkIndex(index,data.length)] = (byte) (Preconditions.checkBits8(value));
     }

@@ -33,15 +33,15 @@ public final class Cartridge implements Component {
         try ( FileInputStream input = new FileInputStream(romFile)) {
         
             byte[] dataInFile = new byte[32768];
-            // input.read(dataInFile);
-            int e=0;
+            input.read(dataInFile);
+            /*int e=0;
             int i=0;
             while((e=input.read())!=-1)
             {
               dataInFile[i]=(byte)e;
               i++;
-            }
-             //System.out.println(Arrays.toString(dataInFile));
+            }*/
+             
             if (dataInFile[0x147] != 0)
                 throw new IllegalArgumentException();
             return new Cartridge(new MBC0(new Rom(dataInFile)));
@@ -55,7 +55,7 @@ public final class Cartridge implements Component {
 
     @Override
     public int read(int address) {
-       // System.out.println(Integer.toHexString(address));
+      
         return controller.read(address);
        
     }
