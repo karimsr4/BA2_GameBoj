@@ -56,6 +56,9 @@ public final class Bits {
      * @param bit
      *            entier dont l'index sera utilisé
      * @return vrai ssi le bit d'index donné de bits vaut 1
+     * @throws IndexOutOfBoundsException
+     *             si l'index est invalide
+     * 
      * 
      */
     public static boolean test(int bits, Bit bit) {
@@ -64,7 +67,7 @@ public final class Bits {
 
     /**
      * retourne une valeur dont tous les bits sont égaux à ceux de bits, sauf
-     * celui d'index donné, qui est égal à newValue
+     * celui d'index donné, qui est égal à newValue(1 si vrai, 0 si faux)
      * 
      * @param bits
      *            entier à tester
@@ -95,7 +98,7 @@ public final class Bits {
      * @return une valeur dont les size bits de poids faible sont égaux à ceux
      *         de bits, les autres valant 0
      * @throws IllegalArgumentException
-     *             si le size est invalide
+     *             si la taille est invalide
      * 
      */
     public static int clip(int size, int bits) {
@@ -135,7 +138,7 @@ public final class Bits {
      * valeur donnée mais auxquels une rotation a été appliquée
      * 
      * @param size
-     *            nombre de bits qui vont subir unr rotation
+     *            nombre de bits qui vont subir une rotation
      * 
      * @param bits
      *            entier donné
@@ -229,7 +232,9 @@ public final class Bits {
      */
     public static int complement8(int b) {
         checkBits8(b);
+
         return (b ^ DATA_MAX_VALUE);
+
     }
 
     /**
@@ -242,13 +247,13 @@ public final class Bits {
      *            8 bits de poids faible
      * @return une valeur 16 bits a partir de valeur 8 bits données en les
      *         concaténant
-     * @throw IllegalArgumentException si les valeur données ne sont pas des
-     *        valeurs 8 bits
+     * @throws IllegalArgumentException
+     *             si les valeur données ne sont pas des valeurs 8 bits
      */
     public static int make16(int highB, int lowB) {
         checkBits8(highB);
         checkBits8(lowB);
-        return (highB * 256) | lowB;
+        return (highB << 8) | lowB;
     }
 
 }
