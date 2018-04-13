@@ -1,6 +1,6 @@
 package ch.epfl.gameboj.component.memory;
 
-import java.util.Objects;
+import static java.util.Objects.*;
 
 import ch.epfl.gameboj.AddressMap;
 import static ch.epfl.gameboj.Preconditions.*;
@@ -26,14 +26,14 @@ public final class BootRomController implements Component {
      *             si cartridge est null
      */
     public BootRomController(Cartridge cartridge) {
-        Objects.requireNonNull(cartridge);
+        requireNonNull(cartridge);
         this.cartridge = cartridge;
     }
 
     @Override
     public int read(int address) {
         checkBits16(address);
-        if ((enabled) && (address <= DATA_MAX_VALUE)) {
+        if ((enabled) && (address <= 0xFF)) {
             return Byte.toUnsignedInt(BootRom.DATA[address]);
         } else {
             return cartridge.read(address);

@@ -1,8 +1,8 @@
 package ch.epfl.gameboj.component.cartridge;
 
-import java.util.Objects;
+import static java.util.Objects.requireNonNull;
 
-import ch.epfl.gameboj.Preconditions;
+import static ch.epfl.gameboj.Preconditions.*;
 import ch.epfl.gameboj.component.Component;
 import ch.epfl.gameboj.component.memory.Rom;
 
@@ -28,8 +28,8 @@ public final class MBC0 implements Component {
      *             si la taille de la rom n'est pas egale 32768
      */
     public MBC0(Rom rom) {
-        Objects.requireNonNull(rom);
-        Preconditions.checkArgument(rom.size() == ROM_SIZE);
+        requireNonNull(rom);
+        checkArgument(rom.size() == ROM_SIZE);
         this.rom = rom;
 
     }
@@ -41,7 +41,7 @@ public final class MBC0 implements Component {
      */
     @Override
     public int read(int address) {
-        Preconditions.checkBits16(address);
+        checkBits16(address);
         if (address >= ROM_SIZE) {
             return NO_DATA;
         }

@@ -1,6 +1,6 @@
 package ch.epfl.gameboj.component.cpu;
 
-import ch.epfl.gameboj.Preconditions;
+import static ch.epfl.gameboj.Preconditions.*;
 import ch.epfl.gameboj.bits.Bit;
 import ch.epfl.gameboj.bits.Bits;
 
@@ -69,8 +69,7 @@ public final class Alu {
      *             si valueFlags n'est pas appropriée
      */
     public static int unpackValue(int valueFlags) {
-        Preconditions.checkArgument(Bits.clip(4, valueFlags) == 0
-                && Bits.extract(valueFlags, 24, 8) == 0);
+        checkArgument(Bits.clip(4, valueFlags) == 0 && Bits.extract(valueFlags, 24, 8) == 0);
         return Bits.extract(valueFlags, 8, 16);
 
     }
@@ -85,8 +84,7 @@ public final class Alu {
      *             si valueFlags n'est pas appropriée
      */
     public static int unpackFlags(int valueFlags) {
-        Preconditions.checkArgument(Bits.clip(4, valueFlags) == 0
-                && Bits.extract(valueFlags, 24, 8) == 0);
+        checkArgument(Bits.clip(4, valueFlags) == 0 && Bits.extract(valueFlags, 24, 8) == 0);
         return (Bits.extract(valueFlags, 4, 4)) << 4;
 
     }
@@ -107,7 +105,7 @@ public final class Alu {
      */
     public static int add(int l, int r, boolean c0) {
 
-        int result = Preconditions.checkBits8(l) + Preconditions.checkBits8(r)
+        int result = checkBits8(l) + checkBits8(r)
                 + Bits.set(0, 0, c0);
         boolean c = (result) > 0xFF;
         boolean h = (Bits.clip(4, r) + Bits.clip(4, l)
@@ -152,8 +150,7 @@ public final class Alu {
      */
     public static int add16L(int l, int r) {
 
-        int result = Preconditions.checkBits16(l)
-                + Preconditions.checkBits16(r);
+        int result = checkBits16(l)  + checkBits16(r);
         boolean c = (Bits.clip(8, l) + Bits.clip(8, r)) > 0xFF;
         boolean h = (Bits.clip(4, l) + Bits.clip(4, r)) > 0xF;
         result = Bits.clip(16, result);
@@ -178,8 +175,7 @@ public final class Alu {
      */
     public static int add16H(int l, int r) {
 
-        int result = Preconditions.checkBits16(l)
-                + Preconditions.checkBits16(r);
+        int result = checkBits16(l) + checkBits16(r);
         boolean cin = (Bits.clip(8, l) + Bits.clip(8, r)) > 0xFF;
         boolean c = (Bits.extract(l, 8, 8) + Bits.extract(r, 8, 8)
                 + Bits.set(0, 0, cin)) > 0xFF;
@@ -209,8 +205,8 @@ public final class Alu {
      */
     public static int sub(int l, int r, boolean b0) {
 
-        int result = Bits.clip(8, Preconditions.checkBits8(l)
-                - (Preconditions.checkBits8(r) + Bits.set(0, 0, b0)));
+        int result = Bits.clip(8, checkBits8(l)
+                - (checkBits8(r) + Bits.set(0, 0, b0)));
         boolean c = l < (r + Bits.set(0, 0, b0));
         boolean z = (result == 0);
         boolean h = (Bits.clip(4, l) < (Bits.clip(4, r) + Bits.set(0, 0, b0)));
@@ -254,7 +250,7 @@ public final class Alu {
      * 
      */
     public static int bcdAdjust(int v, boolean n, boolean h, boolean c) {
-        Preconditions.checkBits8(v);
+        checkBits8(v);
         boolean fixL = (h) || ((!(n)) && (Bits.clip(4, v) > 9));
         boolean fixH = c || ((!n) && (v > 0x99));
         int fix = (0x60) * Bits.set(0, 0, fixH) + (0x06) * Bits.set(0, 0, fixL);
@@ -278,7 +274,7 @@ public final class Alu {
      */
     public static int and(int l, int r) {
 
-        int result = Preconditions.checkBits8(l) & Preconditions.checkBits8(r);
+        int result = checkBits8(l) & checkBits8(r);
         boolean z = (result == 0);
         return packValueZNHC(result, z, false, true, false);
 
@@ -299,7 +295,7 @@ public final class Alu {
      */
     public static int or(int l, int r) {
 
-        int result = Preconditions.checkBits8(l) | Preconditions.checkBits8(r);
+        int result = checkBits8(l) | checkBits8(r);
         boolean z = (result == 0);
         return packValueZNHC(result, z, false, false, false);
 
@@ -320,7 +316,7 @@ public final class Alu {
      */
     public static int xor(int l, int r) {
 
-        int result = Preconditions.checkBits8(l) ^ Preconditions.checkBits8(r);
+        int result = checkBits8(l) ^ checkBits8(r);
         boolean z = (result == 0);
         return packValueZNHC(result, z, false, false, false);
 
@@ -339,7 +335,7 @@ public final class Alu {
      */
     public static int shiftLeft(int v) {
 
-        int result = Bits.clip(8, Preconditions.checkBits8(v) << 1);
+        int result = Bits.clip(8, checkBits8(v) << 1);
         return packValueZNHC(result, result == 0, false, false,
                 Bits.test(v, 7));
 
@@ -359,7 +355,7 @@ public final class Alu {
      */
     public static int shiftRightA(int v) {
 
-        int result = ((Preconditions.checkBits8(v) << 24) >> 1) >>> 24;
+        int result = ((checkBits8(v) << 24) >> 1) >>> 24;
         return packValueZNHC(result, result == 0, false, false,
                 Bits.test(v, 0));
 
@@ -378,7 +374,7 @@ public final class Alu {
      * 
      */
     public static int shiftRightL(int v) {
-        Preconditions.checkBits8(v);
+        checkBits8(v);
         return packValueZNHC(v >>> 1, v >>> 1 == 0, false, false,
                 Bits.test(v, 0));
 
@@ -397,7 +393,7 @@ public final class Alu {
      *             si la valeur donnée n'est pas un entier de 8 bits
      */
     public static int rotate(RotDir d, int v) {
-        Preconditions.checkBits8(v);
+        checkBits8(v);
         int result = 0;
         switch (d) {
         case LEFT:
@@ -429,7 +425,7 @@ public final class Alu {
      */
     public static int rotate(RotDir d, int v, boolean c) {
 
-        v = Bits.set(Preconditions.checkBits8(v), 8, c);
+        v = Bits.set(checkBits8(v), 8, c);
         int result = 0;
 
         switch (d) {
@@ -459,7 +455,7 @@ public final class Alu {
      *             si la valeur donnée n'est pas un entier de 8 bits
      */
     public static int swap(int v) {
-        int result = Bits.extract(Preconditions.checkBits8(v), 4, 4)
+        int result = Bits.extract(checkBits8(v), 4, 4)
                 | (Bits.clip(4, v) << 4);
         return packValueZNHC(result, result == 0, false, false, false);
 
@@ -481,7 +477,7 @@ public final class Alu {
      *             si l'index de bit donné n'est pas compris entre 0 et 7
      */
     public static int testBit(int v, int bitIndex) {
-        Preconditions.checkBits8(v);
+        checkBits8(v);
         if ((bitIndex < 0) || (bitIndex > 7)) {
             throw new IndexOutOfBoundsException();
         } else {
