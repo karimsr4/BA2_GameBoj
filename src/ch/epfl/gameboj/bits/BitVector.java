@@ -66,6 +66,57 @@ public final class BitVector {
             copy[i]= vector[i]^ 0xFFFFFFFF;
         return new BitVector(copy);
     }
+    @Override
+    public boolean equals(Object obj) {
+        // TODO Auto-generated method stub
+        return super.equals(obj);
+    }
+    @Override
+    public int hashCode() {
+        // TODO Auto-generated method stub
+        return super.hashCode();
+    }
+    /**
+     * @param that
+     * @return
+     */
+    public BitVector and (BitVector that) {
+        return that;
+        
+    }
+    /**
+     * @param that
+     * @return
+     */
+    public BitVector or (BitVector that) {
+        return null;
+        
+    }
+    /**
+     * @param distance
+     * @return
+     */
+    public BitVector shift(int distance) {
+        return null;
+        
+    }
+    /**
+     * @param start
+     * @param end
+     * @return
+     */
+    public BitVector extractWrapped(int start,int end) {
+        return null;
+        
+    }
+    /**
+     * @param start
+     * @param end
+     */
+    public BitVector extractZeroExtended(int start, int end) {
+        return null;
+        
+    }
     
     
     
