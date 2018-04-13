@@ -52,7 +52,7 @@ public final class Cpu implements Component, Clocked {
     private static final Opcode[] PREFIXED_OPCODE_TABLE = buildOpcodeTable(
             Opcode.Kind.PREFIXED);
     private Bus bus;
-    private  RegisterFile<Reg> regs8bits = new RegisterFile<Reg>(
+    private final RegisterFile<Reg> regs8bits = new RegisterFile<Reg>(
             Reg.values());
     private long nextNonIdleCycle;
     private final int PREFIXED_INSTRUC_FLAG = 0xCB;
@@ -172,7 +172,7 @@ public final class Cpu implements Component, Clocked {
      * lève l'interruption donnée
      * 
      * @param i
-     *            l'interruption
+     *            l'interruption à lever
      */
     public void requestInterrupt(Interrupt i) {
         int bit = i.index();
@@ -325,9 +325,7 @@ public final class Cpu implements Component, Clocked {
     }
 
     // dispatch method
-    /**
-     * @param opcode
-     */
+  
     private void dispatch(Opcode opcode) {
         int nextPC = PC + opcode.totalBytes;
         boolean needAdditionnalCycles = false;
