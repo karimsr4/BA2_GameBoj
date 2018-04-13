@@ -17,14 +17,14 @@ import ch.epfl.gameboj.component.memory.RamController;
  *
  */
 public final class GameBoy {
-    private Ram ram;
-    private RamController ramController;
-    private RamController echoRamController;
-    private Bus bus;
-    private Cpu cpu;
+    private final Ram ram;
+    private final RamController ramController;
+    private final RamController echoRamController;
+    private final Bus bus;
+    private final Cpu cpu;
     private long cycles;
-    private BootRomController bootRomController;
-    private Timer timer;
+    private final BootRomController bootRomController;
+    private final Timer timer;
 
     /**
      * Construit une nouvelle Gameboy en créant ses composants et en les
@@ -59,7 +59,7 @@ public final class GameBoy {
      * @return le processeur
      */
     public Cpu cpu() {
-        return this.cpu;
+        return cpu;
     }
 
     /**

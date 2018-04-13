@@ -1,16 +1,15 @@
 package ch.epfl.gameboj;
 
 /**
- * Interface de verification des preconditions
+ * Interface de vérification des préconditions
  * 
  * @author Karim HADIDANE (271018)
  * @author Ahmed JELLOULI (274056)
  */
 public interface Preconditions {
 
-    int DATA_MAX_VALUE=0xFF;
-    int ADDRESS_MAX_VALUE=0xFFFF;
     
+
     /**
      * verifie la valeur de l'argument , ne fait rien si celui-ci est vrai
      * 
@@ -21,9 +20,9 @@ public interface Preconditions {
      *             si l'argument est faux
      */
     static void checkArgument(boolean b) {
-        if (!b) {
+        if (!b)
             throw new IllegalArgumentException();
-        }
+
     }
 
     /**
@@ -36,11 +35,9 @@ public interface Preconditions {
      * @return l'argument v si celui-ci est une valeur de 8 bits
      */
     static int checkBits8(int v) {
-        if ((v >= 0) && (v <= DATA_MAX_VALUE)) {
-            return v;
-        } else {
+        if (!((v >= 0) && (v <= 0xFF)))
             throw new IllegalArgumentException();
-        }
+        return v;
     }
 
     /**
@@ -53,11 +50,9 @@ public interface Preconditions {
      * @return l'argument v si celui-ci est une valeur de 16 bits
      */
     static int checkBits16(int v) {
-        if ((v >= 0) && (v <= ADDRESS_MAX_VALUE)) {
-            return v;
-        } else {
+        if (!((v >= 0) && (v <= 0xFFFF)))
             throw new IllegalArgumentException();
-        }
+        return v;
 
     }
 }
