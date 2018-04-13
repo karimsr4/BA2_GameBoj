@@ -69,7 +69,8 @@ public final class Alu {
      *             si valueFlags n'est pas dans le format approprié
      */
     public static int unpackValue(int valueFlags) {
-        checkArgument(Bits.clip(4, valueFlags) == 0 && Bits.extract(valueFlags, 24, 8) == 0);
+        checkArgument(Bits.clip(4, valueFlags) == 0
+                && Bits.extract(valueFlags, 24, 8) == 0);
         return Bits.extract(valueFlags, 8, 16);
 
     }
@@ -84,7 +85,8 @@ public final class Alu {
      *             si valueFlags n'est pas dans le format approprié
      */
     public static int unpackFlags(int valueFlags) {
-        checkArgument(Bits.clip(4, valueFlags) == 0 && Bits.extract(valueFlags, 24, 8) == 0);
+        checkArgument(Bits.clip(4, valueFlags) == 0
+                && Bits.extract(valueFlags, 24, 8) == 0);
         return (Bits.extract(valueFlags, 4, 4)) << 4;
 
     }
@@ -105,8 +107,7 @@ public final class Alu {
      */
     public static int add(int l, int r, boolean c0) {
 
-        int result = checkBits8(l) + checkBits8(r)
-                + Bits.set(0, 0, c0);
+        int result = checkBits8(l) + checkBits8(r) + Bits.set(0, 0, c0);
         boolean c = (result) > 0xFF;
         boolean h = (Bits.clip(4, r) + Bits.clip(4, l)
                 + Bits.set(0, 0, c0)) > 0xF;
@@ -150,7 +151,7 @@ public final class Alu {
      */
     public static int add16L(int l, int r) {
 
-        int result = checkBits16(l)  + checkBits16(r);
+        int result = checkBits16(l) + checkBits16(r);
         boolean c = (Bits.clip(8, l) + Bits.clip(8, r)) > 0xFF;
         boolean h = (Bits.clip(4, l) + Bits.clip(4, r)) > 0xF;
         result = Bits.clip(16, result);
@@ -165,7 +166,7 @@ public final class Alu {
      * poids fort
      * 
      * @param l
-     *            entier de 16 bits representant le premier operande
+     *            entier de 16 bits representant le premier opérande
      * @param r
      *            entier de 16 bits representant le deuxieme operande
      * @return la somme des deux valeurs et les fanions 00HC
@@ -205,8 +206,8 @@ public final class Alu {
      */
     public static int sub(int l, int r, boolean b0) {
 
-        int result = Bits.clip(8, checkBits8(l)
-                - (checkBits8(r) + Bits.set(0, 0, b0)));
+        int result = Bits.clip(8,
+                checkBits8(l) - (checkBits8(r) + Bits.set(0, 0, b0)));
         boolean c = l < (r + Bits.set(0, 0, b0));
         boolean z = (result == 0);
         boolean h = (Bits.clip(4, l) < (Bits.clip(4, r) + Bits.set(0, 0, b0)));
@@ -455,8 +456,7 @@ public final class Alu {
      *             si la valeur donnée n'est pas un entier de 8 bits
      */
     public static int swap(int v) {
-        int result = Bits.extract(checkBits8(v), 4, 4)
-                | (Bits.clip(4, v) << 4);
+        int result = Bits.extract(checkBits8(v), 4, 4) | (Bits.clip(4, v) << 4);
         return packValueZNHC(result, result == 0, false, false, false);
 
     }
@@ -478,12 +478,12 @@ public final class Alu {
      */
     public static int testBit(int v, int bitIndex) {
         checkBits8(v);
-        if ((bitIndex < 0) || (bitIndex > 7)) {
+        if ((bitIndex < 0) || (bitIndex > 7)) 
             throw new IndexOutOfBoundsException();
-        } else {
-            return packValueZNHC(0, !(Bits.test(v, bitIndex)), false, true,
+        
+        return packValueZNHC(0, !(Bits.test(v, bitIndex)), false, true,
                     false);
-        }
+        
 
     }
 
