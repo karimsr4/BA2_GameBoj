@@ -12,7 +12,7 @@ import static ch.epfl.gameboj.Preconditions.*;
  */
 public final class Ram {
 
-    private byte[] data;
+    private final byte[] data;
 
     /**
      * construit une nouvelle memoire vive

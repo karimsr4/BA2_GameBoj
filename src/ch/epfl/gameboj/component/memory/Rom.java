@@ -11,7 +11,7 @@ import static java.util.Objects.*;
  */
 public final class Rom {
 
-    private byte[] data;
+    private final byte[] data;
 
     /**
      * construit une memoire morte ROM
