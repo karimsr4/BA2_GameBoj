@@ -14,6 +14,7 @@ import ch.epfl.gameboj.component.memory.Rom;
  */
 public final class MBC0 implements Component {
 
+    private final int ROM_SIZE = 0x8000;
     private Rom rom;
 
     /**
@@ -28,19 +29,30 @@ public final class MBC0 implements Component {
      */
     public MBC0(Rom rom) {
         Objects.requireNonNull(rom);
-        Preconditions.checkArgument(rom.size() == 32768);
+        Preconditions.checkArgument(rom.size() == ROM_SIZE);
         this.rom = rom;
 
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see ch.epfl.gameboj.component.Component#read(int)
+     */
     @Override
     public int read(int address) {
-        if (address >= 0x8000) {
+        Preconditions.checkBits16(address);
+        if (address >= ROM_SIZE) {
             return NO_DATA;
         }
         return rom.read(address);
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see ch.epfl.gameboj.component.Component#write(int, int)
+     */
     @Override
     public void write(int address, int data) {
     }

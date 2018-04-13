@@ -1,17 +1,17 @@
 package ch.epfl.gameboj.bits;
 
-import java.util.Objects;
+import static java.util.Objects.*;
 
-import ch.epfl.gameboj.Preconditions;
+import static ch.epfl.gameboj.Preconditions.*;
 
 /**
- * Classe de manipulation des bits
+ * Classe contenant des méthodes pour manipuler des bits
+ * 
  * @author Karim HADIDANE (271018)
  * @author Ahmed JELLOULI (274056)
  */
 public final class Bits {
 
-   
     private Bits() {
     }
 
@@ -25,7 +25,7 @@ public final class Bits {
      *             si l'index est invalide
      */
     public static int mask(int index) {
-        Objects.checkIndex(index, Integer.SIZE);
+        checkIndex(index, Integer.SIZE);
         return 1 << index;
 
     }
@@ -42,7 +42,7 @@ public final class Bits {
      *             si l'index est invalide
      */
     public static boolean test(int bits, int index) {
-        Objects.checkIndex(index, Integer.SIZE);
+        checkIndex(index, Integer.SIZE);
         bits = bits & mask(index);
         return (bits == mask(index));
 
@@ -79,12 +79,9 @@ public final class Bits {
      */
     public static int set(int bits, int index, boolean newValue) {
 
-        Objects.checkIndex(index, Integer.SIZE);
-        if (newValue) {
-            return bits | mask(index);
-        } else {
-            return bits & ~mask(index);
-        }
+        checkIndex(index, Integer.SIZE);
+
+        return (newValue) ? bits | mask(index) : bits & ~mask(index);
     }
 
     /**
@@ -103,12 +100,8 @@ public final class Bits {
      */
     public static int clip(int size, int bits) {
 
-        Preconditions.checkArgument(size >= 0 && size <= 32);
-        int a = 0;
-        for (int i = 0; i < size; i++) {
-            a = a | mask(i);
-        }
-        return bits & a;
+        checkArgument(size >= 0 && size <= 32);
+        return size == 32 ? bits : bits & ((1 << size) - 1);
 
     }
 
@@ -131,7 +124,7 @@ public final class Bits {
      * 
      */
     public static int extract(int bits, int start, int size) {
-        Objects.checkFromIndexSize(start, size, 32);
+        checkFromIndexSize(start, size, 32);
         bits = bits >> start;
         return clip(size, bits);
 
@@ -150,34 +143,34 @@ public final class Bits {
      *            donne la direction ( vers la gauche si positif, vers la droite
      *            si négatif) et la distance de la rotation
      * @throws IllegalArgumentException
-     *             si size n'est pas compris entre 0(inclus) et 32 (exclus) ou
+     *             si size n'est pas compris entre 0(exclus) et 32 (inclus) ou
      *             si la valeur donnée n'est pas une valeur de size bits
      * @return une valeur dont les size bits de poids faible ont dubi une
      *         rotation
      */
     public static int rotate(int size, int bits, int distance) {
-        if ((size <= 0) || (size > 32) || (bits >= Math.pow(2, size))) {
-            throw new IllegalArgumentException();
-        } else {
-            int a = Math.floorMod(distance, size);
+        checkArgument(size > 0 && size <= 32);
+        checkArgument(bits < Math.pow(2, size));
 
-            a = (clip(size, bits << a)) | (bits >>> (size - a));
-            return a;
-        }
+        int a = Math.floorMod(distance, size);
 
+        a = (clip(size, bits << a)) | (bits >>> (size - a));
+        return a;
     }
 
     /**
      * copie le bit d'index 7 dans les bits d'index 8 à 31 et retourne cet
      * entier
      * 
-     * @param b  entier a traiter
+     * @param b
+     *            entier a traiter
      * @return entier dont les bits d'indexes 8 à 31 ont la même valeur que le
      *         bit d'index 7 de l'entier donné
-     * @throws IllegalArgumentException si la valeur donnée n'est pas une valeur 8 bits
+     * @throws IllegalArgumentException
+     *             si la valeur donnée n'est pas une valeur 8 bits
      */
     public static int signExtend8(int b) {
-        Preconditions.checkBits8(b);
+        checkBits8(b);
         b = (byte) b;
         return (int) b;
 
@@ -188,14 +181,14 @@ public final class Bits {
      * poids faible qui ont été renversés
      * 
      * @param b
-     *         valeur donnée
+     *            valeur donnée
      * @return une valeur égale à celle donnée, à l'exception des 8 bits de
      *         poids faible qui ont été renversés
      * @throws IllegalArgument
      *             Exception si la valeur donnée n'est pas une valeur 8 bits
      */
     public static int reverse8(int b) {
-        Preconditions.checkBits8(b);
+        checkBits8(b);
         int[] allInverses = new int[] { 0x00, 0x80, 0x40, 0xC0, 0x20, 0xA0,
                 0x60, 0xE0, 0x10, 0x90, 0x50, 0xD0, 0x30, 0xB0, 0x70, 0xF0,
                 0x08, 0x88, 0x48, 0xC8, 0x28, 0xA8, 0x68, 0xE8, 0x18, 0x98,
@@ -235,7 +228,7 @@ public final class Bits {
      *         poids faible ont été inversés bit à bit
      */
     public static int complement8(int b) {
-        Preconditions.checkBits8(b);
+        checkBits8(b);
         return (b ^ 255);
     }
 
@@ -253,8 +246,8 @@ public final class Bits {
      *        valeurs 8 bits
      */
     public static int make16(int highB, int lowB) {
-        Preconditions.checkBits8(highB);
-        Preconditions.checkBits8(lowB);
+        checkBits8(highB);
+        checkBits8(lowB);
         return (highB * 256) | lowB;
     }
 

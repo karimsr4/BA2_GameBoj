@@ -2,7 +2,7 @@ package ch.epfl.gameboj.component.memory;
 
 import java.util.Objects;
 
-import ch.epfl.gameboj.Preconditions;
+import static ch.epfl.gameboj.Preconditions.*;
 import ch.epfl.gameboj.component.Component;
 
 /**
@@ -24,7 +24,7 @@ public final class RamController implements Component {
      * @param startAddress
      *            adresse de départ en mémoire
      * @param endAddress
-     *            dernière adresse (non accessible) délimitant la zone en mémoie
+     *            dernière adresse (non accessible) délimitant la zone en mémoire
      * @throws NullPointerException
      *             si la mémoire vive donnée est nulle
      * @throws IllegalArgumentException
@@ -34,9 +34,9 @@ public final class RamController implements Component {
      */
     public RamController(Ram ram, int startAddress, int endAddress) {
         Objects.requireNonNull(ram);
-        Preconditions.checkBits16(startAddress);
-        Preconditions.checkBits16(endAddress);
-        Preconditions.checkArgument((endAddress - startAddress >= 0)
+        checkBits16(startAddress);
+        checkBits16(endAddress);
+        checkArgument((endAddress - startAddress >= 0)
                 && (endAddress - startAddress <= ram.size()));
         this.ram = ram;
         this.startAddress = startAddress;
@@ -56,9 +56,12 @@ public final class RamController implements Component {
         this(ram, startAddress, startAddress + ram.size());
     }
 
+    /* (non-Javadoc)
+     * @see ch.epfl.gameboj.component.Component#read(int)
+     */
     @Override
     public int read(int address) {
-        Preconditions.checkBits16(address);
+        checkBits16(address);
         if ((address >= startAddress) && (address < endAddress)) {
             return ram.read(address - startAddress);
         }
@@ -66,11 +69,14 @@ public final class RamController implements Component {
 
     }
 
+    /* (non-Javadoc)
+     * @see ch.epfl.gameboj.component.Component#write(int, int)
+     */
     @Override
     public void write(int address, int data) {
 
-        Preconditions.checkBits8(data);
-        Preconditions.checkBits16(address);
+        checkBits8(data);
+        checkBits16(address);
         if ((address >= startAddress) && (address < endAddress)) {
             this.ram.write(address - startAddress, data);
         }

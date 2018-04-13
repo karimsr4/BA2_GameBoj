@@ -1,8 +1,8 @@
 package ch.epfl.gameboj.component.memory;
 
-import java.util.Objects;
+import static java.util.Objects.*;
+import static ch.epfl.gameboj.Preconditions.*;
 
-import ch.epfl.gameboj.Preconditions;
 
 /**
  * Classe qui simule la mémoire vive RAM
@@ -19,12 +19,12 @@ public final class Ram {
      * 
      * @param size
      *            Taille de la memoire vive
-     * @throws new
-     *             IllegalArgumentException si la taille donnéee est négative
+     * @throws
+     *            IllegalArgumentException si la taille donnéee est négative
      * 
      */
     public Ram(int size) {
-        Preconditions.checkArgument(size >= 0);
+        checkArgument(size >= 0);
         data = new byte[size];
 
     }
@@ -41,15 +41,15 @@ public final class Ram {
     public int read(int index) {
 
 
-        return Byte.toUnsignedInt(data[Objects.checkIndex(index, data.length)]);
+        return Byte.toUnsignedInt(data[checkIndex(index, data.length)]);
 
     }
 
     /**
-     * modifie le contenu de la memoire à l'index donne en la valeur donnee 
+     * écrit la valeur donnée à l'index donné
      * 
      * @param index
-     *            position en memoire à modifier
+     *            position en memoire
      * @param value
      *            valeur a enregistrer en memoire
      * @throws IndexOutOfBoundsException
@@ -60,7 +60,7 @@ public final class Ram {
      */
     public void write(int index, int value) {
 
-        data[Objects.checkIndex(index,data.length)] = (byte) (Preconditions.checkBits8(value));
+        data[checkIndex(index,data.length)] = (byte) (checkBits8(value));
     }
 
     /**

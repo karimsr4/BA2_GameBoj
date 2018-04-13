@@ -1,7 +1,7 @@
 package ch.epfl.gameboj.component.memory;
 
 import java.util.Arrays;
-import java.util.Objects;
+import static java.util.Objects.*;
 
 /**
  * Classe qui simule la memoire morte ROM
@@ -19,10 +19,13 @@ public final class Rom {
      * @param data
      *            tableau de byte qui represente le contenu initial de la
      *            memoire morte
+     * 
+     * @throws NullPointerException
+     *             si le tableau passé en argument est null
      */
     public Rom(byte[] data) {
 
-        this.data = Arrays.copyOf(Objects.requireNonNull(data), data.length);
+        this.data = Arrays.copyOf(requireNonNull(data), data.length);
     }
 
     /**
@@ -35,7 +38,7 @@ public final class Rom {
     }
 
     /**
-     * retourne l'octet se trouvant Ã  l'index donne
+     * retourne l'octet se trouvant à l'index donne
      * 
      * @param index
      *            position en memoire
@@ -45,7 +48,7 @@ public final class Rom {
      */
     public int read(int index) {
 
-        return Byte.toUnsignedInt(data[Objects.checkIndex(index, data.length)]);
+        return Byte.toUnsignedInt(data[checkIndex(index, data.length)]);
 
     }
 

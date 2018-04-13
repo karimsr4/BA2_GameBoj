@@ -1,15 +1,16 @@
 package ch.epfl.gameboj.component;
 
-import java.util.Objects;
+import static java.util.Objects.*;
 
 import ch.epfl.gameboj.AddressMap;
-import ch.epfl.gameboj.Preconditions;
+import static ch.epfl.gameboj.Preconditions.*;
 import ch.epfl.gameboj.bits.Bits;
 import ch.epfl.gameboj.component.cpu.Cpu;
 import ch.epfl.gameboj.component.cpu.Cpu.Interrupt;
 
 /**
  * Classe qui simule le minuteur
+ * 
  * @author Karim HADIDANE (271018)
  * @author Ahmed JELLOULI (274056)
  */
@@ -23,17 +24,25 @@ public final class Timer implements Clocked, Component {
 
     /**
      * construit un timer pour le cpu donné
-     * @param cpu processeur
-     * @throws NullPointerException si le cpu est null
+     * 
+     * @param cpu
+     *            processeur
+     * @throws NullPointerException
+     *             si le cpu est null
      */
     public Timer(Cpu cpu) {
-        Objects.requireNonNull(cpu);
+        requireNonNull(cpu);
         this.cpu = cpu;
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see ch.epfl.gameboj.component.Component#read(int)
+     */
     @Override
     public int read(int address) {
-        Preconditions.checkBits16(address);
+        checkBits16(address);
         switch (address) {
         case AddressMap.REG_DIV:
             return Bits.extract(FIMA, 8, 8);
@@ -49,10 +58,15 @@ public final class Timer implements Clocked, Component {
 
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see ch.epfl.gameboj.component.Component#write(int, int)
+     */
     @Override
     public void write(int address, int data) {
-        Preconditions.checkBits16(address);
-        Preconditions.checkBits8(data);
+        checkBits16(address);
+        checkBits8(data);
         boolean previousState = state();
         switch (address) {
         case AddressMap.REG_DIV: {
@@ -74,12 +88,17 @@ public final class Timer implements Clocked, Component {
             TAC = data;
             incIfChange(previousState);
         }
-        break;
+            break;
 
         }
 
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see ch.epfl.gameboj.component.Clocked#cycle(long)
+     */
     @Override
     public void cycle(long cycle) {
         boolean previousState = state();
@@ -98,10 +117,10 @@ public final class Timer implements Clocked, Component {
             if (TIMA == 0xFF) {
                 cpu.requestInterrupt(Interrupt.TIMER);
                 TIMA = TMA;
-            }else {
+            } else {
                 TIMA++;
             }
-           
+
         }
 
     }

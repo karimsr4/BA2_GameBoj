@@ -52,10 +52,17 @@ public final class Cpu implements Component, Clocked {
     private static final Opcode[] PREFIXED_OPCODE_TABLE = buildOpcodeTable(
             Opcode.Kind.PREFIXED);
     private Bus bus;
-    private static RegisterFile<Reg> regs8bits = new RegisterFile<Reg>(
+    private  RegisterFile<Reg> regs8bits = new RegisterFile<Reg>(
             Reg.values());
     private long nextNonIdleCycle;
+    private final int PREFIXED_INSTRUC_FLAG = 0xCB;
 
+    /**
+     * Type Enuméré représentant les interruptions
+     * 
+     * @author Karim HADIDANE (271018)
+     * @author Ahmed JELLOULI (274056)
+     */
     public enum Interrupt implements Bit {
         VBLANK, LCD_STAT, TIMER, SERIAL, JOYPAD
     }
@@ -93,6 +100,11 @@ public final class Cpu implements Component, Clocked {
 
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see ch.epfl.gameboj.component.Clocked#cycle(long)
+     */
     @Override
     public void cycle(long cycle) {
 
@@ -105,34 +117,11 @@ public final class Cpu implements Component, Clocked {
 
     }
 
-    private void reallyCycle() {
-        int lowOneBit = Integer.lowestOneBit(IE & IF);
-        int indexInterruption = Integer.numberOfTrailingZeros(lowOneBit);
-        if (IME && lowOneBit != 0) {
-
-            IME = false;
-            IF = Bits.set(IF, indexInterruption, false);
-            push16(PC);
-            nextNonIdleCycle += 5;
-            PC = AddressMap.INTERRUPTS[indexInterruption];
-        } else {
-
-            int encoding;
-            Opcode opcode;
-            encoding = read8(PC);
-            if (encoding == 0xCB) {
-                encoding = read8AfterOpcode();
-                opcode = PREFIXED_OPCODE_TABLE[encoding];
-            } else {
-                opcode = DIRECT_OPCODE_TABLE[encoding];
-            }
-
-            dispatch(opcode);
-
-        }
-
-    }
-
+    /*
+     * (non-Javadoc)
+     * 
+     * @see ch.epfl.gameboj.component.Component#read(int)
+     */
     @Override
     public int read(int address) {
         Preconditions.checkBits16(address);
@@ -147,6 +136,11 @@ public final class Cpu implements Component, Clocked {
         return NO_DATA;
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see ch.epfl.gameboj.component.Component#write(int, int)
+     */
     @Override
     public void write(int address, int data) {
         Preconditions.checkBits16(address);
@@ -162,6 +156,11 @@ public final class Cpu implements Component, Clocked {
 
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see ch.epfl.gameboj.component.Component#attachTo(ch.epfl.gameboj.Bus)
+     */
     @Override
     public void attachTo(Bus bus) {
 
@@ -169,10 +168,11 @@ public final class Cpu implements Component, Clocked {
         bus.attach(this);
     }
 
-    
     /**
      * lève l'interruption donnée
-     * @param i l'interruption
+     * 
+     * @param i
+     *            l'interruption
      */
     public void requestInterrupt(Interrupt i) {
         int bit = i.index();
@@ -850,7 +850,35 @@ public final class Cpu implements Component, Clocked {
 
     }
 
-    private static RotDir rotationDir(Opcode opcode) {
+    private void reallyCycle() {
+        int lowOneBit = Integer.lowestOneBit(IE & IF);
+        int indexInterruption = Integer.numberOfTrailingZeros(lowOneBit);
+        if (IME && lowOneBit != 0) {
+
+            IME = false;
+            IF = Bits.set(IF, indexInterruption, false);
+            push16(PC);
+            nextNonIdleCycle += 5;
+            PC = AddressMap.INTERRUPTS[indexInterruption];
+        } else {
+
+            int encoding;
+            Opcode opcode;
+            encoding = read8(PC);
+            if (encoding == PREFIXED_INSTRUC_FLAG) {
+                encoding = read8AfterOpcode();
+                opcode = PREFIXED_OPCODE_TABLE[encoding];
+            } else {
+                opcode = DIRECT_OPCODE_TABLE[encoding];
+            }
+
+            dispatch(opcode);
+
+        }
+
+    }
+
+    private RotDir rotationDir(Opcode opcode) {
         return (Bits.test(opcode.encoding, 3)) ? RotDir.RIGHT : RotDir.LEFT;
 
     }
@@ -878,7 +906,7 @@ public final class Cpu implements Component, Clocked {
 
     }
 
-    private static void combineAluFlags(int vf, FlagSrc z, FlagSrc n, FlagSrc h,
+    private  void combineAluFlags(int vf, FlagSrc z, FlagSrc n, FlagSrc h,
             FlagSrc c) {
         int V1_mask = getFlagSrcMask(FlagSrc.V1, z, n, h, c);
         int ALU_mask = getFlagSrcMask(FlagSrc.ALU, z, n, h, c);
@@ -891,7 +919,7 @@ public final class Cpu implements Component, Clocked {
 
     }
 
-    private static int getFlagSrcMask(FlagSrc Test, FlagSrc z, FlagSrc n,
+    private  int getFlagSrcMask(FlagSrc Test, FlagSrc z, FlagSrc n,
             FlagSrc h, FlagSrc c) {
 
         return Alu.maskZNHC(z == Test, n == Test, h == Test, c == Test);
@@ -941,7 +969,5 @@ public final class Cpu implements Component, Clocked {
 
         }
     }
-
-  
 
 }

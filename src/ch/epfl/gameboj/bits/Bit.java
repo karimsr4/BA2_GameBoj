@@ -1,6 +1,7 @@
 package ch.epfl.gameboj.bits;
 
 /**
+ * Interface représentant un ensemble de bits
  * @author Karim HADIDANE (271018)
  * @author Ahmed JELLOULI (274056)
  *
@@ -8,13 +9,16 @@ package ch.epfl.gameboj.bits;
 public interface Bit {
 
     /**
-     * @return
+     * une méthode  fournie par l’énumération qui représente les bits
+     * @return la position du bit dans l'énumération
+     * @see Enum#ordinal()
      */
     int ordinal();
 
     /**
      * retourne la meme valeur que la methode ordinal
      * @return la meme valeur que la methode ordinal
+     * @see Bit#ordinal()
      */
     default int index() {
         return this.ordinal();
