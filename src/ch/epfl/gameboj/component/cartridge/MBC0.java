@@ -7,7 +7,7 @@ import ch.epfl.gameboj.component.Component;
 import ch.epfl.gameboj.component.memory.Rom;
 
 /**
- * Classe qui simule un contrÃ´leur de banque mÃ©moire de type 0
+ * Classe qui simule un controleur de banque mémoire de type 0
  * 
  * @author Karim HADIDANE (271018)
  * @author Ahmed JELLOULI (274056)
@@ -15,10 +15,10 @@ import ch.epfl.gameboj.component.memory.Rom;
 public final class MBC0 implements Component {
 
     private final int ROM_SIZE = 0x8000;
-    private Rom rom;
+    private final Rom rom;
 
     /**
-     * construit un contrÃ´leur de banque mÃ©moire de type 0
+     * construit un controleur de banque mémoire de type 0
      * 
      * @param rom
      *            la memoire morte
