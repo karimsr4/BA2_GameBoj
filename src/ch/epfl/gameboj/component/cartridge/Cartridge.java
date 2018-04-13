@@ -6,7 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 
 
-import ch.epfl.gameboj.Preconditions;
+import static ch.epfl.gameboj.Preconditions.*;
 import ch.epfl.gameboj.component.Component;
 import ch.epfl.gameboj.component.memory.Rom;
 
@@ -41,8 +41,7 @@ public final class Cartridge implements Component {
 
             byte[] dataInFile = new byte[32768];
             input.read(dataInFile);
-            if (dataInFile[CARTRIDGE_TYPE_POSIION] != 0)
-                throw new IllegalArgumentException();
+            checkArgument(dataInFile[CARTRIDGE_TYPE_POSIION] == 0);
             return new Cartridge(new MBC0(new Rom(dataInFile)));
         } catch (FileNotFoundException e) {
             throw new IOException();
@@ -56,7 +55,7 @@ public final class Cartridge implements Component {
     @Override
     public int read(int address) {
 
-        return controller.read(Preconditions.checkBits16(address));
+        return controller.read(checkBits16(address));
 
     }
 
@@ -65,8 +64,7 @@ public final class Cartridge implements Component {
      */
     @Override
     public void write(int address, int data) {
-        controller.write(Preconditions.checkBits16(address),
-                Preconditions.checkBits8(data));
+        controller.write(checkBits16(address),checkBits8(data));
     }
 
 }

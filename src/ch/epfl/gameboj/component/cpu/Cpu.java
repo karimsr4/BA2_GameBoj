@@ -1,10 +1,10 @@
 package ch.epfl.gameboj.component.cpu;
 
-import java.util.Objects;
+import static java.util.Objects.checkIndex;
 
 import ch.epfl.gameboj.AddressMap;
 import ch.epfl.gameboj.Bus;
-import ch.epfl.gameboj.Preconditions;
+import static ch.epfl.gameboj.Preconditions.*;
 import ch.epfl.gameboj.Register;
 import ch.epfl.gameboj.RegisterFile;
 import ch.epfl.gameboj.bits.Bit;
@@ -124,7 +124,7 @@ public final class Cpu implements Component, Clocked {
      */
     @Override
     public int read(int address) {
-        Preconditions.checkBits16(address);
+        checkBits16(address);
         if (address == AddressMap.REG_IE)
             return IE;
         if (address == AddressMap.REG_IF)
@@ -143,8 +143,8 @@ public final class Cpu implements Component, Clocked {
      */
     @Override
     public void write(int address, int data) {
-        Preconditions.checkBits16(address);
-        Preconditions.checkBits8(data);
+        checkBits16(address);
+        checkBits8(data);
         if (address == AddressMap.REG_IE)
             IE = data;
         if (address == AddressMap.REG_IF)
@@ -225,7 +225,7 @@ public final class Cpu implements Component, Clocked {
     }
 
     private void write16(int address, int v) {
-        write8(address, Bits.clip(8, Preconditions.checkBits16(v)));
+        write8(address, Bits.clip(8, checkBits16(v)));
         write8(address + 1, Bits.extract(v, 8, 8));
     }
 
@@ -236,7 +236,7 @@ public final class Cpu implements Component, Clocked {
 
     private void push16(int v) {
         SP = Bits.clip(16, SP - 2);
-        write16(SP, Preconditions.checkBits16(v));
+        write16(SP, checkBits16(v));
 
     }
 
@@ -252,7 +252,7 @@ public final class Cpu implements Component, Clocked {
     }
 
     private void setReg16(Reg16 r, int newV) {
-        Preconditions.checkBits16(newV);
+        checkBits16(newV);
         switch (r) {
         case AF:
             regs8bits.set(Reg.A, Bits.extract(newV, 8, 8));
@@ -268,7 +268,7 @@ public final class Cpu implements Component, Clocked {
     private void setReg16SP(Reg16 r, int newV) {
         switch (r) {
         case AF:
-            SP = Preconditions.checkBits16(newV);
+            SP = checkBits16(newV);
             break;
         default:
             setReg16(r, newV);
@@ -280,7 +280,7 @@ public final class Cpu implements Component, Clocked {
     // extraction de paramètres
     private Reg extractReg(Opcode opcode, int startBit) {
 
-        int r = Bits.extract(opcode.encoding, Objects.checkIndex(startBit, 5),
+        int r = Bits.extract(opcode.encoding, checkIndex(startBit, 5),
                 3);
         switch (r) {
         case 0b000:

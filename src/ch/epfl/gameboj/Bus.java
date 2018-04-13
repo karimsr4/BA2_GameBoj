@@ -52,7 +52,7 @@ public final class Bus {
                 return e.read(address);
         }
 
-        return DATA_MAX_VALUE;
+        return 0xFF;
 
     }
 
