@@ -30,21 +30,24 @@ public final class BootRomController implements Component {
         this.cartridge = cartridge;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see ch.epfl.gameboj.component.Component#read(int)
      */
     @Override
     public int read(int address) {
         checkBits16(address);
-        if ((enabled) && (address <= 0xFF)) {
+        if ((enabled) && (address <= 0xFF))
             return Byte.toUnsignedInt(BootRom.DATA[address]);
-        } else {
+        else
             return cartridge.read(address);
-        }
 
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see ch.epfl.gameboj.component.Component#write(int, int)
      */
     @Override
