@@ -23,6 +23,17 @@ import ch.epfl.gameboj.component.memory.Ram;
  *
  */
 public final class Cpu implements Component, Clocked {
+    
+    /**
+     * Type Enuméré représentant les interruptions
+     * 
+     * @author Karim HADIDANE (271018)
+     * @author Ahmed JELLOULI (274056)
+     */
+    public enum Interrupt implements Bit {
+        VBLANK, LCD_STAT, TIMER, SERIAL, JOYPAD
+    }
+
 
     private enum Reg implements Register {
         A, F, B, C, D, E, H, L
@@ -39,6 +50,11 @@ public final class Cpu implements Component, Clocked {
             this.first = first;
             this.second = second;
         }
+    }
+    
+    private enum FlagSrc implements Bit {
+        V0, V1, ALU, CPU
+
     }
 
     private Ram highRam;
@@ -57,15 +73,6 @@ public final class Cpu implements Component, Clocked {
     private long nextNonIdleCycle;
     private final int PREFIXED_INSTRUC_FLAG = 0xCB;
 
-    /**
-     * Type Enuméré représentant les interruptions
-     * 
-     * @author Karim HADIDANE (271018)
-     * @author Ahmed JELLOULI (274056)
-     */
-    public enum Interrupt implements Bit {
-        VBLANK, LCD_STAT, TIMER, SERIAL, JOYPAD
-    }
 
     /**
      * Constructeur publique du CPU
@@ -899,10 +906,6 @@ public final class Cpu implements Component, Clocked {
         setFlags(vf);
     }
 
-    private enum FlagSrc implements Bit {
-        V0, V1, ALU, CPU
-
-    }
 
     private  void combineAluFlags(int vf, FlagSrc z, FlagSrc n, FlagSrc h,
             FlagSrc c) {
