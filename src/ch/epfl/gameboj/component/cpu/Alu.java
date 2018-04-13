@@ -66,7 +66,7 @@ public final class Alu {
      *            paquet valeur/fanion
      * @return la valeur associée au paquet
      * @throws IllegalArgumentException
-     *             si valueFlags n'est pas appropriée
+     *             si valueFlags n'est pas dans le format approprié
      */
     public static int unpackValue(int valueFlags) {
         checkArgument(Bits.clip(4, valueFlags) == 0 && Bits.extract(valueFlags, 24, 8) == 0);
@@ -81,7 +81,7 @@ public final class Alu {
      *            paquet valeur/fanion
      * @return les fanions associés au paquet
      * @throws IllegalArgumentException
-     *             si valueFlags n'est pas appropriée
+     *             si valueFlags n'est pas dans le format approprié
      */
     public static int unpackFlags(int valueFlags) {
         checkArgument(Bits.clip(4, valueFlags) == 0 && Bits.extract(valueFlags, 24, 8) == 0);

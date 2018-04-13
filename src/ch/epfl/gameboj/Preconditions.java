@@ -35,8 +35,7 @@ public interface Preconditions {
      * @return l'argument v si celui-ci est une valeur de 8 bits
      */
     static int checkBits8(int v) {
-        if (!((v >= 0) && (v <= 0xFF)))
-            throw new IllegalArgumentException();
+        checkArgument((v >= 0) && (v <= 0xFF));
         return v;
     }
 
@@ -50,8 +49,7 @@ public interface Preconditions {
      * @return l'argument v si celui-ci est une valeur de 16 bits
      */
     static int checkBits16(int v) {
-        if (!((v >= 0) && (v <= 0xFFFF)))
-            throw new IllegalArgumentException();
+        checkArgument((v >= 0) && (v <= 0xFFFF));
         return v;
 
     }
