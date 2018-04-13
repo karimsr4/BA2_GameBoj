@@ -3,14 +3,14 @@ package ch.epfl.gameboj.component;
 import ch.epfl.gameboj.Bus;
 
 /**
- * Interface qui represente l'abstraction d'un composant
+ * Interface qui représente un composant
  * @author Karim HADIDANE (271018)
  * @author Ahmed JELLOULI (274056)
  */
 public interface Component {
 
     /**
-     * attribut utilisé pour signaler le fait qu'il n'y a aucune donnée à lire à l'adresse reçue
+     * attribut utilisé pour signaler le fait qu'il n'y a aucune donnée à l'adresse reçue
      */
     int NO_DATA = 256;
 

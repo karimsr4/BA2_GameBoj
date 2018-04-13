@@ -16,7 +16,7 @@ public interface Bit {
     int ordinal();
 
     /**
-     * retourne la meme valeur que la methode ordinal
+     * retourne la même valeur que la méthode ordinal
      * @return la meme valeur que la methode ordinal
      * @see Bit#ordinal()
      */

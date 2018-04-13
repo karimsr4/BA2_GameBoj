@@ -5,7 +5,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-
 import static ch.epfl.gameboj.Preconditions.*;
 import ch.epfl.gameboj.component.Component;
 import ch.epfl.gameboj.component.memory.Rom;
@@ -17,7 +16,7 @@ import ch.epfl.gameboj.component.memory.Rom;
  * @author Ahmed JELLOULI (274056)
  */
 public final class Cartridge implements Component {
-    private Component controller;
+    private final Component controller;
     private final static int CARTRIDGE_TYPE_POSIION = 0x147;
 
     private Cartridge(Component controller) {
@@ -33,23 +32,29 @@ public final class Cartridge implements Component {
      * @return une cartouche dont la mémoire morte contient les octets du
      *         fichier donné 
      * @throws IOException
-     *             en cas d'erreur d'entrée-sortie
+     *             en cas d'erreur d'entrée-sortie ou si le fichier n'est pas
+     *             trouvé
+     * @throws IllegalArgumentException
+     *             si le fichier ne contient pas 0 a l'adresse 0x147
      */
     public static Cartridge ofFile(File romFile) throws IOException {
 
         try (FileInputStream input = new FileInputStream(romFile)) {
-
+            
             byte[] dataInFile = new byte[32768];
             input.read(dataInFile);
             checkArgument(dataInFile[CARTRIDGE_TYPE_POSIION] == 0);
             return new Cartridge(new MBC0(new Rom(dataInFile)));
+            
         } catch (FileNotFoundException e) {
             throw new IOException();
         }
 
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see ch.epfl.gameboj.component.Component#read(int)
      */
     @Override
@@ -59,12 +64,14 @@ public final class Cartridge implements Component {
 
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see ch.epfl.gameboj.component.Component#write(int, int)
      */
     @Override
     public void write(int address, int data) {
-        controller.write(checkBits16(address),checkBits8(data));
+        controller.write(checkBits16(address), checkBits8(data));
     }
 
 }

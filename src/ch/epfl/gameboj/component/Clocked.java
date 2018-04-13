@@ -1,7 +1,7 @@
 package ch.epfl.gameboj.component;
 
 /**
- * Interface qui représente un element controlé par une horloge
+ * Interface qui représente un élement controlé par une horloge
  * 
  * @author Karim HADIDANE (271018)
  * @author Ahmed JELLOULI (274056)
