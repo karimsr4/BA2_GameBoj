@@ -1,12 +1,13 @@
 package ch.epfl.gameboj;
 
 import java.util.ArrayList;
-import java.util.Objects;
-
+import static java.util.Objects.*;
+import static ch.epfl.gameboj.Preconditions.*;
 import ch.epfl.gameboj.component.Component;
 
 /**
  * Classe qui simule le bus
+ * 
  * @author Karim HADIDANE (271018)
  * @author Ahmed JELLOULI (274056)
  *
@@ -24,7 +25,7 @@ public final class Bus {
      *             si le composant donné vaut null
      */
     public void attach(Component component) {
-        Objects.requireNonNull(component);
+        requireNonNull(component);
         componentArray.add(component);
     }
 
@@ -44,14 +45,14 @@ public final class Bus {
      */
     public int read(int address) {
 
-        Preconditions.checkBits16(address);
+        checkBits16(address);
 
         for (Component e : componentArray) {
             if (e.read(address) != Component.NO_DATA)
                 return e.read(address);
         }
 
-        return 0xFF;
+        return DATA_MAX_VALUE;
 
     }
 
@@ -69,8 +70,8 @@ public final class Bus {
      */
     public void write(int address, int data) {
 
-        Preconditions.checkBits8(data);
-        Preconditions.checkBits16(address);
+        checkBits8(data);
+        checkBits16(address);
 
         for (Component e : componentArray) {
             e.write(address, data);

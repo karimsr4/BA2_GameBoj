@@ -2,6 +2,8 @@ package ch.epfl.gameboj;
 
 import ch.epfl.gameboj.bits.Bit;
 import ch.epfl.gameboj.bits.Bits;
+import static ch.epfl.gameboj.Preconditions.checkBits8;
+
 
 /**
  * Classe qui simule un banc de registre de 8 bits
@@ -48,7 +50,7 @@ public final class RegisterFile <E extends Register> {
      * @throws IllegalArgumentException si newValue n'est pas une valeur 8 bits          
      */
     public void set(E reg, int newValue) {
-        this.registerArray[reg.index()]=(byte) (Preconditions.checkBits8(newValue));
+        this.registerArray[reg.index()]=(byte) (checkBits8(newValue));
         
         
     }

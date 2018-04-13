@@ -1,15 +1,16 @@
 package ch.epfl.gameboj;
 
 /**
- * Interface qui represente l'abstraction du registre
+ * Interface qui represente un registre
  * @author Karim HADIDANE (271018)
  * @author Ahmed JELLOULI (274056)
  */
 public interface Register {
     
     /**
-     * 
-     * @return 
+     * une méthode  fournie par l’énumération qui représente les registres
+     * @return la position du registre dans l'énumération
+     * @see Enum#ordinal()
      */
     int ordinal();
     

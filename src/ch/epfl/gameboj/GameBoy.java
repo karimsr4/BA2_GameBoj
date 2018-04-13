@@ -1,7 +1,7 @@
 package ch.epfl.gameboj;
 
-import java.util.Objects;
-
+import static java.util.Objects.*;
+import static ch.epfl.gameboj.Preconditions.*;
 import ch.epfl.gameboj.component.Timer;
 import ch.epfl.gameboj.component.cartridge.Cartridge;
 import ch.epfl.gameboj.component.cpu.Cpu;
@@ -36,7 +36,7 @@ public final class GameBoy {
      *             si la cartouche est null
      */
     public GameBoy(Cartridge cartridge) {
-        Objects.requireNonNull(cartridge);
+        requireNonNull(cartridge);
         ram = new Ram(AddressMap.WORK_RAM_SIZE);
         ramController = new RamController(ram, AddressMap.WORK_RAM_START);
         echoRamController = new RamController(ram, AddressMap.ECHO_RAM_START,
@@ -82,7 +82,7 @@ public final class GameBoy {
      *             simulé
      */
     public void runUntil(long cycle) {
-        Preconditions.checkArgument(cycles <= cycle);
+        checkArgument(cycles <= cycle);
         while (cycles < cycle) {
             timer.cycle(cycles);
             cpu.cycle(cycles);

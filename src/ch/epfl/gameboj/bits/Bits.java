@@ -229,7 +229,7 @@ public final class Bits {
      */
     public static int complement8(int b) {
         checkBits8(b);
-        return (b ^ 255);
+        return (b ^ DATA_MAX_VALUE);
     }
 
     /**

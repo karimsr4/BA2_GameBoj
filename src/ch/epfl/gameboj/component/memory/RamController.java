@@ -1,6 +1,6 @@
 package ch.epfl.gameboj.component.memory;
 
-import java.util.Objects;
+import static java.util.Objects.*;
 
 import static ch.epfl.gameboj.Preconditions.*;
 import ch.epfl.gameboj.component.Component;
@@ -33,7 +33,7 @@ public final class RamController implements Component {
      *             une taille supérieure a celle de la mémoire
      */
     public RamController(Ram ram, int startAddress, int endAddress) {
-        Objects.requireNonNull(ram);
+        requireNonNull(ram);
         checkBits16(startAddress);
         checkBits16(endAddress);
         checkArgument((endAddress - startAddress >= 0)
