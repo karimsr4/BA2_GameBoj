@@ -61,8 +61,9 @@ public final class BitVector {
      */
     @Override
     public boolean equals(Object obj) {
-        // TODO Auto-generated method stub
-        return super.equals(obj);
+
+        return obj instanceof BitVector
+                && Arrays.equals(vector, ((BitVector) obj).vector);
     }
 
     /**
@@ -91,8 +92,8 @@ public final class BitVector {
      */
     @Override
     public int hashCode() {
-        // TODO Auto-generated method stub
-        return super.hashCode();
+
+        return Arrays.hashCode(vector);
     }
 
     /**
@@ -145,8 +146,13 @@ public final class BitVector {
             a.apply(vector[i], other[i]);
         return result;
     }
+
     private boolean verifySize(BitVector that) {
-        return size()==that.size();
+        return size() == that.size();
+    }
+
+    private enum ExtractionMethod {
+        ZERO, WRAPPED;
     }
 
 }
