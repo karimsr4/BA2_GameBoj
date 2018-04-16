@@ -77,7 +77,7 @@ public final class BitVector {
     // return new BitVector(copy);
     // }
 
-    public BitVector extractWrapped(int start, int end) {
+    public BitVector extractWrapped(int start, int size) {
         return null;
 
     }
@@ -86,7 +86,7 @@ public final class BitVector {
      * @param start
      * @param end
      */
-    public BitVector extractZeroExtended(int start, int end) {
+    public BitVector extractZeroExtended(int start, int size) {
         return null;
 
     }
@@ -126,7 +126,7 @@ public final class BitVector {
      * @return
      */
     public BitVector shift(int distance) {
-        return null;
+        return extractZeroExtended(-distance, size());
 
     }
 
@@ -178,7 +178,7 @@ public final class BitVector {
     }
 
     private int elementExtracting(int index, ExtractionMethod method) {
-        if (method==ExtractionMethod.WRAPPED) {
+        if (method == ExtractionMethod.WRAPPED) {
             return Math.floorMod(index, vector.length);
         } else {
             if (index >= vector.length || index < 0)
