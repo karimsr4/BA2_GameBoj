@@ -3,7 +3,13 @@ package ch.epfl.gameboj.bits;
 import static ch.epfl.gameboj.Preconditions.*;
 
 import java.util.Arrays;
+<<<<<<< HEAD
 import static java.util.Objects.*;
+=======
+import java.util.Objects;
+import java.util.function.BinaryOperator;
+import java.util.function.UnaryOperator;
+>>>>>>> a381858f55cbfecaf7e5fe9fd33c95699c453dcc
 
 /**
  * @author Ahmed
@@ -28,6 +34,10 @@ public final class BitVector {
         this(size, false);
     }
 
+    private BitVector(int[] vector) {
+        this.vector = vector;
+    }
+
     private static int[] initialisedVector(int size, boolean initialValue) {
 
         checkArgument((size >= 0) && (size % 32 == 0));
@@ -37,8 +47,100 @@ public final class BitVector {
         return tab;
     }
 
-    private BitVector(int[] vector) {
-        this.vector = vector;
+    /**
+     * @param that
+     * @return
+     */
+    public BitVector and(BitVector that) {
+        checkArgument(verifySize(that));
+        BinaryOperator<Integer> and = (x, y) -> x & y;
+        return new BitVector(function(vector, and));
+
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+<<<<<<< HEAD
+    public boolean testBit(int index) {
+        checkIndex(index, size());
+        return Bits.test(vector[index/32], index % 32);     
+=======
+    @Override
+    public boolean equals(Object obj) {
+
+        return obj instanceof BitVector
+                && Arrays.equals(vector, ((BitVector) obj).vector);
+>>>>>>> a381858f55cbfecaf7e5fe9fd33c95699c453dcc
+    }
+
+    /**
+     * @param start
+     * @param end
+     * @return
+     */
+<<<<<<< HEAD
+    public BitVector not() {
+        int[] copy = new int[vector.length]; ////////!!!!
+        for(int i=0; i< copy.length;i++)
+            copy[i]=~vector[i];
+            //copy[i]= vector[i]^ 0xFFFFFFFF;
+        return new BitVector(copy);
+=======
+    public BitVector extractWrapped(int start, int end) {
+        return null;
+
+>>>>>>> a381858f55cbfecaf7e5fe9fd33c95699c453dcc
+    }
+
+    /**
+     * @param start
+     * @param end
+     */
+    public BitVector extractZeroExtended(int start, int end) {
+        return null;
+
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+
+        return Arrays.hashCode(vector);
+    }
+
+    /**
+     * @return
+     */
+    public BitVector not() {
+        BinaryOperator<Integer> not = (x, y) -> ~x;
+        return new BitVector(function(vector, not));
+    }
+
+    /**
+     * @param that
+     * @return
+     */
+    public BitVector or(BitVector that) {
+        checkArgument(verifySize(that));
+        BinaryOperator<Integer> or = (x, y) -> x | y;
+        return new BitVector(function(vector, or));
+
+    }
+
+    /**
+     * @param distance
+     * @return
+     */
+    public BitVector shift(int distance) {
+        return null;
+
     }
 
     /**
@@ -53,71 +155,25 @@ public final class BitVector {
      * @return
      */
     public boolean testBit(int index) {
-        checkIndex(index, size());
-        return Bits.test(vector[index/32], index % 32);     
+        Objects.checkIndex(index, size());
+        return Bits.test(vector[index / 32], index % 32);
     }
-    
-    /**
-     * @return
-     */
-    public BitVector not() {
-        int[] copy = new int[vector.length]; ////////!!!!
-        for(int i=0; i< copy.length;i++)
-            copy[i]=~vector[i];
-            //copy[i]= vector[i]^ 0xFFFFFFFF;
-        return new BitVector(copy);
+
+    private int[] function(int[] other, BinaryOperator<Integer> a) {
+        int[] result = new int[vector.length];
+        for (int i = 0; i < vector.length; ++i)
+            a.apply(vector[i], other[i]);
+        return result;
     }
-    @Override
-    public boolean equals(Object obj) {
-        // TODO Auto-generated method stub
-        return super.equals(obj);
+
+    private boolean verifySize(BitVector that) {
+        return size() == that.size();
     }
-    @Override
-    public int hashCode() {
-        // TODO Auto-generated method stub
-        return super.hashCode();
+
+    private enum ExtractionMethod {
+        ZERO, WRAPPED;
     }
-    /**
-     * @param that
-     * @return
-     */
-    public BitVector and (BitVector that) {
-        return that;
-        
-    }
-    /**
-     * @param that
-     * @return
-     */
-    public BitVector or (BitVector that) {
-        return null;
-        
-    }
-    /**
-     * @param distance
-     * @return
-     */
-    public BitVector shift(int distance) {
-        return null;
-        
-    }
-    /**
-     * @param start
-     * @param end
-     * @return
-     */
-    public BitVector extractWrapped(int start,int end) {
-        return null;
-        
-    }
-    /**
-     * @param start
-     * @param end
-     */
-    public BitVector extractZeroExtended(int start, int end) {
-        return null;
-        
-    }
+<<<<<<< HEAD
     
     
     private BitVector extract(int start, int size , boolean byWinding) {
@@ -148,5 +204,7 @@ public final class BitVector {
     }
     
     
+=======
+>>>>>>> a381858f55cbfecaf7e5fe9fd33c95699c453dcc
 
 }
