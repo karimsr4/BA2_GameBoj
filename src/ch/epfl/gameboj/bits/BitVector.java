@@ -161,13 +161,13 @@ public final class BitVector {
     private BitVector extract(int start, int size, ExtractionMethod method) {
         checkArgument(size>0 && size%32 == 0);
         int[] extracted = new int[size / CELL_SIZE];
+        int shift= floorMod(start,CELL_SIZE);
         if (start % 32 == 0) {
             for (int i = 0; i < extracted.length; ++i) {
                 extracted[i] = elementExtracting(start+ i* CELL_SIZE, method);
             }
         } else {
             for (int i =0 ;i < extracted.length ; ++i) {
-                int shift= floorMod(start,CELL_SIZE);
                 extracted[i] = elementExtracting(start+ i* CELL_SIZE, method)>>> shift 
                     |   elementExtracting(start+ (i+1)* CELL_SIZE, method) << (CELL_SIZE - shift)  ;
             }
@@ -188,9 +188,13 @@ public final class BitVector {
     }
 
     public final static class Builder {
+        
+        
+        
 
-        Builder(int size) {
+        public Builder(int size) {
             checkArgument(size > 0 && size % 32 == 0);
+            
         }
 
         public Builder setBytes(int index, int valeur) {
