@@ -16,6 +16,7 @@ import java.util.function.BinaryOperator;
 public final class BitVector {
 
     private final int[] vector;
+    private static final int CELL_SIZE=32;
 
     /**
      * @param size
@@ -38,8 +39,8 @@ public final class BitVector {
 
     private static int[] initialisedVector(int size, boolean initialValue) {
 
-        checkArgument((size >= 0) && (size % 32 == 0));
-        int[] tab = new int[size / 32];
+        checkArgument((size >= 0) && (size % CELL_SIZE == 0));
+        int[] tab = new int[size / CELL_SIZE];
         int fillingValue = initialValue ? 0xFFFFFFFF : 0;
         Arrays.fill(tab, fillingValue);
         return tab;
@@ -78,7 +79,7 @@ public final class BitVector {
     // }
 
     public BitVector extractWrapped(int start, int size) {
-        return null;
+        return extract(start, size, ExtractionMethod.WRAPPED);
 
     }
 
@@ -87,7 +88,7 @@ public final class BitVector {
      * @param end
      */
     public BitVector extractZeroExtended(int start, int size) {
-        return null;
+        return extract(start, size, ExtractionMethod.ZERO);
 
     }
 
@@ -143,7 +144,7 @@ public final class BitVector {
      */
     public boolean testBit(int index) {
         Objects.checkIndex(index, size());
-        return Bits.test(vector[index / 32], index % 32);
+        return Bits.test(vector[index / 32], index % CELL_SIZE);
     }
 
     private int[] function(int[] other, BinaryOperator<Integer> a) {
@@ -162,9 +163,9 @@ public final class BitVector {
     }
 
     private BitVector extract(int start, int size, ExtractionMethod method) {
-        int[] extracted = new int[size / 32];
-        int div = Math.floorDiv(start, 32);
-        int reste = Math.floorMod(start, 32);
+        int[] extracted = new int[size / CELL_SIZE];
+        int div = Math.floorDiv(start, CELL_SIZE);
+        int reste = Math.floorMod(start, CELL_SIZE);
         if (reste == 0) {
             for (int i = 0; i < size; i++) {
                 extracted[i] = elementExtracting(i, method);
@@ -187,4 +188,25 @@ public final class BitVector {
         }
     }
 
+    
+    public final static class Builder{
+        
+        Builder(int size){
+            checkArgument(size>0 && size%32==0);
+        }
+        
+        
+        public Builder setBytes(int index, int valeur) {
+            return null;
+            
+        }
+        
+        
+        public BitVector build() {
+            return null;
+            
+        }
+        
+    }
+    
 }
