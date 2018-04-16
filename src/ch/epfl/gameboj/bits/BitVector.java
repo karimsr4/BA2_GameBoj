@@ -41,7 +41,7 @@ public final class BitVector {
 
         checkArgument((size >= 0) && (size % CELL_SIZE == 0));
         int[] tab = new int[size / CELL_SIZE];
-        int fillingValue = initialValue ? 0xFFFFFFFF : 0;
+        int fillingValue = initialValue ? Integer.MAX_VALUE : 0;
         Arrays.fill(tab, fillingValue);
         return tab;
     }
@@ -189,7 +189,7 @@ public final class BitVector {
 
     private int elementExtracting(int index, ExtractionMethod method) {
         if (method == ExtractionMethod.WRAPPED) {
-            return Math.floorMod(index, vector.length);
+            return vector[Math.floorMod(index, vector.length)];
         } else {
             if (index >= vector.length || index < 0)
                 return 0;
