@@ -3,7 +3,7 @@ package ch.epfl.gameboj.bits;
 import static ch.epfl.gameboj.Preconditions.*;
 
 import java.util.Arrays;
-import java.util.Objects;
+import static java.util.Objects.*;
 
 /**
  * @author Ahmed
@@ -53,7 +53,7 @@ public final class BitVector {
      * @return
      */
     public boolean testBit(int index) {
-        Objects.checkIndex(index, size());
+        checkIndex(index, size());
         return Bits.test(vector[index/32], index % 32);     
     }
     
@@ -63,7 +63,8 @@ public final class BitVector {
     public BitVector not() {
         int[] copy = new int[vector.length]; ////////!!!!
         for(int i=0; i< copy.length;i++)
-            copy[i]= vector[i]^ 0xFFFFFFFF;
+            copy[i]=~vector[i];
+            //copy[i]= vector[i]^ 0xFFFFFFFF;
         return new BitVector(copy);
     }
     @Override
@@ -119,7 +120,32 @@ public final class BitVector {
     }
     
     
+    private BitVector extract(int start, int size , boolean byWinding) {
+        int [] extracted=new int[size/32];
+        int div=Math.floorDiv(start, 32);
+        int reste=Math.floorMod(start, 32);
+        if (reste==0) {
+            for (int i=0; i<size; i++) {
+                extracted[i]=elementExtracting(i, byWinding);
+            }
+        }else {
+            
+        }
+        
+        return new BitVector(extracted);
+
+    }
     
+    
+    private int elementExtracting(int index, boolean byWinding) {
+     if (byWinding) {
+         return Math.floorMod(index, vector.length);
+     }else {
+         if (index>=vector.length || index<0)
+             return 0;
+         return vector[index];
+     }
+    }
     
     
 
