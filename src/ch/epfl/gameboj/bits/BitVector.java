@@ -5,7 +5,10 @@ import static ch.epfl.gameboj.Preconditions.*;
 import java.util.Arrays;
 
 import static java.util.Objects.*;
+<<<<<<< HEAD
+=======
 
+>>>>>>> e206596d6191d8012db244979008c2103f7b3e78
 import java.util.Objects;
 import java.util.function.BinaryOperator;
 
@@ -57,11 +60,24 @@ public final class BitVector {
 
     }
 
+<<<<<<< HEAD
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+
+=======
+>>>>>>> e206596d6191d8012db244979008c2103f7b3e78
     @Override
     public boolean equals(Object obj) {
 
         return obj instanceof BitVector
                 && Arrays.equals(vector, ((BitVector) obj).vector);
+<<<<<<< HEAD
+
+=======
+>>>>>>> e206596d6191d8012db244979008c2103f7b3e78
     }
 
     /**
@@ -69,6 +85,9 @@ public final class BitVector {
      * @param end
      * @return
      */
+<<<<<<< HEAD
+    public BitVector extractWrapped(int start, int end) {
+=======
 
     // public BitVector not() {
     // int[] copy = new int[vector.length]; ////////!!!!
@@ -79,7 +98,12 @@ public final class BitVector {
     // }
 
     public BitVector extractWrapped(int start, int size) {
+<<<<<<< HEAD
         return extract(start, size, ExtractionMethod.WRAPPED);
+=======
+>>>>>>> e206596d6191d8012db244979008c2103f7b3e78
+        return null;
+>>>>>>> aa229d5eca14dcc419e39161f52ebc136138cd7f
 
     }
 
@@ -132,7 +156,7 @@ public final class BitVector {
     }
 
     /**
-     * @return
+     *   @return
      */
     public int size() {
         return vector.length * 32;
@@ -162,13 +186,27 @@ public final class BitVector {
         ZERO, WRAPPED;
     }
 
+<<<<<<< HEAD
+    private BitVector extract(int start, int size, boolean byWinding) {
+=======
     private BitVector extract(int start, int size, ExtractionMethod method) {
+<<<<<<< HEAD
         int[] extracted = new int[size / CELL_SIZE];
         int div = Math.floorDiv(start, CELL_SIZE);
         int reste = Math.floorMod(start, CELL_SIZE);
+=======
+>>>>>>> e206596d6191d8012db244979008c2103f7b3e78
+        int[] extracted = new int[size / 32];
+        int div = Math.floorDiv(start, 32);
+        int reste = Math.floorMod(start, 32);
+>>>>>>> aa229d5eca14dcc419e39161f52ebc136138cd7f
         if (reste == 0) {
             for (int i = 0; i < size; i++) {
+<<<<<<< HEAD
+                extracted[i] = elementExtracting(i, byWinding);
+=======
                 extracted[i] = elementExtracting(i, method);
+>>>>>>> e206596d6191d8012db244979008c2103f7b3e78
             }
         } else {
 
@@ -178,8 +216,13 @@ public final class BitVector {
 
     }
 
+<<<<<<< HEAD
+    private int elementExtracting(int index, boolean byWinding) {
+        if (byWinding) {
+=======
     private int elementExtracting(int index, ExtractionMethod method) {
         if (method == ExtractionMethod.WRAPPED) {
+>>>>>>> e206596d6191d8012db244979008c2103f7b3e78
             return Math.floorMod(index, vector.length);
         } else {
             if (index >= vector.length || index < 0)
