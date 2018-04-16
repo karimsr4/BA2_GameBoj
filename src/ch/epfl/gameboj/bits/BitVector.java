@@ -5,6 +5,10 @@ import static ch.epfl.gameboj.Preconditions.*;
 import java.util.Arrays;
 
 import static java.util.Objects.*;
+<<<<<<< HEAD
+=======
+
+>>>>>>> e206596d6191d8012db244979008c2103f7b3e78
 import java.util.Objects;
 import java.util.function.BinaryOperator;
 
@@ -55,18 +59,24 @@ public final class BitVector {
 
     }
 
+<<<<<<< HEAD
     /*
      * (non-Javadoc)
      * 
      * @see java.lang.Object#equals(java.lang.Object)
      */
 
+=======
+>>>>>>> e206596d6191d8012db244979008c2103f7b3e78
     @Override
     public boolean equals(Object obj) {
 
         return obj instanceof BitVector
                 && Arrays.equals(vector, ((BitVector) obj).vector);
+<<<<<<< HEAD
 
+=======
+>>>>>>> e206596d6191d8012db244979008c2103f7b3e78
     }
 
     /**
@@ -74,7 +84,20 @@ public final class BitVector {
      * @param end
      * @return
      */
+<<<<<<< HEAD
     public BitVector extractWrapped(int start, int end) {
+=======
+
+    // public BitVector not() {
+    // int[] copy = new int[vector.length]; ////////!!!!
+    // for(int i=0; i< copy.length;i++)
+    // copy[i]=~vector[i];
+    // //copy[i]= vector[i]^ 0xFFFFFFFF;
+    // return new BitVector(copy);
+    // }
+
+    public BitVector extractWrapped(int start, int size) {
+>>>>>>> e206596d6191d8012db244979008c2103f7b3e78
         return null;
 
     }
@@ -83,7 +106,7 @@ public final class BitVector {
      * @param start
      * @param end
      */
-    public BitVector extractZeroExtended(int start, int end) {
+    public BitVector extractZeroExtended(int start, int size) {
         return null;
 
     }
@@ -123,7 +146,7 @@ public final class BitVector {
      * @return
      */
     public BitVector shift(int distance) {
-        return null;
+        return extractZeroExtended(-distance, size());
 
     }
 
@@ -146,7 +169,7 @@ public final class BitVector {
     private int[] function(int[] other, BinaryOperator<Integer> a) {
         int[] result = new int[vector.length];
         for (int i = 0; i < vector.length; ++i)
-            a.apply(vector[i], other[i]);
+            result[i] = a.apply(vector[i], other[i]);
         return result;
     }
 
@@ -158,13 +181,21 @@ public final class BitVector {
         ZERO, WRAPPED;
     }
 
+<<<<<<< HEAD
     private BitVector extract(int start, int size, boolean byWinding) {
+=======
+    private BitVector extract(int start, int size, ExtractionMethod method) {
+>>>>>>> e206596d6191d8012db244979008c2103f7b3e78
         int[] extracted = new int[size / 32];
         int div = Math.floorDiv(start, 32);
         int reste = Math.floorMod(start, 32);
         if (reste == 0) {
             for (int i = 0; i < size; i++) {
+<<<<<<< HEAD
                 extracted[i] = elementExtracting(i, byWinding);
+=======
+                extracted[i] = elementExtracting(i, method);
+>>>>>>> e206596d6191d8012db244979008c2103f7b3e78
             }
         } else {
 
@@ -174,8 +205,13 @@ public final class BitVector {
 
     }
 
+<<<<<<< HEAD
     private int elementExtracting(int index, boolean byWinding) {
         if (byWinding) {
+=======
+    private int elementExtracting(int index, ExtractionMethod method) {
+        if (method == ExtractionMethod.WRAPPED) {
+>>>>>>> e206596d6191d8012db244979008c2103f7b3e78
             return Math.floorMod(index, vector.length);
         } else {
             if (index >= vector.length || index < 0)
