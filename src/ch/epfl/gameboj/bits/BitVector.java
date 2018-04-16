@@ -3,13 +3,11 @@ package ch.epfl.gameboj.bits;
 import static ch.epfl.gameboj.Preconditions.*;
 
 import java.util.Arrays;
-<<<<<<< HEAD
+
 import static java.util.Objects.*;
-=======
+
 import java.util.Objects;
 import java.util.function.BinaryOperator;
-import java.util.function.UnaryOperator;
->>>>>>> a381858f55cbfecaf7e5fe9fd33c95699c453dcc
 
 /**
  * @author Ahmed
@@ -58,22 +56,11 @@ public final class BitVector {
 
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.lang.Object#equals(java.lang.Object)
-     */
-<<<<<<< HEAD
-    public boolean testBit(int index) {
-        checkIndex(index, size());
-        return Bits.test(vector[index/32], index % 32);     
-=======
     @Override
     public boolean equals(Object obj) {
 
         return obj instanceof BitVector
                 && Arrays.equals(vector, ((BitVector) obj).vector);
->>>>>>> a381858f55cbfecaf7e5fe9fd33c95699c453dcc
     }
 
     /**
@@ -81,18 +68,18 @@ public final class BitVector {
      * @param end
      * @return
      */
-<<<<<<< HEAD
-    public BitVector not() {
-        int[] copy = new int[vector.length]; ////////!!!!
-        for(int i=0; i< copy.length;i++)
-            copy[i]=~vector[i];
-            //copy[i]= vector[i]^ 0xFFFFFFFF;
-        return new BitVector(copy);
-=======
+
+    // public BitVector not() {
+    // int[] copy = new int[vector.length]; ////////!!!!
+    // for(int i=0; i< copy.length;i++)
+    // copy[i]=~vector[i];
+    // //copy[i]= vector[i]^ 0xFFFFFFFF;
+    // return new BitVector(copy);
+    // }
+
     public BitVector extractWrapped(int start, int end) {
         return null;
 
->>>>>>> a381858f55cbfecaf7e5fe9fd33c95699c453dcc
     }
 
     /**
@@ -162,7 +149,7 @@ public final class BitVector {
     private int[] function(int[] other, BinaryOperator<Integer> a) {
         int[] result = new int[vector.length];
         for (int i = 0; i < vector.length; ++i)
-            a.apply(vector[i], other[i]);
+            result[i] = a.apply(vector[i], other[i]);
         return result;
     }
 
@@ -173,38 +160,31 @@ public final class BitVector {
     private enum ExtractionMethod {
         ZERO, WRAPPED;
     }
-<<<<<<< HEAD
-    
-    
-    private BitVector extract(int start, int size , boolean byWinding) {
-        int [] extracted=new int[size/32];
-        int div=Math.floorDiv(start, 32);
-        int reste=Math.floorMod(start, 32);
-        if (reste==0) {
-            for (int i=0; i<size; i++) {
-                extracted[i]=elementExtracting(i, byWinding);
+
+    private BitVector extract(int start, int size, ExtractionMethod method) {
+        int[] extracted = new int[size / 32];
+        int div = Math.floorDiv(start, 32);
+        int reste = Math.floorMod(start, 32);
+        if (reste == 0) {
+            for (int i = 0; i < size; i++) {
+                extracted[i] = elementExtracting(i, method);
             }
-        }else {
-            
+        } else {
+
         }
-        
+
         return new BitVector(extracted);
 
     }
-    
-    
-    private int elementExtracting(int index, boolean byWinding) {
-     if (byWinding) {
-         return Math.floorMod(index, vector.length);
-     }else {
-         if (index>=vector.length || index<0)
-             return 0;
-         return vector[index];
-     }
+
+    private int elementExtracting(int index, ExtractionMethod method) {
+        if (method==ExtractionMethod.WRAPPED) {
+            return Math.floorMod(index, vector.length);
+        } else {
+            if (index >= vector.length || index < 0)
+                return 0;
+            return vector[index];
+        }
     }
-    
-    
-=======
->>>>>>> a381858f55cbfecaf7e5fe9fd33c95699c453dcc
 
 }
