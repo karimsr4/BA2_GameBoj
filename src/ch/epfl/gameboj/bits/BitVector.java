@@ -149,7 +149,7 @@ public final class BitVector {
      */
     public boolean testBit(int index) {
         Objects.checkIndex(index, size());
-        return Bits.test(vector[index / 32], index % CELL_SIZE);
+        return Bits.test(vector[index / CELL_SIZE], index % CELL_SIZE);
     }
 
     private int[] function(int[] other, BinaryOperator<Integer> a) {
