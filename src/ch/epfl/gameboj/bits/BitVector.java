@@ -40,7 +40,7 @@ public final class BitVector {
 
         checkArgument((size > 0) && (size % CELL_SIZE == 0));
         int[] tab = new int[size / CELL_SIZE];
-        int fillingValue = initialValue ? Integer.MAX_VALUE : 0;
+        int fillingValue = initialValue ? 0xFFFFFFFF : 0;
         Arrays.fill(tab, fillingValue);
         return tab;
     }
@@ -51,7 +51,7 @@ public final class BitVector {
      */
     public BitVector and(BitVector that) {
         checkArgument(verifySize(that));
-        return new BitVector(function(vector, (x, y) -> x & y));
+        return new BitVector(function(that.vector, (x, y) -> x & y));
 
     }
 
@@ -112,7 +112,7 @@ public final class BitVector {
      */
     public BitVector or(BitVector that) {
         checkArgument(verifySize(that));
-        return new BitVector(function(vector, (x, y) -> x | y));
+        return new BitVector(function(that.vector, (x, y) -> x | y));
 
     }
 
@@ -199,6 +199,12 @@ public final class BitVector {
             return (index >= size() || index < 0) ? 0
                     : vector[floorDiv(index, CELL_SIZE)];
         }
+        
+        
+    }
+     
+    public int  get (int i) {
+        return vector[i];
     }
 
     /**
@@ -208,6 +214,7 @@ public final class BitVector {
     public final static class Builder {
         private int[] vector;
         private int size;
+        private boolean isBuilded;
 
         /**
          * @param size
@@ -216,6 +223,7 @@ public final class BitVector {
             checkArgument(size > 0 && size % 32 == 0);
             vector = new int[size / 32];
             this.size = size;
+            isBuilded=false;
 
         }
 
@@ -225,6 +233,8 @@ public final class BitVector {
          * @return
          */
         public Builder setByte(int index, int valeur) {
+            if(isBuilded)
+                throw new IllegalStateException();
             checkIndex(index, size / 8);
             int cell = index / 4;
             int byteIndex = index % 4;
@@ -240,6 +250,10 @@ public final class BitVector {
          * @return
          */
         public BitVector build() {
+            if (isBuilded ) {
+                throw new IllegalStateException();
+            }
+            isBuilded=true;
             return new BitVector(vector);
 
         }
@@ -248,6 +262,9 @@ public final class BitVector {
             return ((1 << 8) - 1) << (byteIndex * 8);
         }
 
+        
+       
+        
     }
 
 }
