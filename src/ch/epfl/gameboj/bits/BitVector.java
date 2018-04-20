@@ -2,6 +2,7 @@ package ch.epfl.gameboj.bits;
 
 import static ch.epfl.gameboj.Preconditions.checkArgument;
 import static java.lang.Math.*;
+import static java.util.Objects.checkIndex;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -62,13 +63,6 @@ public final class BitVector {
 
     }
 
-    // public BitVector not() {
-    // int[] copy = new int[vector.length]; ////////!!!!
-    // for(int i=0; i< copy.length;i++)
-    // copy[i]=~vector[i];
-    // //copy[i]= vector[i]^ 0xFFFFFFFF;
-    // return new BitVector(copy);
-    // }
 
     /**
      * @param start
@@ -200,16 +194,25 @@ public final class BitVector {
 
     public final static class Builder {
         private int[] vector;
+        private int size;
 
         public Builder(int size) {
             checkArgument(size > 0 && size % 32 == 0);
             vector=new int[size/32];
+            this.size=size;
 
         }
 
         public Builder setBytes(int index, int valeur) {
+            checkIndex(index, size/8 );
           int cas=index /4;
           int mod=index%4;
+          int pow=Math.round((float)Math.pow(8, mod));
+          if (pow!=1)
+              valeur=valeur<<pow;
+          
+                 
+          
           return this;
 
         }
