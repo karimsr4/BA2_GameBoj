@@ -55,18 +55,7 @@ public final class BitVector {
 
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.lang.Object#equals(java.lang.Object)
-     */
-    @Override
-    public boolean equals(Object obj) {
-
-        return obj instanceof BitVector
-                && Arrays.equals(vector, ((BitVector) obj).vector);
-
-    }
+    
 
     /**
      * @param start
@@ -88,17 +77,7 @@ public final class BitVector {
 
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.lang.Object#hashCode()
-     */
-    @Override
-    public int hashCode() {
-
-        return Arrays.hashCode(vector);
-    }
-
+    
     /**
      * @return
      */
@@ -146,6 +125,7 @@ public final class BitVector {
      * 
      * @see java.lang.Object#toString()
      */
+    @Override
     public String toString() {
         StringBuilder st = new StringBuilder();
         for (int i = 0; i < size(); i++) {
@@ -153,6 +133,29 @@ public final class BitVector {
         }
         return st.reverse().toString();
     }
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+
+        return Arrays.hashCode(vector);
+    }
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(Object obj) {
+
+        return obj instanceof BitVector
+                && Arrays.equals(vector, ((BitVector) obj).vector);
+
+    }
+
 
     private int[] function(int[] other, IntBinaryOperator a) {
         int[] result = new int[vector.length];
@@ -203,10 +206,7 @@ public final class BitVector {
         
     }
      
-    public int  get (int i) {
-        return vector[i];
-    }
-
+    
     /**
      * @author Karim HADIDANE (271018)
      * @author Ahmed JELLOULI (274056)
