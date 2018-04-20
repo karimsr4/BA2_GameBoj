@@ -203,16 +203,12 @@ public final class BitVector {
 
         }
 
-        public Builder setBytes(int index, int valeur) {
+        public Builder setByte(int index, int valeur) {
             checkIndex(index, size/8 );
-          int cas=index /4;
-          int mod=index%4;
-          int pow=Math.round((float)Math.pow(8, mod));
-          if (pow!=1)
-              valeur=valeur<<pow;
-          
-                 
-          
+          int cell=index /4;
+          int byteIndex=index%4;
+          int result=(vector[cell]| activateByte(byteIndex))& (valeur | ~(activateByte(byteIndex)));
+          vector[cell]=result;
           return this;
 
         }
@@ -220,6 +216,11 @@ public final class BitVector {
         public BitVector build() {
             return new BitVector(vector);
 
+        }
+        
+        
+        private int activateByte(int byteIndex) {
+            return ((1<<8 -1) << (byteIndex*8));
         }
 
     }
