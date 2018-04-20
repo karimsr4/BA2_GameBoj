@@ -1,8 +1,10 @@
 package lcd;
 
-import ch.epfl.gameboj.bits.Bit;
+import static ch.epfl.gameboj.Preconditions.checkArgument;
+
+import java.util.function.BinaryOperator;
+
 import ch.epfl.gameboj.bits.BitVector;
-import static ch.epfl.gameboj.Preconditions.*;
 
 /**
  * @author Ahmed
@@ -19,8 +21,7 @@ public final class LcdImageLine {
      * @param opacity
      */
     public LcdImageLine(BitVector msb, BitVector lsb, BitVector opacity) {
-        checkArgument(
-                checkSize(msb, lsb) && checkSize(msb,opacity));
+        checkArgument((msb.size()==lsb.size()) && (msb.size()==opacity.size()));
         this.msb = msb;
         this.lsb = lsb;
         this.opacity = opacity;
@@ -89,7 +90,7 @@ public final class LcdImageLine {
      * @return
      */
     public LcdImageLine below(LcdImageLine other) {
-
+        return below(other, opacity);
     }
 
     /**
@@ -98,7 +99,11 @@ public final class LcdImageLine {
      * @return
      */
     public LcdImageLine below(LcdImageLine other, BitVector opacity) {
-        return 
+        checkArgument(checkSize(other));
+        BinaryOperator<BitVector> below = (x, y) -> (opacity.and(x))
+                .or(opacity.not().and(y));
+        return new LcdImageLine(below.apply(msb, other.msb),
+                below.apply(lsb, other.lsb), this.opacity.or(other.opacity));
 
     }
 
@@ -108,6 +113,10 @@ public final class LcdImageLine {
      * @return
      */
     public LcdImageLine join(LcdImageLine other, int pixel) {
+        checkArgument(checkSize(other));
+        checkArgument((pixel>=0)&&(pixel<size())); 
+        BinaryOperator<BitVector> join;
+        
 
     }
 
@@ -130,8 +139,9 @@ public final class LcdImageLine {
     public int hashCode() {
 
     }
-    private boolean checkSize (BitVector first, BitVector second) {
-        return first.size()==second.size();
+
+    private boolean checkSize(LcdImageLine that) {
+        return size() == that.size();
     }
 
 }
