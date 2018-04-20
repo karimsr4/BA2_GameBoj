@@ -140,7 +140,7 @@ public final class BitVector {
     public String toString() {
         String st = "";
         for (int i = 0; i < vector.length; i++) {
-            st += Integer.toBinaryString(vector[i]);
+            st = Integer.toBinaryString(vector[i]) + st;
         }
         return st;
     }
