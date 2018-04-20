@@ -1,6 +1,6 @@
 package ch.epfl.gameboj.bits;
 
-import static ch.epfl.gameboj.Preconditions.checkArgument;
+import static ch.epfl.gameboj.Preconditions.*;
 import static java.lang.Math.*;
 import static java.util.Objects.checkIndex;
 
@@ -9,8 +9,8 @@ import java.util.Objects;
 import java.util.function.IntBinaryOperator;
 
 /**
- * @author Ahmed
- *
+ * @author Karim HADIDANE (271018)
+ * @author Ahmed JELLOULI (274056)
  */
 public final class BitVector {
 
@@ -55,6 +55,11 @@ public final class BitVector {
 
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
     @Override
     public boolean equals(Object obj) {
 
@@ -62,7 +67,6 @@ public final class BitVector {
                 && Arrays.equals(vector, ((BitVector) obj).vector);
 
     }
-
 
     /**
      * @param start
@@ -137,12 +141,17 @@ public final class BitVector {
         return Bits.test(vector[index / CELL_SIZE], index % CELL_SIZE);
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#toString()
+     */
     public String toString() {
-        String st = "";
-        for (int i = 0; i < vector.length; i++) {
-            st = Integer.toBinaryString(vector[i]) + st;
+        StringBuilder st = new StringBuilder();
+        for (int i = 0; i < size(); i++) {
+            st.append(testBit(i)? 1:0);
         }
-        return st;
+        return st.reverse().toString();
     }
 
     private int[] function(int[] other, IntBinaryOperator a) {
@@ -192,35 +201,51 @@ public final class BitVector {
         }
     }
 
+    /**
+     * @author Karim HADIDANE (271018)
+     * @author Ahmed JELLOULI (274056)
+     */
     public final static class Builder {
         private int[] vector;
         private int size;
 
+        /**
+         * @param size
+         */
         public Builder(int size) {
             checkArgument(size > 0 && size % 32 == 0);
-            vector=new int[size/32];
-            this.size=size;
+            vector = new int[size / 32];
+            this.size = size;
 
         }
 
+        /**
+         * @param index
+         * @param valeur
+         * @return
+         */
         public Builder setByte(int index, int valeur) {
-            checkIndex(index, size/8 );
-          int cell=index /4;
-          int byteIndex=index%4;
-          int result=(vector[cell]| activateByte(byteIndex))& (valeur | ~(activateByte(byteIndex)));
-          vector[cell]=result;
-          return this;
+            checkIndex(index, size / 8);
+            int cell = index / 4;
+            int byteIndex = index % 4;
+            int result = (vector[cell] | activateByte(byteIndex))
+                    & (valeur << (byteIndex * 8) | ~(activateByte(byteIndex)));
+            System.out.println(Integer.toBinaryString(result));
+            vector[cell] = result;
+            return this;
 
         }
 
+        /**
+         * @return
+         */
         public BitVector build() {
             return new BitVector(vector);
 
         }
-        
-        
+
         private int activateByte(int byteIndex) {
-            return ((1<<8 -1) << (byteIndex*8));
+            return ((1 << 8) - 1) << (byteIndex * 8);
         }
 
     }
