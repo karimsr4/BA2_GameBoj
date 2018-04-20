@@ -62,12 +62,6 @@ public final class BitVector {
 
     }
 
-    /**
-     * @param start
-     * @param end
-     * @return
-     */
-
     // public BitVector not() {
     // int[] copy = new int[vector.length]; ////////!!!!
     // for(int i=0; i< copy.length;i++)
@@ -76,6 +70,11 @@ public final class BitVector {
     // return new BitVector(copy);
     // }
 
+    /**
+     * @param start
+     * @param size
+     * @return
+     */
     public BitVector extractWrapped(int start, int size) {
         return extract(start, size, ExtractionMethod.WRAPPED);
 
@@ -83,7 +82,8 @@ public final class BitVector {
 
     /**
      * @param start
-     * @param end
+     * @param size
+     * @return
      */
     public BitVector extractZeroExtended(int start, int size) {
         return extract(start, size, ExtractionMethod.ZERO);
@@ -143,6 +143,14 @@ public final class BitVector {
         return Bits.test(vector[index / CELL_SIZE], index % CELL_SIZE);
     }
 
+    public String toString() {
+        String st = "";
+        for (int i = 0; i < vector.length; i++) {
+            st += Integer.toBinaryString(vector[i]);
+        }
+        return st;
+    }
+
     private int[] function(int[] other, IntBinaryOperator a) {
         int[] result = new int[vector.length];
         for (int i = 0; i < vector.length; ++i)
@@ -159,17 +167,19 @@ public final class BitVector {
     }
 
     private BitVector extract(int start, int size, ExtractionMethod method) {
-        checkArgument(size>0 && size%32 == 0);
+        checkArgument(size > 0 && size % 32 == 0);
         int[] extracted = new int[size / CELL_SIZE];
-        int shift= floorMod(start,CELL_SIZE);
+        int shift = floorMod(start, CELL_SIZE);
         if (start % 32 == 0) {
             for (int i = 0; i < extracted.length; ++i) {
-                extracted[i] = elementExtracting(start+ i* CELL_SIZE, method);
+                extracted[i] = elementExtracting(start + i * CELL_SIZE, method);
             }
         } else {
-            for (int i =0 ;i < extracted.length ; ++i) {
-                extracted[i] = elementExtracting(start+ i* CELL_SIZE, method)>>> shift 
-                    |   elementExtracting(start+ (i+1)* CELL_SIZE, method) << (CELL_SIZE - shift)  ;
+            for (int i = 0; i < extracted.length; ++i) {
+                extracted[i] = elementExtracting(start + i * CELL_SIZE,
+                        method) >>> shift
+                        | elementExtracting(start + (i + 1) * CELL_SIZE,
+                                method) << (CELL_SIZE - shift);
             }
 
         }
@@ -183,27 +193,29 @@ public final class BitVector {
         case WRAPPED:
             return vector[floorMod(index, vector.length)];
         default:
-            return (index >= size()|| index < 0) ? 0 : vector[floorDiv(index, CELL_SIZE)];
+            return (index >= size() || index < 0) ? 0
+                    : vector[floorDiv(index, CELL_SIZE)];
         }
     }
 
     public final static class Builder {
-        
-        
-        
+        private int[] vector;
 
         public Builder(int size) {
             checkArgument(size > 0 && size % 32 == 0);
-            
+            vector=new int[size/32];
+
         }
 
         public Builder setBytes(int index, int valeur) {
-            return null;
+          int cas=index /4;
+          int mod=index%4;
+          return this;
 
         }
 
         public BitVector build() {
-            return null;
+            return new BitVector(vector);
 
         }
 
