@@ -21,7 +21,8 @@ public final class LcdImageLine {
      * @param opacity
      */
     public LcdImageLine(BitVector msb, BitVector lsb, BitVector opacity) {
-        checkArgument((msb.size()==lsb.size()) && (msb.size()==opacity.size()));
+        checkArgument(
+                (msb.size() == lsb.size()) && (msb.size() == opacity.size()));
         this.msb = msb;
         this.lsb = lsb;
         this.opacity = opacity;
@@ -89,7 +90,7 @@ public final class LcdImageLine {
      * @return
      */
     public LcdImageLine below(LcdImageLine other) {
-        return below(other, opacity);
+        return below(other, other.opacity);
     }
 
     /**
@@ -99,11 +100,11 @@ public final class LcdImageLine {
      */
     public LcdImageLine below(LcdImageLine other, BitVector opacity) {
         checkArgument(checkSize(other));
-        checkArgument(opacity.size()==size());
+        checkArgument(opacity.size() == size());
         BinaryOperator<BitVector> below = (x, y) -> (opacity.and(x))
                 .or(opacity.not().and(y));
-        return new LcdImageLine(below.apply(other.msb,msb),
-                below.apply(other.lsb,lsb), this.opacity.or(other.opacity));
+        return new LcdImageLine(below.apply(other.msb, msb),
+                below.apply(other.lsb, lsb), this.opacity.or(other.opacity));
 
     }
 
@@ -114,9 +115,13 @@ public final class LcdImageLine {
      */
     public LcdImageLine join(LcdImageLine other, int pixel) {
         checkArgument(checkSize(other));
-        checkArgument((pixel>=0)&&(pixel<size())); 
-        BinaryOperator<BitVector> join;
-        
+        checkArgument((pixel >= 0) && (pixel < size()));
+        BitVector mask = new BitVector(size(), true).shift(pixel);
+        BinaryOperator<BitVector> join = (x, y) -> (x.and(mask.not()))
+                .or(y.and(mask));
+
+        return new LcdImageLine(join.apply(msb, other.msb),
+                join.apply(lsb, other.lsb), join.apply(opacity, other.opacity));
 
     }
 
