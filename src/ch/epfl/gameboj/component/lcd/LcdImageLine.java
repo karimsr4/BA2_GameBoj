@@ -74,7 +74,6 @@ public final class LcdImageLine {
         return new LcdImageLine(msb.extractWrapped(pixel, length),
                 lsb.extractWrapped(pixel, length),
                 opacity.extractWrapped(pixel, length));
-
     }
 
     /**
@@ -100,10 +99,11 @@ public final class LcdImageLine {
      */
     public LcdImageLine below(LcdImageLine other, BitVector opacity) {
         checkArgument(checkSize(other));
+        checkArgument(opacity.size()==size());
         BinaryOperator<BitVector> below = (x, y) -> (opacity.and(x))
                 .or(opacity.not().and(y));
-        return new LcdImageLine(below.apply(msb, other.msb),
-                below.apply(lsb, other.lsb), this.opacity.or(other.opacity));
+        return new LcdImageLine(below.apply(other.msb,msb),
+                below.apply(other.lsb,lsb), this.opacity.or(other.opacity));
 
     }
 
