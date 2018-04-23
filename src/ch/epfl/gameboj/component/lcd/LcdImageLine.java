@@ -1,4 +1,4 @@
-package lcd;
+package ch.epfl.gameboj.component.lcd;
 
 import static ch.epfl.gameboj.Preconditions.checkArgument;
 
@@ -11,9 +11,9 @@ import ch.epfl.gameboj.bits.BitVector;
  *
  */
 public final class LcdImageLine {
-    private BitVector msb;
-    private BitVector lsb;
-    private BitVector opacity;
+    private final BitVector msb;
+    private final BitVector lsb;
+    private final BitVector opacity;
 
     /**
      * @param msb
