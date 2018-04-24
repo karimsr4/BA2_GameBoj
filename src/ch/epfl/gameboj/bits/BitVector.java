@@ -240,7 +240,6 @@ public final class BitVector {
             int byteIndex = index % 4;
             int result = (vector[cell] | activateByte(byteIndex))
                     & (valeur << (byteIndex * 8) | ~(activateByte(byteIndex)));
-            System.out.println(Integer.toBinaryString(result));
             vector[cell] = result;
             return this;
 
