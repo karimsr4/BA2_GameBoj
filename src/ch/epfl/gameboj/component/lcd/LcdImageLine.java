@@ -173,10 +173,8 @@ public final class LcdImageLine {
      */
     @Override
     public int hashCode() {
-        
-        
 
-        return Objects.hash(msb ,lsb , opacity);
+        return Objects.hash(msb, lsb, opacity);
 
     }
 
@@ -190,10 +188,10 @@ public final class LcdImageLine {
      */
     public final static class Builder {
 
-        private BitVector.Builder b1;
-        private BitVector.Builder b2;
+        private final BitVector.Builder b1;
+        private final BitVector.Builder b2;
         private boolean isBuilded;
-        private int size;
+        private final int size;
 
         Builder(int size) {
             checkArgument(size > 0 && size % 32 == 0);
