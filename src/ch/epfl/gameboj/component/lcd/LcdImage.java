@@ -32,13 +32,12 @@ public final class LcdImage {
 
     @Override
     public boolean equals(Object o) {
-        return false;
-
+        return o instanceof LcdImage &&  lines.equals((LcdImage) o );
     }
 
     @Override
     public int hashCode() {
-        return 0;
+        return lines.hashCode();
 
     }
 
@@ -53,6 +52,7 @@ public final class LcdImage {
     }
 
     public final static class Builder {
+        
 
     }
 
