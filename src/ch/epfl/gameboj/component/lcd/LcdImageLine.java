@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.function.BinaryOperator;
 
 import ch.epfl.gameboj.bits.BitVector;
+import ch.epfl.gameboj.bits.Bits;
 
 /**
  * @author Ahmed
@@ -84,11 +85,29 @@ public final class LcdImageLine {
      * @return
      */
     public LcdImageLine mapColors(Byte map) {
-        BitVector couleur1 = msb.not().and(lsb.not());
-        BitVector couleur2 = msb.not().and(lsb);
-        BitVector couleur3 = couleur2.not();
-        BitVector couleur4 = couleur1.not();
-        return null;
+        BitVector couleur_00 = msb.not().and(lsb.not());
+        BitVector couleur_01 = msb.not().and(lsb);
+        BitVector couleur_10 = couleur_01.not();
+        BitVector couleur_11 = couleur_00.not();
+
+        BitVector newMsb = new BitVector(size(), false);
+        BitVector newLsb = new BitVector(size(), false);
+
+        BitVector[] maskArray = new BitVector[] { couleur_00, couleur_01,
+                couleur_10, couleur_11 };
+        for (int i = 0; i < 8; i++) {
+            if (Bits.test(map, i)) {
+                if (i % 2 == 0) {
+                    newLsb = newLsb.or(maskArray[i / 2]);
+                } else {
+                    newMsb = newMsb.or(maskArray[i / 2]);
+                }
+
+            }
+
+        }
+
+        return new LcdImageLine(newMsb, newLsb, opacity);
 
     }
 
@@ -177,31 +196,30 @@ public final class LcdImageLine {
             checkArgument(size > 0 && size % 32 == 0);
             b1 = new BitVector.Builder(size);
             b2 = new BitVector.Builder(size);
-            this.size=size;
+            this.size = size;
             isBuilded = false;
 
         }
-        
+
         public Builder setByte(int index, int msbByte, int lsbByte) {
-            if(isBuilded)
+            if (isBuilded)
                 throw new IllegalStateException();
-            
+
             checkIndex(index, size / 8);
             b1.setByte(index, msbByte);
             b2.setByte(index, lsbByte);
-            
+
             return this;
         }
-        
-        
+
         public LcdImageLine build() {
-            if (isBuilded ) {
+            if (isBuilded) {
                 throw new IllegalStateException();
             }
-            isBuilded=true;
-            BitVector msb=b1.build();
-            BitVector lsb=b2.build();
-            
+            isBuilded = true;
+            BitVector msb = b1.build();
+            BitVector lsb = b2.build();
+
             return new LcdImageLine(msb, lsb, msb.or(lsb));
         }
 

@@ -18,7 +18,7 @@ public final class LcdImage {
     private final int height;
     
     public LcdImage(int width, int height, List<LcdImageLine> lignes) {
-        List<LcdImageLine> copy=new LinkedList(lignes);
+        List<LcdImageLine> copy=new LinkedList<>(lignes);
         
         for(LcdImageLine e :lignes) {
             if (e.size()==width)
@@ -46,6 +46,12 @@ public final class LcdImage {
         
     }
     
+    
+    
+    public int get(int x, int y) {
+        return y;
+        
+    }
     
     public final static class Builder{
         
