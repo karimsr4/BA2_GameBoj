@@ -13,49 +13,47 @@ import java.util.List;
  */
 public final class LcdImage {
 
-    private final List<LcdImageLine> lignes;
+    private final List<LcdImageLine> lines;
     private final int width;
     private final int height;
-    
-    public LcdImage(int width, int height, List<LcdImageLine> lignes) {
-        List<LcdImageLine> copy=new LinkedList<>(lignes);
-        
-        for(LcdImageLine e :lignes) {
-            if (e.size()==width)
-                copy.remove(e);
-        }
-        checkArgument(copy.isEmpty() && lignes.size()==height);
-        
-        this.width=width;
-        this.height=height;
-        this.lignes=Collections.unmodifiableList(new ArrayList<LcdImageLine> (lignes));
-        
-        
+
+    public LcdImage(int width, int height, List<LcdImageLine> lines) {
+
+        checkArgument(lines.size() == height);
+        for (LcdImageLine e : lines)
+            checkArgument(e.size() == width);
+
+        this.width = width;
+        this.height = height;
+        this.lines = Collections
+                .unmodifiableList(new ArrayList<LcdImageLine>(lines));
+
     }
-    
+
     @Override
     public boolean equals(Object o) {
         return false;
-        
+
     }
-    
-    
+
     @Override
     public int hashCode() {
         return 0;
-        
+
     }
-    
-    
-    
+
     public int get(int x, int y) {
-        return y;
+        LcdImageLine line= lines.get(y);
+        int msb = line.getMsb().testBit(x)? 1: 0 ;
+        int lsb = line.getLsb().testBit(x)? 1: 0 ;
+        
+        return (msb << 1) | lsb ;
+
         
     }
-    
-    public final static class Builder{
-        
+
+    public final static class Builder {
+
     }
-    
-    
+
 }
