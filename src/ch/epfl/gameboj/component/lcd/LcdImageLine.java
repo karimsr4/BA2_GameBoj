@@ -4,6 +4,7 @@ import static ch.epfl.gameboj.Preconditions.checkArgument;
 import static java.util.Objects.checkIndex;
 
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.function.BinaryOperator;
 
 import ch.epfl.gameboj.bits.BitVector;
@@ -172,8 +173,10 @@ public final class LcdImageLine {
      */
     @Override
     public int hashCode() {
+        
+        
 
-        return msb.hashCode() + lsb.hashCode() + opacity.hashCode();
+        return Objects.hash(msb ,lsb , opacity);
 
     }
 
