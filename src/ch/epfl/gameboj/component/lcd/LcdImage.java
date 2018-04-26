@@ -5,11 +5,10 @@ import static ch.epfl.gameboj.Preconditions.checkArgument;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
-import ch.epfl.gameboj.Preconditions;
+
 
 /**
  * @author ADMIN
@@ -36,7 +35,7 @@ public final class LcdImage {
 
     @Override
     public boolean equals(Object o) {
-        return o instanceof LcdImage &&  lines.equals((LcdImage) o );
+        return o instanceof LcdImage &&  lines.equals(((LcdImage) o).lines );
     }
 
     @Override
@@ -46,6 +45,8 @@ public final class LcdImage {
     }
 
     public int get(int x, int y) {
+        
+        
         LcdImageLine line= lines.get(y);
         int msb = line.getMsb().testBit(x)? 1: 0 ;
         int lsb = line.getLsb().testBit(x)? 1: 0 ;
@@ -62,7 +63,7 @@ public final class LcdImage {
         private boolean isBuilded;
         
         
-        Builder(int width, int height){
+        public Builder(int width, int height){
             lines =new LcdImageLine[height];
             for(int i=0;i<height; i++) {
                 lines[i]=new LcdImageLine.Builder(width).build();
