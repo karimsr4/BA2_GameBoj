@@ -23,8 +23,6 @@ public final class LcdImage {
     public LcdImage(int width, int height, List<LcdImageLine> lines) {
 
         checkArgument(lines.size() == height);
-        for (LcdImageLine e : lines)
-            checkArgument(e.size() == width);
 
         this.width = width;
         this.height = height;

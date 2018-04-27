@@ -176,6 +176,7 @@ public final class BitVector {
         checkArgument(size > 0 && size % 32 == 0);
         int[] extracted = new int[size / CELL_SIZE];
         int shift = floorMod(start, CELL_SIZE);
+        System.out.println(shift);
         if (start % 32 == 0) {
             for (int i = 0; i < extracted.length; ++i) {
                 extracted[i] = elementExtracting(start + i * CELL_SIZE, method);
@@ -197,10 +198,13 @@ public final class BitVector {
     private int elementExtracting(int index, ExtractionMethod method) {
         switch (method) {
         case WRAPPED:
-            return vector[floorMod(index, vector.length)];
+            int div=floorDiv(index, 32);
+            int mod=floorMod(div, vector.length);
+            return vector[mod];
+            
         default:
             return (index >= size() || index < 0) ? 0
-                    : vector[floorDiv(index, CELL_SIZE)];
+                    : vector[index/ CELL_SIZE];
         }
         
         

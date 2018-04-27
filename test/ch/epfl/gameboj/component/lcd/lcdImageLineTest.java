@@ -171,10 +171,14 @@ class lcdImageLineTest {
     void extractWrappedDoesIt() {
         LcdImageLine l0=new LcdImageLine(v1, v1, v1);
         BitVector.Builder b=new BitVector.Builder(64).setByte(2, 0b11110011).setByte(4, 0b11111111).setByte(7, 0b11111111);
-        BitVector.Builder b2=new BitVector.Builder(64).setByte(3, 0b11111111);
-        BitVector v1=new BitVector(64, true);
-        LcdImageLine l1=new LcdImageLine(b.build(), b2.build(), v1);
-        LcdImageLine result=l1.extractWrapped(-7, 32);
-        assertEquals("01111001100000000000000001111111", result.getMsb().toString());
+        
+//        BitVector.Builder b2=new BitVector.Builder(64).setByte(3, 0b11111111);
+//        BitVector v1=new BitVector(64, true);
+//        LcdImageLine l1=new LcdImageLine(b.build(), b2.build(), v1);
+        BitVector a = b.build();
+        System.out.println(a.toString());
+        a=a.extractWrapped(-7, 32);
+        System.out.println(a);
+        assertEquals("01111001100000000000000001111111", a.toString());
     }
 }
