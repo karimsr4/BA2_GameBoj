@@ -1,6 +1,6 @@
 package ch.epfl.gameboj.component.lcd;
 
-import static ch.epfl.gameboj.Preconditions.checkArgument;
+import static ch.epfl.gameboj.Preconditions.*;
 import static java.util.Objects.checkIndex;
 
 import java.util.Arrays;
@@ -18,6 +18,8 @@ public final class LcdImageLine {
     private final BitVector msb;
     private final BitVector lsb;
     private final BitVector opacity;
+    
+    private final int IDENTITY_MAP=0b11100100;
 
     /**
      * @param msb
@@ -85,11 +87,19 @@ public final class LcdImageLine {
      * @param j
      * @return
      */
+<<<<<<< HEAD
     public LcdImageLine mapColors(int j) {
+=======
+    public LcdImageLine mapColors(int map) {
+        if(map==IDENTITY_MAP) {
+            return this;
+        }
+        
+>>>>>>> 046e34d36ddaadb7ac9aff02f22bb0f8d09b222d
         BitVector couleur_00 = msb.not().and(lsb.not());
         BitVector couleur_01 = msb.not().and(lsb);
-        BitVector couleur_10 = couleur_01.not();
-        BitVector couleur_11 = couleur_00.not();
+        BitVector couleur_10 = msb.and(lsb.not());
+        BitVector couleur_11 = msb.and(lsb);
 
         BitVector newMsb = new BitVector(size(), false);
         BitVector newLsb = new BitVector(size(), false);
@@ -203,6 +213,8 @@ public final class LcdImageLine {
         }
 
         public Builder setByte(int index, int msbByte, int lsbByte) {
+            checkBits8(msbByte);
+            checkBits8(lsbByte);
             if (isBuilded)
                 throw new IllegalStateException();
 

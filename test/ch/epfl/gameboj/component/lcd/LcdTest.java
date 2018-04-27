@@ -2,9 +2,12 @@ package ch.epfl.gameboj.component.lcd;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+<<<<<<< HEAD
 import java.util.ArrayList;
 import java.util.List;
 
+=======
+>>>>>>> 046e34d36ddaadb7ac9aff02f22bb0f8d09b222d
 import org.junit.jupiter.api.Test;
 
 import ch.epfl.gameboj.bits.BitVector;
@@ -243,7 +246,13 @@ public class LcdTest {
         // v4 : 00000000110101011111111000000000
         
         assertEquals("11111111111111111111111111111111", l0.getMsb().toString());
+<<<<<<< HEAD
         assertEquals("00000000000000000000000000000000", l0.getLsb().toString());
+=======
+        System.out.println(l0.getLsb());
+        assertEquals("00000000000000000000000000000000", l0.getLsb().toString());
+        
+>>>>>>> 046e34d36ddaadb7ac9aff02f22bb0f8d09b222d
         assertEquals("00000000000000000000000000000000", l0.getOpacity().toString());
         
         assertEquals("00000000000000000000000000000000", l1.getMsb().toString());
@@ -538,7 +547,13 @@ public class LcdTest {
         LcdImageLine v1 = c.mapColors(0b11100100);
         assertEquals(v1, c);
         LcdImageLine v2 = c.mapColors(0b11100001);
+<<<<<<< HEAD
         //        11001100000000001010101011110000
+=======
+        System.out.println("msb " + v2.getMsb().toString());
+        System.out.println("lsb " +v2.getLsb().toString());
+        //            11001100000000001010101011110000
+>>>>>>> 046e34d36ddaadb7ac9aff02f22bb0f8d09b222d
         assertEquals("11001100000000001010101011110000", v2.getMsb().toString());
         //            11000000000000001010111000000110
         assertEquals("11110011111111111111101100001001", v2.getLsb().toString());
@@ -564,11 +579,18 @@ public class LcdTest {
     void below1() {
 
         LcdImageLine v1 = a.below(b);
+<<<<<<< HEAD
        
         assertEquals("00110011111111110101010100001111", v1.getMsb().toString());
         assertEquals("00000000000000000000000000000000", v1.getLsb().toString());
         assertEquals("11111111111111111111111111111111",
                 v1.getOpacity().toString());
+=======
+        assertEquals("11111111111111111111111111111111",
+                v1.getOpacity().toString());
+        assertEquals("00110011111111110101010100001111", v1.getMsb().toString());
+        assertEquals("00000000000000000000000000000000", v1.getLsb().toString());
+>>>>>>> 046e34d36ddaadb7ac9aff02f22bb0f8d09b222d
         // 11001100000000001010101011110000
 
     }
@@ -579,11 +601,18 @@ public class LcdTest {
                 .setByte(1, 0b1010_1110).setByte(3, 0b1100_0000).build();
         // 11000000000000001010111000000110
         LcdImageLine v1 = a.below(b, z);
+<<<<<<< HEAD
       
         assertEquals("00111111111111110101000111111001", v1.getMsb().toString());
         assertEquals("00000000000000000000000000000000", v1.getLsb().toString());
         assertEquals("11111111111111111111111111111111",
                 v1.getOpacity().toString());
+=======
+        assertEquals("11111111111111111111111111111111",
+                v1.getOpacity().toString());
+        assertEquals("00111111111111110101000111111001", v1.getMsb().toString());
+        assertEquals("00000000000000000000000000000000", v1.getLsb().toString());
+>>>>>>> 046e34d36ddaadb7ac9aff02f22bb0f8d09b222d
         // 11000000000000001010111000000110
 
     }
@@ -592,7 +621,11 @@ public class LcdTest {
 
     void join() {
 
+<<<<<<< HEAD
         LcdImageLine v1 = a.join( d, 4);
+=======
+        LcdImageLine v1 = a.join(d, 4);
+>>>>>>> 046e34d36ddaadb7ac9aff02f22bb0f8d09b222d
 
         //System.out.println(a.opacity().toString());
         //System.out.print(d.opacity().toString());
@@ -721,6 +754,7 @@ public class LcdTest {
         assertFalse(l5.hashCode() == l2.hashCode());
         assertFalse(l6.hashCode() == l1.hashCode());
         assertFalse(l7.hashCode() == l0.hashCode());
+<<<<<<< HEAD
         
     }
     @Test
@@ -802,5 +836,8 @@ public class LcdTest {
 		assertEquals(expected, l3);
 	}
 	
+=======
+    }
+>>>>>>> 046e34d36ddaadb7ac9aff02f22bb0f8d09b222d
     
 }
