@@ -1,6 +1,6 @@
 package ch.epfl.gameboj.component.lcd;
 
-import static ch.epfl.gameboj.Preconditions.checkArgument;
+import static ch.epfl.gameboj.Preconditions.*;
 import static java.util.Objects.checkIndex;
 
 import java.util.Arrays;
@@ -209,6 +209,8 @@ public final class LcdImageLine {
         }
 
         public Builder setByte(int index, int msbByte, int lsbByte) {
+            checkBits8(msbByte);
+            checkBits8(lsbByte);
             if (isBuilded)
                 throw new IllegalStateException();
 

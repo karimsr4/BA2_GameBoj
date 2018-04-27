@@ -8,6 +8,9 @@ import org.junit.jupiter.api.Test;
 import ch.epfl.gameboj.bits.BitVector;
 
 class lcdImageLineTest {
+    
+    BitVector v0=new BitVector(32, false);
+    BitVector v1=new BitVector(32, true);
 
     @Test
     void constructorDoesNotWorkWithDifferentSizestest() {
@@ -132,11 +135,46 @@ class lcdImageLineTest {
     void mapColorTest(){
         
         BitVector v0=new BitVector(32, false);
+        BitVector v1=new BitVector(32, true);
         LcdImageLine l0=new LcdImageLine(v0, v0, v0);
         LcdImageLine l=l0.mapColors(0b00110110);
-        System.out.println(l.getLsb());
+        assertEquals(v1, l.getMsb());
+        assertEquals(v0, l.getLsb());
+        assertEquals(v0, l.getOpacity());
+        assertEquals(new LcdImageLine(v1, v0, v0), l);
         
         
     }
 
+    
+    
+    @Test
+    void setByteDoesNotWorkAfterBuild() {
+        LcdImageLine.Builder b=new LcdImageLine.Builder(64);
+        LcdImageLine l=b.build();
+        
+        assertThrows(IllegalStateException.class, ()-> b.setByte(0, 0b00000000, 0b00000000));
+        
+    }
+    
+    
+    
+    @Test
+    void extractWrappedDoesNotWorkWithWrongLength() {
+        LcdImageLine l0=new LcdImageLine(v0, v1, v1);
+        assertThrows(IllegalArgumentException.class, () -> l0.extractWrapped(-7, 31));
+    }
+    
+    
+    
+    @Test
+    void extractWrappedDoesIt() {
+        LcdImageLine l0=new LcdImageLine(v1, v1, v1);
+        BitVector.Builder b=new BitVector.Builder(64).setByte(2, 0b11110011).setByte(4, 0b11111111).setByte(7, 0b11111111);
+        BitVector.Builder b2=new BitVector.Builder(64).setByte(3, 0b11111111);
+        BitVector v1=new BitVector(64, true);
+        LcdImageLine l1=new LcdImageLine(b.build(), b2.build(), v1);
+        LcdImageLine result=l1.extractWrapped(-7, 32);
+        assertEquals("01111001100000000000000001111111", result.getMsb().toString());
+    }
 }
