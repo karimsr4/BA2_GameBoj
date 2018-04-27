@@ -89,6 +89,7 @@ public final class LcdImageLine {
      */
 
     public LcdImageLine mapColors(int map) {
+        checkBits8(map);
         if(map==IDENTITY_MAP) {
             return this;
         }
