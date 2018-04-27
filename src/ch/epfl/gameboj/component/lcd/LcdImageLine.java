@@ -87,15 +87,11 @@ public final class LcdImageLine {
      * @param j
      * @return
      */
-<<<<<<< HEAD
-    public LcdImageLine mapColors(int j) {
-=======
+
     public LcdImageLine mapColors(int map) {
         if(map==IDENTITY_MAP) {
             return this;
         }
-        
->>>>>>> 046e34d36ddaadb7ac9aff02f22bb0f8d09b222d
         BitVector couleur_00 = msb.not().and(lsb.not());
         BitVector couleur_01 = msb.not().and(lsb);
         BitVector couleur_10 = msb.and(lsb.not());
@@ -107,7 +103,7 @@ public final class LcdImageLine {
         BitVector[] maskArray = new BitVector[] { couleur_00, couleur_01,
                 couleur_10, couleur_11 };
         for (int i = 0; i < 8; i++) {
-            if (Bits.test(j, i)) {
+            if (Bits.test(map, i)) {
                 if (i % 2 == 0) {
                     newLsb = newLsb.or(maskArray[i / 2]);
                 } else {
