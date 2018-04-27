@@ -87,15 +87,15 @@ public final class LcdImageLine {
      * @param map
      * @return
      */
-    public LcdImageLine mapColors(Byte map) {
+    public LcdImageLine mapColors(int map) {
         if(map==IDENTITY_MAP) {
             return this;
         }
         
         BitVector couleur_00 = msb.not().and(lsb.not());
         BitVector couleur_01 = msb.not().and(lsb);
-        BitVector couleur_10 = couleur_01.not();
-        BitVector couleur_11 = couleur_00.not();
+        BitVector couleur_10 = msb.and(lsb.not());
+        BitVector couleur_11 = msb.and(lsb);
 
         BitVector newMsb = new BitVector(size(), false);
         BitVector newLsb = new BitVector(size(), false);

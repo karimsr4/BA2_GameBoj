@@ -126,5 +126,17 @@ class lcdImageLineTest {
         assertEquals(l3, l1.join(l2, 12));
         
     }
+    
+    
+    @Test
+    void mapColorTest(){
+        
+        BitVector v0=new BitVector(32, false);
+        LcdImageLine l0=new LcdImageLine(v0, v0, v0);
+        LcdImageLine l=l0.mapColors(0b00110110);
+        System.out.println(l.getLsb());
+        
+        
+    }
 
 }

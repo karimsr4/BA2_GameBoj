@@ -81,7 +81,7 @@ public final class LcdImage {
                 throw new IllegalStateException();
             
             Objects.checkIndex(index, height);
-            Preconditions.checkArgument(newLine.size()==width);
+            checkArgument(newLine.size()==width);
             lines[index]=newLine;
             return this;
             
