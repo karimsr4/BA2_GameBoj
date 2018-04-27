@@ -768,7 +768,7 @@ public class LcdTest {
 		list.add(l1);
 		list.add(l2);
 
-		LcdImage lcdImage = new LcdImage(2, 32, list);
+		LcdImage lcdImage = new LcdImage(32, 2, list);
 
 		assertEquals(1, lcdImage.get(16, 0));
 	}
@@ -786,7 +786,7 @@ public class LcdTest {
 		list1.add(l1);
 		list1.add(l2);
 
-		LcdImage lcdImage1 = new LcdImage(2, 32, list1);
+		LcdImage lcdImage1 = new LcdImage(32, 2, list1);
 
 		BitVector msb3 = new BitVector(32);
 		BitVector lsb3 = new BitVector(32, true).shift(16);
@@ -799,7 +799,7 @@ public class LcdTest {
 		list2.add(l3);
 		list2.add(l4);
 
-		LcdImage lcdImage2 = new LcdImage(2, 32, list2);
+		LcdImage lcdImage2 = new LcdImage(32, 2, list2);
 
 		assertTrue(lcdImage1.equals(lcdImage2));
 		assertTrue(lcdImage1.hashCode() == lcdImage2.hashCode());

@@ -137,7 +137,7 @@ public final class LcdImageLine {
         BinaryOperator<BitVector> below = (x, y) -> (opacity.and(x))
                 .or(opacity.not().and(y));
         return new LcdImageLine(below.apply(other.msb, msb),
-                below.apply(other.lsb, lsb), this.opacity.or(other.opacity));
+                below.apply(other.lsb, lsb), this.opacity.or(opacity));
 
     }
 
