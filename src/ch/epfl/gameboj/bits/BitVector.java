@@ -9,6 +9,8 @@ import java.util.Objects;
 import java.util.function.IntBinaryOperator;
 
 /**
+ * Classe réprésentant un vecteur de bits
+ * 
  * @author Karim HADIDANE (271018)
  * @author Ahmed JELLOULI (274056)
  */
@@ -18,36 +20,46 @@ public final class BitVector {
     private static final int CELL_SIZE = 32;
 
     /**
+     * construit un nouveau vecteur de bits de taille donnée avec la valeur
+     * initiale donnée
+     * 
      * @param size
+     *            la taille du vecteur
      * @param initialValue
+     *            la valeur initiale des bits
+     * @throws IllegalArgumentException
+     *             si la taille est négative ou nulle ou si elle n'est pas un
+     *             multiple de 32
      */
     public BitVector(int size, boolean initialValue) {
         this(initialisedVector(size, initialValue));
     }
 
     /**
+     * construit un nouveau vecteur de bits de taille donnée en initialisant
+     * tous les bits avec 0
+     * 
      * @param size
+     *            la taille du vecteur
+     * @throws IllegalArgumentException
+     *             si la taille est négative ou nulle ou si elle n'est pas un
+     *             multiple de 32
      */
     public BitVector(int size) {
         this(size, false);
     }
 
-    private BitVector(int[] vector) {
-        this.vector = vector;
-    }
-
-    private static int[] initialisedVector(int size, boolean initialValue) {
-
-        checkArgument((size > 0) && (size % CELL_SIZE == 0));
-        int[] tab = new int[size / CELL_SIZE];
-        int fillingValue = initialValue ? 0xFFFFFFFF : 0;
-        Arrays.fill(tab, fillingValue);
-        return tab;
-    }
-
     /**
+     * retourne un nouveau vecteur de bits obtenu par la conjonction du vecteur
+     * de bits et de l'argument donné
+     * 
      * @param that
-     * @return
+     *            le vecteur de bits donné
+     * @return le vecteur de bits résultant de la conjuction du vecteur de bits
+     *         et l'argument
+     * @throws IllegalArgumentException
+     *             si le vecteur de bits passé en argument n'est pas de même
+     *             taille que le vecteur de bits qui appelle la méthode
      */
     public BitVector and(BitVector that) {
         checkArgument(verifySize(that));
@@ -55,12 +67,17 @@ public final class BitVector {
 
     }
 
-    
-
     /**
+     * extraire un vecteur de taille donnée de l'extension par enroulement du
+     * vecteur
+     * 
      * @param start
+     *            entier répresentant l'index de début de l'extraction
      * @param size
-     * @return
+     *            taille du vecteur de bits extrait
+     * @return le vecteur de bits extrait
+     * @throws IllegalArgumentException
+     *             si la taille est négative ,nulle ou n'est pas multiple de 32
      */
     public BitVector extractWrapped(int start, int size) {
         return extract(start, size, ExtractionMethod.WRAPPED);
@@ -68,26 +85,41 @@ public final class BitVector {
     }
 
     /**
+     * extraire un vecteur de taille donnée de l'extension par 0 du vecteur
+     * 
      * @param start
+     *            entier répresentant l'index de début de l'extraction
      * @param size
-     * @return
+     *            taille du vecteur de bits extrait
+     * @return le vecteur de bits extrait
+     * @throws IllegalArgumentException
+     *             si la taille est négative ,nulle ou n'est pas multiple de 32
      */
     public BitVector extractZeroExtended(int start, int size) {
         return extract(start, size, ExtractionMethod.ZERO);
 
     }
 
-    
     /**
-     * @return
+     * calculer le complément du vecteur de bits
+     * 
+     * @return le complément du vecteur de bits
      */
     public BitVector not() {
         return new BitVector(function(vector, (x, y) -> ~x));
     }
 
     /**
+     * retourne un nouveau vecteur de bits obtenu par la disjonction du vecteur
+     * de bits et de l'argument donné
+     * 
      * @param that
-     * @return
+     *            le vecteur de bits donné
+     * @return le vecteur de bits résultant de la disjonction du vecteur de bits
+     *         et l'argument
+     * @throws IllegalArgumentException
+     *             si le vecteur de bits passé en argument n'est pas de même
+     *             taille que le vecteur de bits qui appelle la méthode
      */
     public BitVector or(BitVector that) {
         checkArgument(verifySize(that));
@@ -96,8 +128,11 @@ public final class BitVector {
     }
 
     /**
+     * décale le vecteur d'une distance quelconque
+     * 
      * @param distance
-     * @return
+     *            entier representant la distance de décalage
+     * @return un nouveau vecteur de bits résultat du décalage
      */
     public BitVector shift(int distance) {
         return extractZeroExtended(-distance, size());
@@ -105,15 +140,22 @@ public final class BitVector {
     }
 
     /**
-     * @return
+     * retourne la taille du vecteur de bits
+     * 
+     * @return la taille du vecteur de bits
      */
     public int size() {
-        return vector.length * 32;
+        return vector.length * CELL_SIZE;
     }
 
     /**
+     * déterminer si le bit d'index donné est vrai ou faux
+     * 
      * @param index
-     * @return
+     *            entier representant l'index
+     * @return vrai ssi le bit d'index donné de bits vaut 1
+     * @throws IndexOutOfBoundsException
+     *             si l'index est invalide
      */
     public boolean testBit(int index) {
         Objects.checkIndex(index, size());
@@ -129,10 +171,11 @@ public final class BitVector {
     public String toString() {
         StringBuilder st = new StringBuilder();
         for (int i = 0; i < size(); i++) {
-            st.append(testBit(i)? 1:0);
+            st.append(testBit(i) ? 1 : 0);
         }
         return st.reverse().toString();
     }
+
     /*
      * (non-Javadoc)
      * 
@@ -143,6 +186,7 @@ public final class BitVector {
 
         return Arrays.hashCode(vector);
     }
+
     /*
      * (non-Javadoc)
      * 
@@ -155,7 +199,6 @@ public final class BitVector {
                 && Arrays.equals(vector, ((BitVector) obj).vector);
 
     }
-
 
     private int[] function(int[] other, IntBinaryOperator a) {
         int[] result = new int[vector.length];
@@ -173,7 +216,7 @@ public final class BitVector {
     }
 
     private BitVector extract(int start, int size, ExtractionMethod method) {
-        checkArgument(size > 0 && size % 32 == 0);
+        checkArgument(size > 0 && size % CELL_SIZE == 0);
         int[] extracted = new int[size / CELL_SIZE];
         int shift = floorMod(start, CELL_SIZE);
         System.out.println(shift);
@@ -198,20 +241,33 @@ public final class BitVector {
     private int elementExtracting(int index, ExtractionMethod method) {
         switch (method) {
         case WRAPPED:
-            int div=floorDiv(index, 32);
-            int mod=floorMod(div, vector.length);
+            int div = floorDiv(index, CELL_SIZE);
+            int mod = floorMod(div, vector.length);
             return vector[mod];
-            
+
         default:
             return (index >= size() || index < 0) ? 0
-                    : vector[index/ CELL_SIZE];
+                    : vector[index / CELL_SIZE];
         }
-        
-        
+
     }
-     
-    
+
+    private BitVector(int[] vector) {
+        this.vector = vector;
+    }
+
+    private static int[] initialisedVector(int size, boolean initialValue) {
+
+        checkArgument((size > 0) && (size % CELL_SIZE == 0));
+        int[] tab = new int[size / CELL_SIZE];
+        int fillingValue = initialValue ? 0xFFFFFFFF : 0;
+        Arrays.fill(tab, fillingValue);
+        return tab;
+    }
+
     /**
+     * Classe réprésentant un bâtisseur de vecteur de bits
+     * 
      * @author Karim HADIDANE (271018)
      * @author Ahmed JELLOULI (274056)
      */
@@ -224,22 +280,35 @@ public final class BitVector {
          * @param size
          */
         public Builder(int size) {
-            checkArgument(size > 0 && size % 32 == 0);
-            vector = new int[size / 32];
+            checkArgument(size > 0 && size % CELL_SIZE == 0);
+            vector = new int[size / CELL_SIZE];
             this.size = size;
-            isBuilded=false;
+            isBuilded = false;
 
         }
 
         /**
+         * définir la valeur d'un octet désigné par son index
+         * 
          * @param index
+         *            entier répresentant l'index de l'octet
          * @param valeur
-         * @return
+         *            entier de 8 bits représentant la nouvelle valeur de
+         *            l'octet d'index donné
+         * @return le bâtisseur
+         * @throws IllegalStateException
+         *             si la méthode est appelée après que le vecteur de bits
+         *             est construit
+         * @throws IndexOutOfBoundsException
+         *             si l'index n'est pas valide
+         * @throws IllegalArgumentException
+         *             si la valeur n'est pas 8 bits
          */
         public Builder setByte(int index, int valeur) {
-            if(isBuilded)
+            if (isBuilded)
                 throw new IllegalStateException();
             checkIndex(index, size / 8);
+            checkBits8(valeur);
             int cell = index / 4;
             int byteIndex = index % 4;
             int result = (vector[cell] | activateByte(byteIndex))
@@ -250,24 +319,26 @@ public final class BitVector {
         }
 
         /**
-         * @return
+         * construire le vecteur de bits
+         * 
+         * @return le vecteur de bits
+         * @throws IllegalStateException
+         *             si la méthode est appelée après que le vecteur de bits
+         *             est construit
          */
         public BitVector build() {
-            if (isBuilded ) {
+            if (isBuilded) {
                 throw new IllegalStateException();
             }
-            isBuilded=true;
+            isBuilded = true;
             return new BitVector(vector);
 
         }
 
-        private int activateByte(int byteIndex) {
-            return ((1 << 8) - 1) << (byteIndex * 8);
-        }
+    }
 
-        
-       
-        
+    private static int activateByte(int byteIndex) {
+        return ((1 << 8) - 1) << (byteIndex * 8);
     }
 
 }

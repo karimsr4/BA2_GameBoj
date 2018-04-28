@@ -11,15 +11,17 @@ import ch.epfl.gameboj.bits.BitVector;
 import ch.epfl.gameboj.bits.Bits;
 
 /**
- * @author Ahmed
- *
+ * Classe représentant une ligne d'image Game Boy
+ * 
+ * @author Karim HADIDANE (271018)
+ * @author Ahmed JELLOULI (274056)
  */
 public final class LcdImageLine {
     private final BitVector msb;
     private final BitVector lsb;
     private final BitVector opacity;
-    
-    private final int IDENTITY_MAP=0b11100100;
+
+    private final int IDENTITY_MAP = 0b11100100;
 
     /**
      * @param msb
@@ -36,36 +38,47 @@ public final class LcdImageLine {
     }
 
     /**
-     * @return
+     * obtenir la longueur, en pixels, de la ligne
+     * 
+     * @return la longueur de la ligne en pixels
      */
     public int size() {
         return msb.size();
     }
 
     /**
-     * @return
+     * obtenir le vecteur des bits de poids fort
+     * 
+     * @return le vecteur des bits de poids fort
      */
     public BitVector getMsb() {
         return msb;
     }
 
     /**
-     * @return
+     * obtenir le vecteur des bits de poids faible
+     * 
+     * @return le vecteur des bits de poids faible
      */
     public BitVector getLsb() {
         return lsb;
     }
 
     /**
-     * @return
+     * obtenir le vecteur des bits de l'opacité
+     * 
+     * @return le vecteur des bits de l'opacité
      */
     public BitVector getOpacity() {
         return opacity;
     }
 
     /**
+     * décaler la ligne d'un nombre de pixels donné, en préservant sa longueur
+     * 
      * @param distance
-     * @return
+     *            la distance de décalage
+     * @return une nouvelle ligne résultat du décalage
      */
     public LcdImageLine shift(int distance) {
         return new LcdImageLine(msb.shift(distance), lsb.shift(distance),
@@ -73,6 +86,9 @@ public final class LcdImageLine {
     }
 
     /**
+     * extraire de l'extension infinie par enroulement, à partir d'un pixel
+     * donné, une ligne de longueur donnée
+     * 
      * @param pixel
      * @param length
      * @return
@@ -84,13 +100,18 @@ public final class LcdImageLine {
     }
 
     /**
-     * @param j
-     * @return
+     * transformer les couleurs de la ligne en fonction d'une palette donnée
+     * 
+     * @param map
+     *            la palette sous forme d'un octet
+     * @return le résultat de la transformation des couleurs de la ligne
+     * @throws IllegalArgumentException
+     *             si la palette n'est pas un entier de 8 bits
      */
 
     public LcdImageLine mapColors(int map) {
         checkBits8(map);
-        if(map==IDENTITY_MAP) {
+        if (map == IDENTITY_MAP) {
             return this;
         }
         BitVector couleur_00 = msb.not().and(lsb.not());
@@ -120,17 +141,31 @@ public final class LcdImageLine {
     }
 
     /**
+     * composer la ligne avec une seconde de même longueur en utilisant
+     * l'opacité de la ligne supérieure pour effectuer la composition
+     * 
      * @param other
-     * @return
+     *            la seconde ligne
+     * @return la ligne résultante de la composition des deux lignes
+     * @throws IllegalArgumentException
+     *             si les deux lignes n'ont pas la même taille
      */
     public LcdImageLine below(LcdImageLine other) {
         return below(other, other.opacity);
     }
 
     /**
+     * composer la ligne avec une seconde de même longueur en utilisant le
+     * vecteur d'opacité passé en argument
+     * 
      * @param other
+     *            la seconde ligne
      * @param opacity
-     * @return
+     *            le vecteur d'opacité
+     * @return la ligne résultante de la composition des deux lignes
+     * @throws IllegalArgumentException
+     *             si les deux lignes n'ont pas la même taille ou si le vecteur
+     *             d'opacité et la ligne n'ont pas la même taille
      */
     public LcdImageLine below(LcdImageLine other, BitVector opacity) {
         checkArgument(checkSize(other));
@@ -143,13 +178,24 @@ public final class LcdImageLine {
     }
 
     /**
+     * joint la ligne avec une autre de même longueur, à partir d'un pixel
+     * d'index donné
+     * 
      * @param other
+     *            la seconde ligne
      * @param pixel
-     * @return
+     *            l'index du pixel
+     * @return la ligne résultante de la composition des deux lignes
+     * @throws IllegalArgumentException
+     *             si les deux lignes n'ont pas la même taille
+     * @throws IndexOutOfBoundsException
+     *             si l'index du pixel n'est pas valide
+     *
      */
     public LcdImageLine join(LcdImageLine other, int pixel) {
         checkArgument(checkSize(other));
-        checkArgument((pixel >= 0) && (pixel < size()));
+        checkIndex(pixel, size());
+        // checkArgument((pixel >= 0) && (pixel < size()));
         BitVector mask = new BitVector(size(), true).shift(pixel);
         BinaryOperator<BitVector> join = (x, y) -> (x.and(mask.not()))
                 .or(y.and(mask));
@@ -190,8 +236,10 @@ public final class LcdImageLine {
     }
 
     /**
-     * @author ADMIN
-     *
+     * Classe représentant un bâtisseur de ligne d'image Game Boy
+     * 
+     * @author Karim HADIDANE (271018)
+     * @author Ahmed JELLOULI (274056)
      */
     public final static class Builder {
 
@@ -200,6 +248,15 @@ public final class LcdImageLine {
         private boolean isBuilded;
         private final int size;
 
+        /**
+         * construit un bâtisseur de ligne d'image avec la taille donnée
+         * 
+         * @param size
+         *            taille de la ligne à construire
+         * @throws IllegalArgumentException
+         *             si la taille est négatie, nulle ou n'est pas multiple de
+         *             32
+         */
         Builder(int size) {
             checkArgument(size > 0 && size % 32 == 0);
             b1 = new BitVector.Builder(size);
@@ -209,6 +266,23 @@ public final class LcdImageLine {
 
         }
 
+        /**
+         * définir la valeur des octets de poids fort et de poids faible de la
+         * ligne, à un index donné
+         * 
+         * @param index
+         *            l'index de l'octet a définir
+         * @param msbByte
+         *            la valeur de l'octet du poids fort
+         * @param lsbByte
+         *            la valeur de l'octet du poids faible
+         * @return le bâtisseur de la ligne d'image
+         * @throws IllegalArgumentException
+         *             si les valeurs ne sont pas des entiers 8 bits
+         * @throws IllegalStateException
+         *             si la méthode est appelée après que le vecteur de bits
+         *             est construit
+         */
         public Builder setByte(int index, int msbByte, int lsbByte) {
             checkBits8(msbByte);
             checkBits8(lsbByte);
@@ -222,6 +296,14 @@ public final class LcdImageLine {
             return this;
         }
 
+        /**
+         * construit la ligne d'image
+         * 
+         * @return la ligne d'image
+         * @throws IllegalStateException
+         *             si la méthode est appelée après que le vecteur de bits
+         *             est construit
+         */
         public LcdImageLine build() {
             if (isBuilded) {
                 throw new IllegalStateException();
