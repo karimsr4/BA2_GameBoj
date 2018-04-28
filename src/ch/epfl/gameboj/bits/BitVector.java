@@ -277,7 +277,13 @@ public final class BitVector {
         private boolean isBuilded;
 
         /**
+         * construit un bâtisseur de vecteur de bits avec la taille donnée
+         * 
          * @param size
+         *            taille du vecteur à construire
+         * @throws IllegalArgumentException
+         *             si la taille est négative, nulle ou n'est pas multiple de
+         *             32
          */
         public Builder(int size) {
             checkArgument(size > 0 && size % CELL_SIZE == 0);
