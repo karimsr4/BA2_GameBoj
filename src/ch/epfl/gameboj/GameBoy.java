@@ -5,6 +5,7 @@ import static ch.epfl.gameboj.Preconditions.*;
 import ch.epfl.gameboj.component.Timer;
 import ch.epfl.gameboj.component.cartridge.Cartridge;
 import ch.epfl.gameboj.component.cpu.Cpu;
+import ch.epfl.gameboj.component.lcd.LcdController;
 import ch.epfl.gameboj.component.memory.BootRomController;
 import ch.epfl.gameboj.component.memory.Ram;
 import ch.epfl.gameboj.component.memory.RamController;
@@ -25,6 +26,7 @@ public final class GameBoy {
     private long cycles;
     private final BootRomController bootRomController;
     private final Timer timer;
+    private final LcdController lcdController;
 
     /**
      * Construit une nouvelle Gameboy en créant ses composants et en les
@@ -45,12 +47,14 @@ public final class GameBoy {
         bus = new Bus();
         bootRomController = new BootRomController(cartridge);
         timer = new Timer(cpu);
+        lcdController=new LcdController(cpu);
 
         bus.attach(ramController);
         bus.attach(echoRamController);
         cpu.attachTo(bus);
         bus.attach(bootRomController);
         bus.attach(timer);
+        lcdController.attachTo(bus);
     }
 
     /**
@@ -85,6 +89,7 @@ public final class GameBoy {
         checkArgument(cycles <= cycle);
         while (cycles < cycle) {
             timer.cycle(cycles);
+            lcdController.cycle(cycles);
             cpu.cycle(cycles);
             cycles++;
         }
@@ -106,6 +111,16 @@ public final class GameBoy {
      */
     public Timer timer() {
         return this.timer;
+    }
+    
+    
+    /**
+     * retourne le controlleur LCD du gameboy
+     * 
+     * @return le controlleur LCD du gameboy
+     */
+    public LcdController lcdController() {
+        return this.lcdController;
     }
 
 }
