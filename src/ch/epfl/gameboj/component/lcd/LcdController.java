@@ -22,7 +22,7 @@ public final class LcdController implements Component, Clocked {
     private final Ram videoRam = new Ram(AddressMap.VIDEO_RAM_SIZE);
     private final RegisterFile<Reg> lcdcRegs = new RegisterFile <>(Reg.values());
     private long nextNonIdleCycle;
-    private LcdImage.Builder currentImageBuilder ; 
+    private LcdImage.Builder currentImageBuilder= new LcdImage.Builder(BG_EDGE,BG_EDGE) ; 
     private LcdImage currentImage ;
 
     private enum Reg implements Register {
