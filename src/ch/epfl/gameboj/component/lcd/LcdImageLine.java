@@ -243,8 +243,8 @@ public final class LcdImageLine {
      */
     public final static class Builder {
 
-        private final BitVector.Builder b1;
-        private final BitVector.Builder b2;
+        private final BitVector.Builder msbBuilder;
+        private final BitVector.Builder lsbBuilder;
         private boolean isBuilded;
         private final int size;
 
@@ -257,10 +257,10 @@ public final class LcdImageLine {
          *             si la taille est négatie, nulle ou n'est pas multiple de
          *             32
          */
-        Builder(int size) {
+        public Builder(int size) {
             checkArgument(size > 0 && size % 32 == 0);
-            b1 = new BitVector.Builder(size);
-            b2 = new BitVector.Builder(size);
+            msbBuilder = new BitVector.Builder(size);
+            lsbBuilder = new BitVector.Builder(size);
             this.size = size;
             isBuilded = false;
 
@@ -290,8 +290,8 @@ public final class LcdImageLine {
                 throw new IllegalStateException();
 
             checkIndex(index, size / 8);
-            b1.setByte(index, msbByte);
-            b2.setByte(index, lsbByte);
+            msbBuilder.setByte(index, msbByte);
+            lsbBuilder.setByte(index, lsbByte);
 
             return this;
         }
@@ -309,8 +309,8 @@ public final class LcdImageLine {
                 throw new IllegalStateException();
             }
             isBuilded = true;
-            BitVector msb = b1.build();
-            BitVector lsb = b2.build();
+            BitVector msb = msbBuilder.build();
+            BitVector lsb = lsbBuilder.build();
 
             return new LcdImageLine(msb, lsb, msb.or(lsb));
         }
