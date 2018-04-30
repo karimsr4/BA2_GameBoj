@@ -8,6 +8,7 @@ import ch.epfl.gameboj.component.Clocked;
 import ch.epfl.gameboj.component.Component;
 import ch.epfl.gameboj.component.cpu.Cpu;
 import ch.epfl.gameboj.component.cpu.Cpu.Interrupt;
+import ch.epfl.gameboj.component.lcd.LcdImage.Builder;
 import ch.epfl.gameboj.component.memory.Ram;
 
 
@@ -16,10 +17,13 @@ import static ch.epfl.gameboj.Preconditions.*;
 public final class LcdController implements Component, Clocked {
     public static final int LCD_WIDTH = 160;
     public static final int LCD_HEIGHT = 144;
+    public static final int BG_EDGE = 256;
     private final Cpu cpu;
     private final Ram videoRam = new Ram(AddressMap.VIDEO_RAM_SIZE);
     private final RegisterFile<Reg> lcdcRegs = new RegisterFile <>(Reg.values());
     private long nextNonIdleCycle;
+    private LcdImage.Builder currentImageBuilder ; 
+    private LcdImage currentImage ;
 
     private enum Reg implements Register {
         LCDC, STAT, SCY, SCX, LY, LYC, DMA, BGP, OPB0, OPB1, WY, WX;
@@ -60,6 +64,7 @@ public final class LcdController implements Component, Clocked {
                 nextNonIdleCycle += 114;
             } else {
                 changeMode(2);
+                
                 nextNonIdleCycle += 20;
                 setLyLyc(Reg.LY, get(Reg.LY) + 1);
             }
@@ -68,6 +73,7 @@ public final class LcdController implements Component, Clocked {
         case 1: {
             if (get(Reg.LY) == 153) {
                 changeMode(2);
+                currentImageBuilder = new LcdImage.Builder(BG_EDGE, BG_EDGE);
                 setLyLyc(Reg.LY, 0);
                 nextNonIdleCycle += 20;
             } else {
@@ -77,6 +83,7 @@ public final class LcdController implements Component, Clocked {
         }
             break;
         case 2: {
+            
             changeMode(3);
             nextNonIdleCycle += 43;
         }
