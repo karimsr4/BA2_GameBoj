@@ -37,7 +37,7 @@ public final class LcdController implements Component, Clocked {
     }
 
     public LcdImage currentImage() {
-        return null;
+        return currentImage;
     }
 
     @Override
@@ -60,6 +60,7 @@ public final class LcdController implements Component, Clocked {
         case 0: {
             if (get(Reg.LY) == LCD_HEIGHT - 1) {
                 changeMode(1);
+                currentImage=currentImageBuilder.build();
                 cpu.requestInterrupt(Interrupt.VBLANK);
                 nextNonIdleCycle += 114;
             } else {
