@@ -110,7 +110,7 @@ public final class GameBoy {
      * @return le minuteur du GameBoy
      */
     public Timer timer() {
-        return this.timer;
+        return timer;
     }
     
     
@@ -120,7 +120,7 @@ public final class GameBoy {
      * @return le controlleur LCD du gameboy
      */
     public LcdController lcdController() {
-        return this.lcdController;
+        return lcdController;
     }
 
 }
