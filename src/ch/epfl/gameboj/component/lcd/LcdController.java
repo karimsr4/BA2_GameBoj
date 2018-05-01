@@ -61,7 +61,7 @@ public final class LcdController implements Component, Clocked {
 
         switch (Bits.clip(2, get(Reg.STAT))) {
         case 0: {
-            currentImageBuilder.setLine(get(Reg.LY) ,computeLine( get(Reg.LY) ) );
+            
             if (get(Reg.LY) == LCD_HEIGHT - 1) {
 
                 changeMode(1);
@@ -101,13 +101,14 @@ public final class LcdController implements Component, Clocked {
 
             changeMode(3);
             nextNonIdleCycle += 43;
-
+            currentImageBuilder.setLine(get(Reg.LY) ,computeLine( get(Reg.LY) ) );
         }
             break;
         case 3: {
 
             changeMode(0);
             nextNonIdleCycle += 51;
+            
         }
 
         }
@@ -184,20 +185,25 @@ public final class LcdController implements Component, Clocked {
 
     private int getTileImageByte(int index, int tile) {
         int tileIndex = TileIndex(tile);
-
+        int result;
         if (Bits.test(get(Reg.STAT), 4)) {
             int address = AddressMap.TILE_SOURCE[1] + tileIndex * 16 + index;
-            return Bits.reverse8(
+            result= Bits.reverse8(
                     videoRam.read(address - AddressMap.VIDEO_RAM_START));
+            
         } else {
 
             int shift = tileIndex <= 0x7F ? 0x7F : -0x80;
+            
             int address = AddressMap.TILE_SOURCE[0] + (tileIndex + shift) * 16
                     + index;
-            return Bits.reverse8(
+           
+            result= Bits.reverse8(
                     videoRam.read(address - AddressMap.VIDEO_RAM_START));
-
+          
         }
+
+        return result;
 
     }
 
