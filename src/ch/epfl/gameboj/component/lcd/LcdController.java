@@ -20,7 +20,7 @@ public final class LcdController implements Component, Clocked {
     private final Cpu cpu;
     private final Ram videoRam = new Ram(AddressMap.VIDEO_RAM_SIZE);
     private final RegisterFile<Reg> lcdcRegs = new RegisterFile<>(Reg.values());
-    private long nextNonIdleCycle= Long.MAX_VALUE;
+    private long nextNonIdleCycle = Long.MAX_VALUE;
     private LcdImage.Builder currentImageBuilder = new LcdImage.Builder(BG_EDGE,
             BG_EDGE);
     private LcdImage currentImage;
@@ -42,18 +42,16 @@ public final class LcdController implements Component, Clocked {
 
     @Override
     public void cycle(long cycle) {
-        
-        
+
         if (nextNonIdleCycle == Long.MAX_VALUE && screenIsOn()) {
 
-            nextNonIdleCycle = cycle+20;
+            nextNonIdleCycle = cycle + 20;
             changeMode(2);
 
         }
-        if (cycle == nextNonIdleCycle  ) {
+        if (cycle == nextNonIdleCycle) {
             reallyCycle();
         }
-        
 
     }
 
@@ -62,19 +60,19 @@ public final class LcdController implements Component, Clocked {
         switch (Bits.clip(2, get(Reg.STAT))) {
         case 0: {
             if (get(Reg.LY) == LCD_HEIGHT - 1) {
-                System.out.println(nextNonIdleCycle);
                 
+
                 changeMode(1);
                 nextNonIdleCycle += 114;
-                
+
                 cpu.requestInterrupt(Interrupt.VBLANK);
                 setLyLyc(Reg.LY, get(Reg.LY) + 1);
 
                 currentImage = currentImageBuilder.build();
-                
+
             } else {
-                
-                setLyLyc(Reg.LY, get(Reg.LY)+1);
+
+                setLyLyc(Reg.LY, get(Reg.LY) + 1);
                 changeMode(2);
                 nextNonIdleCycle += 20;
 
@@ -148,7 +146,6 @@ public final class LcdController implements Component, Clocked {
                     && !(Bits.test(data, 7))) {
 
                 setLyLyc(Reg.LY, 0);
-                // set(Reg.STAT, (get(Reg.STAT) >>> 2) << 2);
                 changeMode(0);
                 nextNonIdleCycle = Long.MAX_VALUE;
 
@@ -176,6 +173,17 @@ public final class LcdController implements Component, Clocked {
             cpu.requestInterrupt(Interrupt.LCD_STAT);
 
     }
+    private int TileIndex( int tile) {
+        int start =AddressMap.BG_DISPLAY_DATA[Bits.test(get(Reg.LCDC), 3) ? 1 :0];
+        return videoRam.read( start + tile -AddressMap.VIDEO_RAM_START);
+    }
+//    private int getTileImageByte ( int index , int tile ) {
+//        if (tile >=0x80 && tile < 0xFF) {
+//            return videoRam.read(index)
+//        }
+//        
+//    }
+    
 
     private int get(Reg a) {
         return lcdcRegs.get(a);
