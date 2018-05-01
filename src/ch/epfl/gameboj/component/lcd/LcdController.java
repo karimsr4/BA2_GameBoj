@@ -13,6 +13,8 @@ import ch.epfl.gameboj.component.memory.Ram;
 
 import static ch.epfl.gameboj.Preconditions.*;
 
+import com.sun.media.sound.RealTimeSequencerProvider;
+
 public final class LcdController implements Component, Clocked {
     public static final int LCD_WIDTH = 160;
     public static final int LCD_HEIGHT = 144;
@@ -60,7 +62,6 @@ public final class LcdController implements Component, Clocked {
         switch (Bits.clip(2, get(Reg.STAT))) {
         case 0: {
             if (get(Reg.LY) == LCD_HEIGHT - 1) {
-                
 
                 changeMode(1);
                 nextNonIdleCycle += 114;
@@ -173,28 +174,31 @@ public final class LcdController implements Component, Clocked {
             cpu.requestInterrupt(Interrupt.LCD_STAT);
 
     }
-    
-    private int TileIndex( int tile) {
-        int start =AddressMap.BG_DISPLAY_DATA[Bits.test(get(Reg.LCDC), 3) ? 1 :0];
-        return videoRam.read( start + tile -AddressMap.VIDEO_RAM_START);
+
+    private int TileIndex(int tile) {
+        int start = AddressMap.BG_DISPLAY_DATA[Bits.test(get(Reg.LCDC), 3) ? 1
+                : 0];
+        return videoRam.read(start + tile - AddressMap.VIDEO_RAM_START);
     }
-    
-    private int getTileImageByte ( int index , int tile ) {
-         
-        if (Bits.test(get(Reg.STAT),4)) {
-            int address= AddressMap.TILE_SOURCE[1]+ TileIndex(tile)*16 + index ; 
-            return Bits.reverse8(videoRam.read(address- AddressMap.VIDEO_RAM_START ) );
-        }else {
-            int  add = TileIndex(tile) <= 0x7F ? 0x7F : 0 ;
-            int address= AddressMap.TILE_SOURCE[0]+ TileIndex(tile)*16 + index + add; 
-            return Bits.reverse8(videoRam.read(address- AddressMap.VIDEO_RAM_START ) );
-            
+
+    private int getTileImageByte(int index, int tile) {
+        int tileIndex = TileIndex(tile);
+
+        if (Bits.test(get(Reg.STAT), 4)) {
+            int address = AddressMap.TILE_SOURCE[1] + tileIndex * 16 + index;
+            return Bits.reverse8(
+                    videoRam.read(address - AddressMap.VIDEO_RAM_START));
+        } else {
+
+            int shift = TileIndex(tile) <= 0x7F ? 0x7F : -0x80;
+            int address = AddressMap.TILE_SOURCE[0] + (tileIndex + shift) * 16
+                    + index;
+            return Bits.reverse8(
+                    videoRam.read(address - AddressMap.VIDEO_RAM_START));
+
         }
-        
-       }
-        
-    
-    
+
+    }
 
     private int get(Reg a) {
         return lcdcRegs.get(a);
@@ -207,7 +211,5 @@ public final class LcdController implements Component, Clocked {
     private boolean screenIsOn() {
         return Bits.test(get(Reg.LCDC), 7);
     }
-    
-    
 
 }
