@@ -45,13 +45,10 @@ public final class LcdController implements Component, Clocked {
         
         
         if (nextNonIdleCycle == Long.MAX_VALUE && screenIsOn()) {
-<<<<<<< HEAD
-                
-            nextNonIdleCycle = cycle;
-=======
+
             nextNonIdleCycle = cycle+20;
             changeMode(2);
->>>>>>> adb189d84358795b855dc931905fd7ce16c6fa4d
+
         }
         if (cycle == nextNonIdleCycle  ) {
             reallyCycle();
