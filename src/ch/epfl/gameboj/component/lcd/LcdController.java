@@ -173,16 +173,27 @@ public final class LcdController implements Component, Clocked {
             cpu.requestInterrupt(Interrupt.LCD_STAT);
 
     }
+    
     private int TileIndex( int tile) {
         int start =AddressMap.BG_DISPLAY_DATA[Bits.test(get(Reg.LCDC), 3) ? 1 :0];
         return videoRam.read( start + tile -AddressMap.VIDEO_RAM_START);
     }
-//    private int getTileImageByte ( int index , int tile ) {
-//        if (tile >=0x80 && tile < 0xFF) {
-//            return videoRam.read(index)
-//        }
-//        
-//    }
+    
+    private int getTileImageByte ( int index , int tile ) {
+         
+        if (Bits.test(get(Reg.STAT),4)) {
+            int address= AddressMap.TILE_SOURCE[1]+ TileIndex(tile)*16 + index ; 
+            return Bits.reverse8(videoRam.read(address- AddressMap.VIDEO_RAM_START ) );
+        }else {
+            int  add = TileIndex(tile) <= 0x7F ? 0x7F : 0 ;
+            int address= AddressMap.TILE_SOURCE[0]+ TileIndex(tile)*16 + index + add; 
+            return Bits.reverse8(videoRam.read(address- AddressMap.VIDEO_RAM_START ) );
+            
+        }
+        
+       }
+        
+    
     
 
     private int get(Reg a) {
@@ -196,5 +207,7 @@ public final class LcdController implements Component, Clocked {
     private boolean screenIsOn() {
         return Bits.test(get(Reg.LCDC), 7);
     }
+    
+    
 
 }
