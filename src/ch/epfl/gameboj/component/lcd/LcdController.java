@@ -15,22 +15,40 @@ import static ch.epfl.gameboj.Preconditions.*;
 
 import com.sun.media.sound.RealTimeSequencerProvider;
 
+/**
+ * classe qui représente le controlleur d'écran LCD
+ * 
+ * @author Karim HADIDANE (271018)
+ * @author Ahmed JELLOULI (274056)
+ *
+ */
 public final class LcdController implements Component, Clocked {
     public static final int LCD_WIDTH = 160;
     public static final int LCD_HEIGHT = 144;
     public static final int BG_EDGE = 256;
+    private final int MODE2_CYCLES = 20;
+    private final int MODE3_CYCLES = 43;
+    private final int MODE0_CYCLES = 51;
+    private final int LINE_CYCLES = MODE2_CYCLES + MODE3_CYCLES + MODE0_CYCLES;
+
     private final Cpu cpu;
     private final Ram videoRam = new Ram(AddressMap.VIDEO_RAM_SIZE);
     private final RegisterFile<Reg> lcdcRegs = new RegisterFile<>(Reg.values());
     private long nextNonIdleCycle = Long.MAX_VALUE;
-    private LcdImage.Builder currentImageBuilder = new LcdImage.Builder(BG_EDGE,
-            BG_EDGE);
+    private LcdImage.Builder currentImageBuilder = new LcdImage.Builder(
+            LCD_WIDTH, LCD_HEIGHT);
     private LcdImage currentImage;
 
     private enum Reg implements Register {
         LCDC, STAT, SCY, SCX, LY, LYC, DMA, BGP, OPB0, OPB1, WY, WX;
     }
 
+    /**
+     * construit un controlleur d'écran LCD
+     * 
+     * @param cpu
+     *            le processeur du Game Boy auquel il appartient
+     */
     public LcdController(Cpu cpu) {
         for (Reg o : Reg.values())
             set(o, 0);
@@ -38,16 +56,27 @@ public final class LcdController implements Component, Clocked {
         this.cpu = cpu;
     }
 
+    /**
+     * retourne l'image actuellement affichée à l'écran
+     * 
+     * @return l'image actuellement affichée à l'écran
+     */
     public LcdImage currentImage() {
         return currentImage;
+
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see ch.epfl.gameboj.component.Clocked#cycle(long)
+     */
     @Override
     public void cycle(long cycle) {
 
         if (nextNonIdleCycle == Long.MAX_VALUE && screenIsOn()) {
 
-            nextNonIdleCycle = cycle + 20;
+            nextNonIdleCycle = cycle + MODE2_CYCLES;
             changeMode(2);
 
         }
@@ -57,15 +86,20 @@ public final class LcdController implements Component, Clocked {
 
     }
 
+    int i = 0;
+
     private void reallyCycle() {
 
         switch (Bits.clip(2, get(Reg.STAT))) {
         case 0: {
-            
+
             if (get(Reg.LY) == LCD_HEIGHT - 1) {
 
                 changeMode(1);
-                nextNonIdleCycle += 114;
+                System.out.print(nextNonIdleCycle);
+                ++i;
+                System.out.println(" " + i);
+                nextNonIdleCycle += LINE_CYCLES;
 
                 cpu.requestInterrupt(Interrupt.VBLANK);
                 setLyLyc(Reg.LY, get(Reg.LY) + 1);
@@ -76,7 +110,7 @@ public final class LcdController implements Component, Clocked {
 
                 setLyLyc(Reg.LY, get(Reg.LY) + 1);
                 changeMode(2);
-                nextNonIdleCycle += 20;
+                nextNonIdleCycle += MODE2_CYCLES;
 
             }
         }
@@ -85,14 +119,13 @@ public final class LcdController implements Component, Clocked {
 
             if (get(Reg.LY) == 153) {
                 changeMode(2);
-
-                currentImageBuilder = new LcdImage.Builder(BG_EDGE, BG_EDGE);
+                currentImageBuilder = new LcdImage.Builder(LCD_WIDTH,
+                        LCD_HEIGHT);
                 setLyLyc(Reg.LY, 0);
-
-                nextNonIdleCycle += 20;
+                nextNonIdleCycle += MODE2_CYCLES;
             } else {
                 setLyLyc(Reg.LY, get(Reg.LY) + 1);
-                nextNonIdleCycle += 114;
+                nextNonIdleCycle += LINE_CYCLES;
 
             }
         }
@@ -100,15 +133,20 @@ public final class LcdController implements Component, Clocked {
         case 2: {
 
             changeMode(3);
-            nextNonIdleCycle += 43;
-            currentImageBuilder.setLine(get(Reg.LY) ,computeLine( get(Reg.LY) ) );
+            nextNonIdleCycle += MODE3_CYCLES;
+            if (get(Reg.LY) < LCD_HEIGHT) {
+                currentImageBuilder.setLine(get(Reg.LY),
+                        computeLine((get(Reg.LY) + get(Reg.SCY)) % BG_EDGE)
+                                .mapColors(get(Reg.BGP))
+                                .extractWrapped(get(Reg.SCX), LCD_WIDTH));
+            }
         }
             break;
         case 3: {
 
             changeMode(0);
-            nextNonIdleCycle += 51;
-            
+            nextNonIdleCycle += MODE0_CYCLES;
+
         }
 
         }
@@ -123,6 +161,11 @@ public final class LcdController implements Component, Clocked {
 
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see ch.epfl.gameboj.component.Component#read(int)
+     */
     @Override
     public int read(int address) {
         checkBits16(address);
@@ -136,6 +179,11 @@ public final class LcdController implements Component, Clocked {
         return Component.NO_DATA;
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see ch.epfl.gameboj.component.Component#write(int, int)
+     */
     @Override
     public void write(int address, int data) {
         checkBits8(data);
@@ -152,14 +200,14 @@ public final class LcdController implements Component, Clocked {
                 changeMode(0);
                 nextNonIdleCycle = Long.MAX_VALUE;
 
-            } else if (address == AddressMap.REGS_LCDC_START + 1) {
+            } else if (address == AddressMap.REG_STAT) {
                 set(Reg.STAT, Bits.clip(3, get(Reg.STAT))
                         | (Bits.extract(get(Reg.STAT), 3, 5) << 3));
                 return;
-            } else if (address == AddressMap.REGS_LCDC_START + 5) {
+            } else if (address == AddressMap.REG_LYC) {
                 setLyLyc(Reg.LYC, data);
                 return;
-            } else if (address == AddressMap.REGS_LCDC_START + 4) {
+            } else if (address == AddressMap.REG_LY) {
                 return;
             }
             set(Reg.values()[address - AddressMap.REGS_LCDC_START], data);
@@ -186,24 +234,21 @@ public final class LcdController implements Component, Clocked {
     private int getTileImageByte(int index, int tile) {
         int tileIndex = TileIndex(tile);
 
-
         int result;
         if (Bits.test(get(Reg.LCDC), 4)) {
-         //   System.out.println("sss");
 
             int address = AddressMap.TILE_SOURCE[1] + tileIndex * 16 + index;
-            result= Bits.reverse8(
+            result = Bits.reverse8(
                     videoRam.read(address - AddressMap.VIDEO_RAM_START));
-            
+
         } else {
 
             int shift = tileIndex < 0x80 ? 0x80 : -0x80;
             int address = AddressMap.TILE_SOURCE[0] + (tileIndex + shift) * 16
                     + index;
-      //      System.out.println(videoRam.read(address - AddressMap.VIDEO_RAM_START));
             return Bits.reverse8(
                     videoRam.read(address - AddressMap.VIDEO_RAM_START));
-          
+
         }
 
         return result;
@@ -211,6 +256,7 @@ public final class LcdController implements Component, Clocked {
     }
 
     private LcdImageLine computeLine(int index) {
+        // index=index %256;
         int firstByte = (index % 8) * 2;
         int firstTile = (index / 8) * 32;
         LcdImageLine.Builder builder = new LcdImageLine.Builder(256);
