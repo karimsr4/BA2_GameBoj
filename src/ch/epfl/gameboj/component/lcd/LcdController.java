@@ -185,15 +185,16 @@ public final class LcdController implements Component, Clocked {
     private int getTileImageByte(int index, int tile) {
         int tileIndex = TileIndex(tile);
 
-        if (Bits.test(get(Reg.STAT), 4)) {
+        if (Bits.test(get(Reg.LCDC), 4)) {
+         //   System.out.println("sss");
             int address = AddressMap.TILE_SOURCE[1] + tileIndex * 16 + index;
             return Bits.reverse8(
                     videoRam.read(address - AddressMap.VIDEO_RAM_START));
         } else {
-
-            int shift = tileIndex <= 0x7F ? 0x7F : -0x80;
+            int shift = tileIndex < 0x80 ? 0x80 : -0x80;
             int address = AddressMap.TILE_SOURCE[0] + (tileIndex + shift) * 16
                     + index;
+      //      System.out.println(videoRam.read(address - AddressMap.VIDEO_RAM_START));
             return Bits.reverse8(
                     videoRam.read(address - AddressMap.VIDEO_RAM_START));
 
