@@ -8,12 +8,9 @@ import ch.epfl.gameboj.component.Clocked;
 import ch.epfl.gameboj.component.Component;
 import ch.epfl.gameboj.component.cpu.Cpu;
 import ch.epfl.gameboj.component.cpu.Cpu.Interrupt;
-import ch.epfl.gameboj.component.lcd.LcdImage.Builder;
 import ch.epfl.gameboj.component.memory.Ram;
 
 import static ch.epfl.gameboj.Preconditions.*;
-
-import com.sun.media.sound.RealTimeSequencerProvider;
 
 /**
  * classe qui représente le controlleur d'écran LCD
@@ -29,15 +26,17 @@ public final class LcdController implements Component, Clocked {
     private final int MODE2_CYCLES = 20;
     private final int MODE3_CYCLES = 43;
     private final int MODE0_CYCLES = 51;
-    private final int LINE_CYCLES = MODE2_CYCLES + MODE3_CYCLES + MODE0_CYCLES;
+    private final int LINE_CYCLES = 114;
 
     private final Cpu cpu;
     private final Ram videoRam = new Ram(AddressMap.VIDEO_RAM_SIZE);
     private final RegisterFile<Reg> lcdcRegs = new RegisterFile<>(Reg.values());
     private long nextNonIdleCycle = Long.MAX_VALUE;
-    private LcdImage.Builder currentImageBuilder = new LcdImage.Builder(
-            LCD_WIDTH, LCD_HEIGHT);
-    private LcdImage currentImage;
+    private LcdImage.Builder nextImageBuilder = new LcdImage.Builder(LCD_WIDTH,
+            LCD_HEIGHT);
+    private LcdImage currentImage = new LcdImage.Builder(LCD_WIDTH, LCD_HEIGHT)
+            .build();
+    private int winY;
 
     private enum Reg implements Register {
         LCDC, STAT, SCY, SCX, LY, LYC, DMA, BGP, OPB0, OPB1, WY, WX;
@@ -86,25 +85,19 @@ public final class LcdController implements Component, Clocked {
 
     }
 
-    int i = 0;
-
     private void reallyCycle() {
 
-        switch (Bits.clip(2, get(Reg.STAT))) {
+        switch (currentMode()) {
         case 0: {
 
             if (get(Reg.LY) == LCD_HEIGHT - 1) {
 
                 changeMode(1);
-                System.out.print(nextNonIdleCycle);
-                ++i;
-                System.out.println(" " + i);
                 nextNonIdleCycle += LINE_CYCLES;
-
                 cpu.requestInterrupt(Interrupt.VBLANK);
                 setLyLyc(Reg.LY, get(Reg.LY) + 1);
-
-                currentImage = currentImageBuilder.build();
+                currentImage = nextImageBuilder.build();
+                winY=get(Reg.WY);
 
             } else {
 
@@ -119,10 +112,10 @@ public final class LcdController implements Component, Clocked {
 
             if (get(Reg.LY) == 153) {
                 changeMode(2);
-                currentImageBuilder = new LcdImage.Builder(LCD_WIDTH,
-                        LCD_HEIGHT);
-                setLyLyc(Reg.LY, 0);
                 nextNonIdleCycle += MODE2_CYCLES;
+                nextImageBuilder = new LcdImage.Builder(LCD_WIDTH, LCD_HEIGHT);
+                setLyLyc(Reg.LY, 0);
+
             } else {
                 setLyLyc(Reg.LY, get(Reg.LY) + 1);
                 nextNonIdleCycle += LINE_CYCLES;
@@ -134,12 +127,12 @@ public final class LcdController implements Component, Clocked {
 
             changeMode(3);
             nextNonIdleCycle += MODE3_CYCLES;
-            if (get(Reg.LY) < LCD_HEIGHT) {
-                currentImageBuilder.setLine(get(Reg.LY),
-                        computeLine((get(Reg.LY) + get(Reg.SCY)) % BG_EDGE)
-                                .mapColors(get(Reg.BGP))
-                                .extractWrapped(get(Reg.SCX), LCD_WIDTH));
-            }
+
+            nextImageBuilder.setLine(get(Reg.LY),
+                    computeLine((get(Reg.LY) + get(Reg.SCY)) % BG_EDGE)
+                            .mapColors(get(Reg.BGP))
+                            .extractWrapped(get(Reg.SCX), LCD_WIDTH));
+
         }
             break;
         case 3: {
@@ -225,14 +218,12 @@ public final class LcdController implements Component, Clocked {
 
     }
 
-    private int TileIndex(int tile) {
-        int start = AddressMap.BG_DISPLAY_DATA[Bits.test(get(Reg.LCDC), 3) ? 1
-                : 0];
+    private int TileIndex(int tile, boolean area) {
+        int start = AddressMap.BG_DISPLAY_DATA[area ? 1 : 0];
         return videoRam.read(start + tile - AddressMap.VIDEO_RAM_START);
     }
 
-    private int getTileImageByte(int index, int tile) {
-        int tileIndex = TileIndex(tile);
+    private int getTileImageByte(int index, int tileIndex) {
 
         int result;
         if (Bits.test(get(Reg.LCDC), 4)) {
@@ -256,14 +247,29 @@ public final class LcdController implements Component, Clocked {
     }
 
     private LcdImageLine computeLine(int index) {
-        // index=index %256;
-        int firstByte = (index % 8) * 2;
-        int firstTile = (index / 8) * 32;
-        LcdImageLine.Builder builder = new LcdImageLine.Builder(256);
+        LcdImageLine result = new LcdImageLine.Builder(256).build();
+        if (backGroundActivated()) {
+            result = reallyComputeLine(index, Bits.test(get(Reg.LCDC), 3));
+        }
+        System.out.println(windowActivated() && index >= winY);
+        if (windowActivated() && index >= winY) {
+            result = result.join(
+                    reallyComputeLine(index, Bits.test(get(Reg.LCDC), 6)).shift(get(Reg.WX) - 7),
+                    get(Reg.WX) - 7);
+            winY++;
+        }
+        return result;
 
+    }
+
+    private LcdImageLine reallyComputeLine(int index, boolean area) {
+        int firstByte = (index % Byte.SIZE) * 2;
+        int firstTile = (index / Byte.SIZE) * 32;
+        LcdImageLine.Builder builder = new LcdImageLine.Builder(256);
         for (int i = 0; i < 32; i++) {
-            builder.setByte(i, getTileImageByte(firstByte + 1, firstTile + i),
-                    getTileImageByte(firstByte, firstTile + i));
+            int tileIndex = TileIndex(firstTile + i, area);
+            builder.setByte(i, getTileImageByte(firstByte + 1, tileIndex),
+                    getTileImageByte(firstByte, tileIndex));
         }
         return builder.build();
 
@@ -279,6 +285,19 @@ public final class LcdController implements Component, Clocked {
 
     private boolean screenIsOn() {
         return Bits.test(get(Reg.LCDC), 7);
+    }
+
+    private int currentMode() {
+        return Bits.clip(2, get(Reg.STAT));
+    }
+
+    private boolean backGroundActivated() {
+        return Bits.test(get(Reg.LCDC), 0);
+    }
+
+    private boolean windowActivated() {
+        return Bits.test(get(Reg.LCDC), 5) && get(Reg.WX) >= 7
+                && get(Reg.WX) < 167;
     }
 
 }
