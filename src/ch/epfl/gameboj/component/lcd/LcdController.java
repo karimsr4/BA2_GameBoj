@@ -53,6 +53,7 @@ public final class LcdController implements Component, Clocked {
             set(o, 0);
 
         this.cpu = cpu;
+        
     }
 
     /**
@@ -97,7 +98,7 @@ public final class LcdController implements Component, Clocked {
                 cpu.requestInterrupt(Interrupt.VBLANK);
                 setLyLyc(Reg.LY, get(Reg.LY) + 1);
                 currentImage = nextImageBuilder.build();
-                winY=get(Reg.WY);
+                winY=0;
 
             } else {
 
@@ -115,6 +116,9 @@ public final class LcdController implements Component, Clocked {
                 nextNonIdleCycle += MODE2_CYCLES;
                 nextImageBuilder = new LcdImage.Builder(LCD_WIDTH, LCD_HEIGHT);
                 setLyLyc(Reg.LY, 0);
+                winY=0;
+                
+                
 
             } else {
                 setLyLyc(Reg.LY, get(Reg.LY) + 1);
@@ -204,6 +208,7 @@ public final class LcdController implements Component, Clocked {
                 return;
             }
             set(Reg.values()[address - AddressMap.REGS_LCDC_START], data);
+            
 
         }
 
@@ -251,10 +256,10 @@ public final class LcdController implements Component, Clocked {
         if (backGroundActivated()) {
             result = reallyComputeLine(index, Bits.test(get(Reg.LCDC), 3));
         }
-        System.out.println(windowActivated() && index >= winY);
-        if (windowActivated() && index >= winY) {
+     //   System.out.println(windowActivated() && get(Reg.WY)>=index+get(Reg.SCY));
+        if (windowActivated() && winY>=get(Reg.WY)+get(Reg.SCY) % BG_EDGE) {
             result = result.join(
-                    reallyComputeLine(index, Bits.test(get(Reg.LCDC), 6)).shift(get(Reg.WX) - 7),
+                    reallyComputeLine(index, Bits.test(get(Reg.LCDC), 6)).shift(-((get(Reg.WX) - 7)+get(Reg.SCX))),
                     get(Reg.WX) - 7);
             winY++;
         }
