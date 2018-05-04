@@ -97,6 +97,7 @@ public final class LcdController implements Component, Clocked {
                 nextNonIdleCycle += LINE_CYCLES;
                 cpu.requestInterrupt(Interrupt.VBLANK);
                 setLyLyc(Reg.LY, get(Reg.LY) + 1);
+                System.out.println(get(Reg.LY));
                 currentImage = nextImageBuilder.build();
                 winY=0;
 
@@ -256,11 +257,11 @@ public final class LcdController implements Component, Clocked {
         if (backGroundActivated()) {
             result = reallyComputeLine(index, Bits.test(get(Reg.LCDC), 3));
         }
-     //   System.out.println(windowActivated() && get(Reg.WY)>=index+get(Reg.SCY));
-        if (windowActivated() && winY>=get(Reg.WY)+get(Reg.SCY) % BG_EDGE) {
+       // System.out.println(windowActivated() && index>=get(Reg.WY)+get(Reg.SCY) % BG_EDGE);
+        if (windowActivated() && index>=get(Reg.WY)+get(Reg.SCY) % BG_EDGE ) {
             result = result.join(
                     reallyComputeLine(index, Bits.test(get(Reg.LCDC), 6)).shift(-((get(Reg.WX) - 7)+get(Reg.SCX))),
-                    get(Reg.WX) - 7);
+                    (get(Reg.WX) - 7)+get(Reg.SCX));
             winY++;
         }
         return result;
