@@ -275,7 +275,7 @@ public final class LcdController implements Component, Clocked {
     private LcdImageLine reallyComputeLine(int index, boolean area) {
         int firstByte = (index % Byte.SIZE) * 2;
         int firstTile = (index / Byte.SIZE) * 32;
-        LcdImageLine.Builder builder = new LcdImageLine.Builder(256);
+        LcdImageLine.Builder builder = new LcdImageLine.Builder(IMAGE_EDGE);
         for (int i = 0; i < 32; i++) {
             int tileIndex = TileIndex(firstTile + i, area);
             builder.setByte(i, getTileImageByte(firstByte + 1, tileIndex),
