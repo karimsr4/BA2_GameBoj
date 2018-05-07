@@ -32,7 +32,7 @@ public final class LcdController implements Component, Clocked {
     private final Cpu cpu;
     private final Ram videoRam = new Ram(AddressMap.VIDEO_RAM_SIZE);
     private final RegisterFile<Reg> lcdcRegs = new RegisterFile<>(Reg.values());
-    private final Ram oamRam = new Ram(AddressMap.OAM_RAM_SIZE);
+    private final Ram oam = new Ram(AddressMap.OAM_RAM_SIZE);
     private Bus bus;
     private long nextNonIdleCycle = Long.MAX_VALUE;
     private LcdImage.Builder nextImageBuilder = new LcdImage.Builder(LCD_WIDTH,
@@ -107,11 +107,19 @@ public final class LcdController implements Component, Clocked {
      */
     @Override
     public int read(int address) {
+        
         checkBits16(address);
         if (addressBelongsToVideoRam(address))
+            
             return videoRam.read(address - AddressMap.VIDEO_RAM_START);
+        
         if (addressBelongsToRegisters(address))
+            
             return get(Reg.values()[address - AddressMap.REGS_LCDC_START]);
+        
+        if (addressBelongstoObjectsRam(address))
+            
+            return oam.read(address - AddressMap.OAM_START);
 
         return Component.NO_DATA;
     }
@@ -126,30 +134,46 @@ public final class LcdController implements Component, Clocked {
         checkBits8(data);
         checkBits16(address);
         if (addressBelongsToVideoRam(address)) {
-            
+
             videoRam.write(address - AddressMap.VIDEO_RAM_START, data);
+
+        } else if (addressBelongstoObjectsRam(address)) {
+            
+            oam.write(address - AddressMap.OAM_START, data);
             
         } else if (addressBelongsToRegisters(address)) {
             
-            if (address == AddressMap.REGS_LCDC_START
-                    && !(Bits.test(data, 7))) {
-
-                setLyLyc(Reg.LY, 0);
-                changeMode(Mode.MODE_0);
-                nextNonIdleCycle = Long.MAX_VALUE;
-
-            } else if (address == AddressMap.REG_STAT) {
+            Reg reg = Reg.values()[address - AddressMap.REGS_LCDC_START];
+            
+            switch (reg) {
+            case LCDC: {
+                if (!Bits.test(data, 7)) {
+                    setLyLyc(Reg.LY, 0);
+                    changeMode(Mode.MODE_0);
+                    nextNonIdleCycle = Long.MAX_VALUE;
+                }
+                set(reg, data);
+            }
+                break;
+            case STAT: {
                 set(Reg.STAT, Bits.clip(3, get(Reg.STAT))
                         | (Bits.extract(get(Reg.STAT), 3, 5) << 3));
-                return;
-            } else if (address == AddressMap.REG_LYC) {
-                setLyLyc(Reg.LYC, data);
-                return;
-            } else if (address == AddressMap.REG_LY) {
-                return;
             }
-            set(Reg.values()[address - AddressMap.REGS_LCDC_START], data);
-
+                break;
+            case LYC: {
+                setLyLyc(reg, data);
+            }
+                break;
+            case LY:
+                break;
+            case DMA: {
+                set(reg, data);
+                quickCopy();
+            }
+            default: {
+                set(reg, data);
+            }
+            }
         }
 
     }
@@ -162,7 +186,7 @@ public final class LcdController implements Component, Clocked {
     public void attachTo(Bus bus) {
         this.bus = bus;
         bus.attach(this);
-        ;
+        
     }
 
     private void changeMode(Mode nextMode) {
@@ -256,7 +280,6 @@ public final class LcdController implements Component, Clocked {
                 changeMode(Mode.MODE_1);
                 cpu.requestInterrupt(Interrupt.VBLANK);
                 nextImage = nextImageBuilder.build();
-                
 
             } else {
 
@@ -333,6 +356,10 @@ public final class LcdController implements Component, Clocked {
     private boolean addressBelongsToRegisters(int address) {
         return address >= AddressMap.REGS_LCDC_START
                 && address < AddressMap.REGS_LCDC_END;
+    }
+
+    private boolean addressBelongstoObjectsRam(int address) {
+        return address >= AddressMap.OAM_START && address < AddressMap.OAM_END;
     }
 
 }
