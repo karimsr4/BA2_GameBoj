@@ -389,11 +389,11 @@ public final class Alu {
      *            la direction de la rotation de type enuméré RotDir
      * @param v
      *            entier de 8 bits
-     * @return la rotation de la valeur donné
+     * @return la rotation de la valeur donnée
      * @throws IllegalArgumentException
      *             si la valeur donnée n'est pas un entier de 8 bits
      */
-    public static int rotate(RotDir d, int v) {
+    public static int rotate(RotDir d, int v)  {
         checkBits8(v);
         int result = 0;
         switch (d) {
@@ -405,6 +405,7 @@ public final class Alu {
             result = Bits.rotate(8, v, -1);
             return packValueZNHC(result, result == 0, false, false,
                     Bits.test(v, 0));
+       
         }
 
     }

@@ -1,6 +1,10 @@
 package ch.epfl.gameboj.component.lcd;
 
+import static ch.epfl.gameboj.Preconditions.checkBits16;
+import static ch.epfl.gameboj.Preconditions.checkBits8;
+
 import ch.epfl.gameboj.AddressMap;
+import ch.epfl.gameboj.Bus;
 import ch.epfl.gameboj.Register;
 import ch.epfl.gameboj.RegisterFile;
 import ch.epfl.gameboj.bits.Bits;
@@ -9,8 +13,6 @@ import ch.epfl.gameboj.component.Component;
 import ch.epfl.gameboj.component.cpu.Cpu;
 import ch.epfl.gameboj.component.cpu.Cpu.Interrupt;
 import ch.epfl.gameboj.component.memory.Ram;
-
-import static ch.epfl.gameboj.Preconditions.*;
 
 /**
  * classe qui représente le controlleur d'écran LCD
@@ -24,21 +26,20 @@ public final class LcdController implements Component, Clocked {
     public static final int LCD_HEIGHT = 144;
     public static final int IMAGE_EDGE = 256;
 
-    private final int TILE_IMAGE_BYTES = 16;
+    private static final int TILE_EDGE = 8;
+    private static final int TILE_IMAGE_BYTES = 16;
 
     private final Cpu cpu;
     private final Ram videoRam = new Ram(AddressMap.VIDEO_RAM_SIZE);
     private final RegisterFile<Reg> lcdcRegs = new RegisterFile<>(Reg.values());
+    private final Ram oamRam = new Ram(AddressMap.OAM_RAM_SIZE);
+    private Bus bus;
     private long nextNonIdleCycle = Long.MAX_VALUE;
     private LcdImage.Builder nextImageBuilder = new LcdImage.Builder(LCD_WIDTH,
             LCD_HEIGHT);
     private LcdImage nextImage = new LcdImage.Builder(LCD_WIDTH, LCD_HEIGHT)
             .build();
     private int winY;
-
-    private enum Reg implements Register {
-        LCDC, STAT, SCY, SCX, LY, LYC, DMA, BGP, OPB0, OPB1, WY, WX;
-    }
 
     private enum Mode {
         MODE_0(0, 51), MODE_1(1, 114), MODE_2(2, 20), MODE_3(3, 43);
@@ -49,6 +50,10 @@ public final class LcdController implements Component, Clocked {
             this.mode = mode;
             this.lineCycles = lineCycles;
         }
+    }
+
+    private enum Reg implements Register {
+        LCDC, STAT, SCY, SCX, LY, LYC, DMA, BGP, OPB0, OPB1, WY, WX;
     }
 
     /**
@@ -95,6 +100,151 @@ public final class LcdController implements Component, Clocked {
 
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see ch.epfl.gameboj.component.Component#read(int)
+     */
+    @Override
+    public int read(int address) {
+        checkBits16(address);
+        if (addressBelongsToVideoRam(address))
+            return videoRam.read(address - AddressMap.VIDEO_RAM_START);
+        if (addressBelongsToRegisters(address))
+            return get(Reg.values()[address - AddressMap.REGS_LCDC_START]);
+
+        return Component.NO_DATA;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see ch.epfl.gameboj.component.Component#write(int, int)
+     */
+    @Override
+    public void write(int address, int data) {
+        checkBits8(data);
+        checkBits16(address);
+        if (addressBelongsToVideoRam(address)) {
+            
+            videoRam.write(address - AddressMap.VIDEO_RAM_START, data);
+            
+        } else if (addressBelongsToRegisters(address)) {
+            
+            if (address == AddressMap.REGS_LCDC_START
+                    && !(Bits.test(data, 7))) {
+
+                setLyLyc(Reg.LY, 0);
+                changeMode(Mode.MODE_0);
+                nextNonIdleCycle = Long.MAX_VALUE;
+
+            } else if (address == AddressMap.REG_STAT) {
+                set(Reg.STAT, Bits.clip(3, get(Reg.STAT))
+                        | (Bits.extract(get(Reg.STAT), 3, 5) << 3));
+                return;
+            } else if (address == AddressMap.REG_LYC) {
+                setLyLyc(Reg.LYC, data);
+                return;
+            } else if (address == AddressMap.REG_LY) {
+                return;
+            }
+            set(Reg.values()[address - AddressMap.REGS_LCDC_START], data);
+
+        }
+
+    }
+
+    private void quickCopy() {
+
+    }
+
+    @Override
+    public void attachTo(Bus bus) {
+        this.bus = bus;
+        bus.attach(this);
+        ;
+    }
+
+    private void changeMode(Mode nextMode) {
+        int mask = Bits.mask(0) | Bits.mask(1);
+        int statNewValue = (nextMode.mode & mask) | (get(Reg.STAT) & (~mask));
+        set(Reg.STAT, statNewValue);
+        nextNonIdleCycle += nextMode.lineCycles;
+        if (Bits.test(get(Reg.STAT), nextMode.mode + 3)
+                && nextMode != Mode.MODE_3)
+            cpu.requestInterrupt(Interrupt.LCD_STAT);
+
+    }
+
+    private LcdImageLine computeLine(int index) {
+        LcdImageLine result = new LcdImageLine.Builder(256).build();
+        if (backGroundActivated()) {
+            result = reallyComputeLine(index, Bits.test(get(Reg.LCDC), 3));
+        }
+
+        if (windowActivated()
+                && index >= (get(Reg.WY) + get(Reg.SCY)) % IMAGE_EDGE) {
+            result = result.join(
+                    reallyComputeLine(winY, Bits.test(get(Reg.LCDC), 6))
+                            .shift(get(Reg.WX) - 7 + get(Reg.SCX)),
+                    (get(Reg.WX) - 7) + get(Reg.SCX));
+            winY++;
+        }
+        return result;
+
+    }
+
+    private void setLyLyc(Reg a, int data) {
+        set(a, data);
+        boolean equal = get(Reg.LY) == get(Reg.LYC);
+        set(Reg.STAT, Bits.set(get(Reg.STAT), 2, equal));
+        if (Bits.test(get(Reg.STAT), 6) && equal)
+            cpu.requestInterrupt(Interrupt.LCD_STAT);
+
+    }
+
+    private int TileIndex(int tile, boolean area) {
+        int start = AddressMap.BG_DISPLAY_DATA[area ? 1 : 0];
+        return videoRam.read(start + tile - AddressMap.VIDEO_RAM_START);
+    }
+
+    private int getTileImageByte(int byteIndex, int tileIndex) {
+
+        int result;
+        if (Bits.test(get(Reg.LCDC), 4)) {
+
+            int address = AddressMap.TILE_SOURCE[1]
+                    + tileIndex * TILE_IMAGE_BYTES + byteIndex;
+            result = Bits.reverse8(
+                    videoRam.read(address - AddressMap.VIDEO_RAM_START));
+
+        } else {
+
+            int shift = tileIndex < 0x80 ? 0x80 : -0x80;
+            int address = AddressMap.TILE_SOURCE[0]
+                    + (tileIndex + shift) * TILE_IMAGE_BYTES + byteIndex;
+            result = Bits.reverse8(
+                    videoRam.read(address - AddressMap.VIDEO_RAM_START));
+
+        }
+
+        return result;
+
+    }
+
+    private LcdImageLine reallyComputeLine(int index, boolean area) {
+        int firstByte = (index % TILE_EDGE) * 2;
+        int firstTile = (index / TILE_EDGE) * (IMAGE_EDGE / TILE_EDGE);
+        LcdImageLine.Builder builder = new LcdImageLine.Builder(IMAGE_EDGE);
+        for (int i = 0; i < 32; i++) {
+            int tileIndex = TileIndex(firstTile + i, area);
+            builder.setByte(i, getTileImageByte(firstByte + 1, tileIndex),
+                    getTileImageByte(firstByte, tileIndex));
+        }
+        return builder.build();
+
+    }
+
     private void reallyCycle() {
 
         switch (currentMode()) {
@@ -106,7 +256,7 @@ public final class LcdController implements Component, Clocked {
                 changeMode(Mode.MODE_1);
                 cpu.requestInterrupt(Interrupt.VBLANK);
                 nextImage = nextImageBuilder.build();
-                winY = 0;
+                
 
             } else {
 
@@ -150,164 +300,39 @@ public final class LcdController implements Component, Clocked {
         }
     }
 
-    private void changeMode(Mode nextMode) {
-        int mask = Bits.mask(0) | Bits.mask(1);
-        int statNewValue = (nextMode.mode & mask) | (get(Reg.STAT) & (~mask));
-        set(Reg.STAT, statNewValue);
-        nextNonIdleCycle += nextMode.lineCycles;
-        if (Bits.test(get(Reg.STAT), nextMode.mode + 3)
-                && nextMode != Mode.MODE_3)
-            cpu.requestInterrupt(Interrupt.LCD_STAT);
-
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see ch.epfl.gameboj.component.Component#read(int)
-     */
-    @Override
-    public int read(int address) {
-        checkBits16(address);
-        if (address >= AddressMap.VIDEO_RAM_START
-                && address < AddressMap.VIDEO_RAM_END)
-            return videoRam.read(address - AddressMap.VIDEO_RAM_START);
-        if (address >= AddressMap.REGS_LCDC_START
-                && address < AddressMap.REGS_LCDC_END)
-            return get(Reg.values()[address - AddressMap.REGS_LCDC_START]);
-
-        return Component.NO_DATA;
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see ch.epfl.gameboj.component.Component#write(int, int)
-     */
-    @Override
-    public void write(int address, int data) {
-        checkBits8(data);
-        checkBits16(address);
-        if (address >= AddressMap.VIDEO_RAM_START
-                && address < AddressMap.VIDEO_RAM_END) {
-            videoRam.write(address - AddressMap.VIDEO_RAM_START, data);
-        } else if (address >= AddressMap.REGS_LCDC_START
-                && address < AddressMap.REGS_LCDC_END) {
-            if (address == AddressMap.REGS_LCDC_START
-                    && !(Bits.test(data, 7))) {
-
-                setLyLyc(Reg.LY, 0);
-                changeMode(Mode.MODE_0);
-                nextNonIdleCycle = Long.MAX_VALUE;
-
-            } else if (address == AddressMap.REG_STAT) {
-                set(Reg.STAT, Bits.clip(3, get(Reg.STAT))
-                        | (Bits.extract(get(Reg.STAT), 3, 5) << 3));
-                return;
-            } else if (address == AddressMap.REG_LYC) {
-                setLyLyc(Reg.LYC, data);
-                return;
-            } else if (address == AddressMap.REG_LY) {
-                return;
-            }
-            set(Reg.values()[address - AddressMap.REGS_LCDC_START], data);
-
-        }
-
-    }
-
-    private void setLyLyc(Reg a, int data) {
-        set(a, data);
-        boolean equal = get(Reg.LY) == get(Reg.LYC);
-        set(Reg.STAT, Bits.set(get(Reg.STAT), 2, equal));
-        if (Bits.test(get(Reg.STAT), 6) && equal)
-            cpu.requestInterrupt(Interrupt.LCD_STAT);
-
-    }
-
-    private int TileIndex(int tile, boolean area) {
-        int start = AddressMap.BG_DISPLAY_DATA[area ? 1 : 0];
-        return videoRam.read(start + tile - AddressMap.VIDEO_RAM_START);
-    }
-
-    private int getTileImageByte(int byteIndex, int tileIndex) {
-
-        int result;
-        if (Bits.test(get(Reg.LCDC), 4)) {
-
-            int address = AddressMap.TILE_SOURCE[1]
-                    + tileIndex * TILE_IMAGE_BYTES + byteIndex;
-            result = Bits.reverse8(
-                    videoRam.read(address - AddressMap.VIDEO_RAM_START));
-
-        } else {
-
-            int shift = tileIndex < 0x80 ? 0x80 : -0x80;
-            int address = AddressMap.TILE_SOURCE[0]
-                    + (tileIndex + shift) * TILE_IMAGE_BYTES + byteIndex;
-            result = Bits.reverse8(
-                    videoRam.read(address - AddressMap.VIDEO_RAM_START));
-
-        }
-
-        return result;
-
-    }
-
-    private LcdImageLine computeLine(int index) {
-        LcdImageLine result = new LcdImageLine.Builder(256).build();
-        if (backGroundActivated()) {
-            result = reallyComputeLine(index, Bits.test(get(Reg.LCDC), 3));
-        }
-
-        if (windowActivated()
-                && index >= (get(Reg.WY) + get(Reg.SCY)) % IMAGE_EDGE) {
-            result = result.join(
-                    reallyComputeLine(winY, Bits.test(get(Reg.LCDC), 6))
-                            .shift(get(Reg.WX) - 7 + get(Reg.SCX)),
-                    (get(Reg.WX) - 7) + get(Reg.SCX));
-            winY++;
-        }
-        return result;
-
-    }
-
-    private LcdImageLine reallyComputeLine(int index, boolean area) {
-        int firstByte = (index % Byte.SIZE) * 2;
-        int firstTile = (index / Byte.SIZE) * 32;
-        LcdImageLine.Builder builder = new LcdImageLine.Builder(IMAGE_EDGE);
-        for (int i = 0; i < 32; i++) {
-            int tileIndex = TileIndex(firstTile + i, area);
-            builder.setByte(i, getTileImageByte(firstByte + 1, tileIndex),
-                    getTileImageByte(firstByte, tileIndex));
-        }
-        return builder.build();
-
-    }
-
-    private int get(Reg a) {
-        return lcdcRegs.get(a);
-    }
-
     private void set(Reg a, int data) {
         lcdcRegs.set(a, data);
-    }
-
-    private boolean screenIsOn() {
-        return Bits.test(get(Reg.LCDC), 7);
     }
 
     private Mode currentMode() {
         return Mode.values()[Bits.clip(2, get(Reg.STAT))];
     }
 
-    private boolean backGroundActivated() {
-        return Bits.test(get(Reg.LCDC), 0);
+    private int get(Reg a) {
+        return lcdcRegs.get(a);
     }
 
     private boolean windowActivated() {
         return Bits.test(get(Reg.LCDC), 5) && get(Reg.WX) >= 7
                 && get(Reg.WX) < 167;
+    }
+
+    private boolean backGroundActivated() {
+        return Bits.test(get(Reg.LCDC), 0);
+    }
+
+    private boolean screenIsOn() {
+        return Bits.test(get(Reg.LCDC), 7);
+    }
+
+    private boolean addressBelongsToVideoRam(int address) {
+        return address >= AddressMap.VIDEO_RAM_START
+                && address < AddressMap.VIDEO_RAM_END;
+    }
+
+    private boolean addressBelongsToRegisters(int address) {
+        return address >= AddressMap.REGS_LCDC_START
+                && address < AddressMap.REGS_LCDC_END;
     }
 
 }
