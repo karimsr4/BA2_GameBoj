@@ -3,6 +3,8 @@ package ch.epfl.gameboj.component.lcd;
 import static ch.epfl.gameboj.Preconditions.checkBits16;
 import static ch.epfl.gameboj.Preconditions.checkBits8;
 
+import java.util.Arrays;
+
 import ch.epfl.gameboj.AddressMap;
 import ch.epfl.gameboj.Bus;
 import ch.epfl.gameboj.Register;
@@ -107,18 +109,18 @@ public final class LcdController implements Component, Clocked {
      */
     @Override
     public int read(int address) {
-        
+
         checkBits16(address);
         if (addressBelongsToVideoRam(address))
-            
+
             return videoRam.read(address - AddressMap.VIDEO_RAM_START);
-        
+
         if (addressBelongsToRegisters(address))
-            
+
             return get(Reg.values()[address - AddressMap.REGS_LCDC_START]);
-        
+
         if (addressBelongstoObjectsRam(address))
-            
+
             return oam.read(address - AddressMap.OAM_START);
 
         return Component.NO_DATA;
@@ -138,13 +140,13 @@ public final class LcdController implements Component, Clocked {
             videoRam.write(address - AddressMap.VIDEO_RAM_START, data);
 
         } else if (addressBelongstoObjectsRam(address)) {
-            
+
             oam.write(address - AddressMap.OAM_START, data);
-            
+
         } else if (addressBelongsToRegisters(address)) {
-            
+
             Reg reg = Reg.values()[address - AddressMap.REGS_LCDC_START];
-            
+
             switch (reg) {
             case LCDC: {
                 if (!Bits.test(data, 7)) {
@@ -186,7 +188,7 @@ public final class LcdController implements Component, Clocked {
     public void attachTo(Bus bus) {
         this.bus = bus;
         bus.attach(this);
-        
+
     }
 
     private void changeMode(Mode nextMode) {
@@ -255,16 +257,14 @@ public final class LcdController implements Component, Clocked {
         return result;
 
     }
-    
-    
+
     private boolean theTileSourceEffect() {
         return Bits.test(get(Reg.LCDC), 4);
     }
-    
-    
+
     private int getSpritePalette(int index) {
-        boolean paletteBit=Bits.test(oam.read(index*4+3), 4);
-        if(paletteBit)
+        boolean paletteBit = Bits.test(oam.read(index * 4 + 3), 4);
+        if (paletteBit)
             return get(Reg.OPB1);
         return get(Reg.OPB0);
     }
@@ -275,8 +275,11 @@ public final class LcdController implements Component, Clocked {
         LcdImageLine.Builder builder = new LcdImageLine.Builder(IMAGE_EDGE);
         for (int i = 0; i < 32; i++) {
             int tileIndex = TileIndex(firstTile + i, area);
-            builder.setByte(i, getTileImageByte(firstByte + 1, tileIndex, theTileSourceEffect()),
-                    getTileImageByte(firstByte, tileIndex,theTileSourceEffect()));
+            builder.setByte(i,
+                    getTileImageByte(firstByte + 1, tileIndex,
+                            theTileSourceEffect()),
+                    getTileImageByte(firstByte, tileIndex,
+                            theTileSourceEffect()));
         }
         return builder.build();
 
@@ -374,17 +377,33 @@ public final class LcdController implements Component, Clocked {
     private boolean addressBelongstoObjectsRam(int address) {
         return address >= AddressMap.OAM_START && address < AddressMap.OAM_END;
     }
-    
+
     // index de ligne a l'ecran
-    //pas encore terminé
+    // pas encore terminé
     private int[] spritesIntersectingLine(int lineIndex) {
-        int[] tab=new int[10];
-        int index=0;
-        int i=0;
-        while(i<10) {
-//            if(Bits.clip(oam.read(index), 8))
+        int spriteHeight = spriteHeight();
+        int[] intersectingSprites = new int[10];
+        int spriteIndex = 0;
+        int nbIntersectingSprites = 0;
+        int realY = 0;
+        while (nbIntersectingSprites < 10 && spriteIndex < 40) {
+            realY = oam.read(spriteIndex * 4) - 16;
+            if (realY <= lineIndex && realY + spriteHeight > lineIndex) {
+                intersectingSprites[nbIntersectingSprites] = Bits.make16(oam.read(spriteIndex * 4 + 1), spriteIndex);
+                nbIntersectingSprites++;
+            }
+            spriteIndex++;
         }
-        return new int[] {0};
+        Arrays.sort(intersectingSprites,0,nbIntersectingSprites);
+        for (int j = 0 ;j<nbIntersectingSprites;j++) {
+            intersectingSprites[j] =  Bits.clip(Byte.SIZE, intersectingSprites[j]);
+        }
+        return intersectingSprites;
+    }
+
+    private int spriteHeight() {
+        return Bits.test(get(Reg.LCDC), 2) ? 16 : 8;
+
     }
 
 }
