@@ -232,10 +232,10 @@ public final class LcdController implements Component, Clocked {
         return videoRam.read(start + tile - AddressMap.VIDEO_RAM_START);
     }
 
-    private int getTileImageByte(int byteIndex, int tileIndex) {
+    private int getTileImageByte(int byteIndex, int tileIndex, boolean area) {
 
         int result;
-        if (Bits.test(get(Reg.LCDC), 4)) {
+        if (area) {
 
             int address = AddressMap.TILE_SOURCE[1]
                     + tileIndex * TILE_IMAGE_BYTES + byteIndex;
@@ -255,6 +255,19 @@ public final class LcdController implements Component, Clocked {
         return result;
 
     }
+    
+    
+    private boolean theTileSourceEffect() {
+        return Bits.test(get(Reg.LCDC), 4);
+    }
+    
+    
+    private int getSpritePalette(int index) {
+        boolean paletteBit=Bits.test(oam.read(index*4+3), 4);
+        if(paletteBit)
+            return get(Reg.OPB1);
+        return get(Reg.OPB0);
+    }
 
     private LcdImageLine reallyComputeLine(int index, boolean area) {
         int firstByte = (index % TILE_EDGE) * 2;
@@ -262,8 +275,8 @@ public final class LcdController implements Component, Clocked {
         LcdImageLine.Builder builder = new LcdImageLine.Builder(IMAGE_EDGE);
         for (int i = 0; i < 32; i++) {
             int tileIndex = TileIndex(firstTile + i, area);
-            builder.setByte(i, getTileImageByte(firstByte + 1, tileIndex),
-                    getTileImageByte(firstByte, tileIndex));
+            builder.setByte(i, getTileImageByte(firstByte + 1, tileIndex, theTileSourceEffect()),
+                    getTileImageByte(firstByte, tileIndex,theTileSourceEffect()));
         }
         return builder.build();
 
@@ -360,6 +373,18 @@ public final class LcdController implements Component, Clocked {
 
     private boolean addressBelongstoObjectsRam(int address) {
         return address >= AddressMap.OAM_START && address < AddressMap.OAM_END;
+    }
+    
+    // index de ligne a l'ecran
+    //pas encore terminé
+    private int[] spritesIntersectingLine(int lineIndex) {
+        int[] tab=new int[10];
+        int index=0;
+        int i=0;
+        while(i<10) {
+//            if(Bits.clip(oam.read(index), 8))
+        }
+        return new int[] {0};
     }
 
 }
