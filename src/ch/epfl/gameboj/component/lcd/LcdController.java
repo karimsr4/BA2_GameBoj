@@ -220,12 +220,13 @@ public final class LcdController implements Component, Clocked {
         }
         bgWindowLine = bgWindowLine.extractWrapped(get(Reg.SCX), LCD_WIDTH)
                 .mapColors(get(Reg.BGP));
-        LcdImageLine backgroundSprites= computeSpriteLine(index, true);
-        BitVector opacity = bgWindowLine.getOpacity().not().and(backgroundSprites.getOpacity());
-        
-        LcdImageLine foregroundSprites= computeSpriteLine(index, false);
-        
-        return backgroundSprites.below(bgWindowLine, opacity).below(foregroundSprites);
+        LcdImageLine backgroundSprites = computeSpriteLine(index, true);
+        BitVector opacity = bgWindowLine.getOpacity().not()
+                .and(backgroundSprites.getOpacity());
+
+        LcdImageLine foregroundSprites = computeSpriteLine(index, false);
+        return bgWindowLine.below(backgroundSprites, opacity)
+                .below(foregroundSprites);
 
     }
 
@@ -234,22 +235,42 @@ public final class LcdController implements Component, Clocked {
         int sprite;
         LcdImageLine result = new LcdImageLine.Builder(LCD_WIDTH).build();
         int x;
+        int xbis = 0;
 
         for (int i = 0; i < sprites.length; i++) {
             sprite = sprites[i];
 
             x = getSpriteX(sprite);
-            if (spriteInBackGround(sprite) == bgSprites)
-                result = result.join(spriteLine(i, lineIndex).shift(x)
-                        .mapColors(getSpritePalette(sprite)), x);
+            if (spriteInBackGround(sprite) == bgSprites) {
+                if (xbis == 0) {
+                    result = result.join(spriteLine(i, lineIndex).shift(x)
+                            .mapColors(getSpritePalette(sprite)), x);
+                    xbis = x;
+                } else if (xbis > 0) {
+                    if (x > xbis && x > xbis + 7) {
+                        result = result.join(spriteLine(i, lineIndex).shift(x)
+                                .mapColors(getSpritePalette(sprite)), x);
+                        xbis=x;
+                    }else if(x<xbis+7) {
+                        result = result.join(spriteLine(i, lineIndex).shift(x)
+                                .mapColors(getSpritePalette(sprite)), xbis+8);
+                        xbis=x;
+                    }else if(x==xbis+7) {
+                        result = result.join(spriteLine(i, lineIndex).shift(x)
+                                .mapColors(getSpritePalette(sprite)), x+1);
+                        xbis=x;
+                    }
+                }
+            }
+           
 
         }
-        return result; 
+        return result;
 
     }
 
     private int getSpriteX(int index) {
-        return oam.read(index * 4 + 1);
+        return (oam.read(index * 4 + 1)) - 8;
     }
 
     private boolean spriteInBackGround(int spriteIndex) {
@@ -273,7 +294,7 @@ public final class LcdController implements Component, Clocked {
     private LcdImageLine spriteLine(int index, int line) {
         LcdImageLine.Builder result = new LcdImageLine.Builder(LCD_WIDTH);
         int lineInTile = line - oam.read(index * 4) + TILE_EDGE * 2;
-        int tile =  oam.read(index * 4 + 3);
+        int tile = oam.read(index * 4 + 3);
         result.setByte(0, getTileImageByte(lineInTile * 2 + 1, tile, true),
                 getTileImageByte(lineInTile * 2, tile, true));
         return result.build();
