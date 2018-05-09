@@ -9,13 +9,13 @@ import ch.epfl.gameboj.AddressMap;
 import ch.epfl.gameboj.Bus;
 import ch.epfl.gameboj.Register;
 import ch.epfl.gameboj.RegisterFile;
-import ch.epfl.gameboj.bits.BitVector;
 import ch.epfl.gameboj.bits.Bits;
 import ch.epfl.gameboj.component.Clocked;
 import ch.epfl.gameboj.component.Component;
 import ch.epfl.gameboj.component.cpu.Cpu;
 import ch.epfl.gameboj.component.cpu.Cpu.Interrupt;
 import ch.epfl.gameboj.component.memory.Ram;
+import sun.awt.image.PixelConverter.Bgrx;
 
 /**
  * classe qui représente le controlleur d'écran LCD
@@ -220,40 +220,23 @@ public final class LcdController implements Component, Clocked {
         }
         bgWindowLine = bgWindowLine.extractWrapped(get(Reg.SCX), LCD_WIDTH)
                 .mapColors(get(Reg.BGP));
-        LcdImageLine backgroundSprites= computeSpriteLine(index, true);
-        BitVector opacity = bgWindowLine.getOpacity().not().and(backgroundSprites.getOpacity());
-        
-        LcdImageLine foregroundSprites= computeSpriteLine(index, false);
-        
-        return backgroundSprites.below(bgWindowLine, opacity).below(foregroundSprites);
+        return bgWindowLine;
 
     }
 
     private LcdImageLine computeSpriteLine(int lineIndex, boolean bgSprites) {
         int[] sprites = spritesIntersectingLine(lineIndex);
-        int sprite;
-        LcdImageLine result = new LcdImageLine.Builder(LCD_WIDTH).build();
-        int x;
-
         for (int i = 0; i < sprites.length; i++) {
-            sprite = sprites[i];
-
-            x = getSpriteX(sprite);
-            if (spriteInBackGround(sprite) == bgSprites)
-                result = result.join(spriteLine(i, lineIndex).shift(x)
-                        .mapColors(getSpritePalette(sprite)), x);
-
+            
+             
         }
-        return result; 
+        
 
     }
-
-    private int getSpriteX(int index) {
-        return oam.read(index * 4 + 1);
-    }
-
-    private boolean spriteInBackGround(int spriteIndex) {
-        return Bits.test(oam.read(spriteIndex * 4 + 3), 7);
+    
+    
+    private boolean SpriteinBackGround(int spriteIndex) {
+        return Bits.test(oam.read(spriteIndex*4+3), 7);
     }
 
     private void setLyLyc(Reg a, int data) {
@@ -272,10 +255,9 @@ public final class LcdController implements Component, Clocked {
 
     private LcdImageLine spriteLine(int index, int line) {
         LcdImageLine.Builder result = new LcdImageLine.Builder(LCD_WIDTH);
-        int lineInTile = line - oam.read(index * 4) + TILE_EDGE * 2;
-        int tile =  oam.read(index * 4 + 3);
-        result.setByte(0, getTileImageByte(lineInTile * 2 + 1, tile, true),
-                getTileImageByte(lineInTile * 2, tile, true));
+        int tile = line >= TILE_EDGE ? oam.read(index * 4 + 3) :  oam.read(index * 4 + 3) +1 ;
+        result.setByte(0, getTileImageByte(line * 2 + 1, tile, true),
+                getTileImageByte(line * 2, tile, true));
         return result.build();
     }
 
@@ -308,8 +290,7 @@ public final class LcdController implements Component, Clocked {
     }
 
     private int getSpritePalette(int index) {
-        return Bits.test(oam.read(index * 4 + 3), 4) ? get(Reg.OPB1)
-                : get(Reg.OPB0);
+        return Bits.test(oam.read(index * 4 + 3), 4)? get(Reg.OPB1):get(Reg.OPB0);     
     }
 
     private LcdImageLine reallyComputeLine(int index, boolean area) {
@@ -436,9 +417,10 @@ public final class LcdController implements Component, Clocked {
             spriteIndex++;
         }
         Arrays.sort(intersectingSprites, 0, nbSprites);
-        int[] result = new int[nbSprites];
+        int[] result= new int [nbSprites];
         for (int j = 0; j < nbSprites; j++) {
-            result[j] = Bits.clip(Byte.SIZE, intersectingSprites[j]);
+            result[j] = Bits.clip(Byte.SIZE,
+                    intersectingSprites[j]);
         }
         return result;
     }
