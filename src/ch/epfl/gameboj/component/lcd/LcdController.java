@@ -93,7 +93,6 @@ public final class LcdController implements Component, Clocked {
     @Override
     public void cycle(long cycle) {
         quickCopy();
-//        System.out.println(spriteActivated());
 
         if (nextNonIdleCycle == Long.MAX_VALUE && screenIsOn()) {
 
@@ -268,9 +267,8 @@ public final class LcdController implements Component, Clocked {
             x = getSpriteX(sprite);
 
             if (spriteInBackGround(sprite) == bgSprites) {
-
                 result = spriteLine(sprite, lineIndex)
-                        .mapColors(getSpritePalette(sprite)).shift(x)
+                        .mapColors(getSpritePalette(sprite)).shift(x-8)
                         .below(result);
 
             }
@@ -280,7 +278,7 @@ public final class LcdController implements Component, Clocked {
     }
 
     private int getSpriteX(int index) {
-        return oam.read(index * 4 + 1) - 8;
+        return oam.read(index * 4 + 1)  ;
     }
 
     private boolean spriteInBackGround(int spriteIndex) {
@@ -304,34 +302,46 @@ public final class LcdController implements Component, Clocked {
     private LcdImageLine spriteLine(int index, int line) {
         LcdImageLine.Builder result = new LcdImageLine.Builder(LCD_WIDTH);
         int tile = oam.read(index * 4 + 2);
-        line = line - oam.read(index * 4) + TILE_EDGE * 2;
-        result.setByte(0, getTileImageByte(line * 2 + 1, tile, true),
-                getTileImageByte(line * 2, tile, true));
+        line = isFlippedHorizontally(index)
+                ? spriteHeight()
+                        - (line - oam.read(index * 4) + TILE_EDGE * 2 + 1)
+                : line - oam.read(index * 4) + TILE_EDGE * 2;
 
+        boolean verticalFlip = isFlippedVertically(index);
+        result.setByte(0,
+                getTileImageByte(line * 2 + 1, tile, true, verticalFlip),
+                getTileImageByte(line * 2, tile, true, verticalFlip));
         return result.build();
     }
 
-    private int getTileImageByte(int byteIndex, int tileIndex, boolean area) {
+    private boolean isFlippedVertically(int index) {
+        return Bits.test(oam.read(index * 4 + 3), 6);
+    }
 
-        int result;
+    private boolean isFlippedHorizontally(int index) {
+        return Bits.test(oam.read(index * 4 + 3), 5);
+    }
+
+    private int getTileImageByte(int byteIndex, int tileIndex, boolean area,
+            boolean reverse) {
+
+        int address;
         if (area) {
 
-            int address = AddressMap.TILE_SOURCE[1]
-                    + tileIndex * TILE_IMAGE_BYTES + byteIndex;
-            result = Bits.reverse8(
-                    videoRam.read(address - AddressMap.VIDEO_RAM_START));
+            address = AddressMap.TILE_SOURCE[1] + tileIndex * TILE_IMAGE_BYTES
+                    + byteIndex;
 
         } else {
 
             int shift = tileIndex < 0x80 ? 0x80 : -0x80;
-            int address = AddressMap.TILE_SOURCE[0]
+            address = AddressMap.TILE_SOURCE[0]
                     + (tileIndex + shift) * TILE_IMAGE_BYTES + byteIndex;
-            result = Bits.reverse8(
-                    videoRam.read(address - AddressMap.VIDEO_RAM_START));
 
         }
 
-        return result;
+        return reverse ? videoRam.read(address - AddressMap.VIDEO_RAM_START)
+                : Bits.reverse8(
+                        videoRam.read(address - AddressMap.VIDEO_RAM_START));
 
     }
 
@@ -352,9 +362,9 @@ public final class LcdController implements Component, Clocked {
             int tileIndex = TileIndex(firstTile + i, area);
             builder.setByte(i,
                     getTileImageByte(firstByte + 1, tileIndex,
-                            theTileSourceEffect()),
+                            theTileSourceEffect(),false),
                     getTileImageByte(firstByte, tileIndex,
-                            theTileSourceEffect()));
+                            theTileSourceEffect(),false));
         }
         return builder.build();
 

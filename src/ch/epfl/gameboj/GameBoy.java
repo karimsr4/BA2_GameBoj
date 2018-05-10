@@ -3,6 +3,7 @@ package ch.epfl.gameboj;
 import static ch.epfl.gameboj.Preconditions.checkArgument;
 import static java.util.Objects.requireNonNull;
 
+import ch.epfl.gameboj.component.Joypad;
 //import ch.epfl.gameboj.component.Joypad;
 import ch.epfl.gameboj.component.Timer;
 import ch.epfl.gameboj.component.cartridge.Cartridge;
@@ -29,7 +30,7 @@ public final class GameBoy {
     private final BootRomController bootRomController;
     private final Timer timer;
     private final LcdController lcdController;
-//    private final Joypad joypad;
+    private final Joypad joypad;
 
     /**
      * Construit une nouvelle Gameboy en créant ses composants et en les
@@ -51,7 +52,7 @@ public final class GameBoy {
         bootRomController = new BootRomController(cartridge);
         timer = new Timer(cpu);
         lcdController=new LcdController(cpu);
-//        joypad=new Joypad(cpu);
+        joypad=new Joypad(cpu);
 
         bus.attach(ramController);
         bus.attach(echoRamController);
@@ -59,7 +60,7 @@ public final class GameBoy {
         bus.attach(bootRomController);
         bus.attach(timer);
         lcdController.attachTo(bus);
-//        bus.attach(joypad);
+        bus.attach(joypad);
         
     }
 
@@ -131,8 +132,8 @@ public final class GameBoy {
     
     
     
-//    public Joypad joypad() {
-//        return joypad;
-//    }
+    public Joypad joypad() {
+        return joypad;
+    }
 
 }

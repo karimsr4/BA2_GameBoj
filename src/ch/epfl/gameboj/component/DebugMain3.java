@@ -22,9 +22,9 @@ public final class DebugMain3 {
 
     GameBoy gb = new GameBoy(Cartridge.ofFile(romFile));
     gb.runUntil(cycles);
-    gb.joypad().keyPressed(Key.START);
+    gb.joypad().keyPressed(Key.A);
     gb.runUntil(cycles + (1L << 20));
-    gb.joypad().keyReleased(Key.START);
+    gb.joypad().keyReleased(Key.A);
     gb.runUntil(cycles + 2 * (1L << 20));
 
     LcdImage li = gb.lcdController().currentImage();
