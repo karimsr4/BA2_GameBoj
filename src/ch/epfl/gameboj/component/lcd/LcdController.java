@@ -9,13 +9,13 @@ import ch.epfl.gameboj.AddressMap;
 import ch.epfl.gameboj.Bus;
 import ch.epfl.gameboj.Register;
 import ch.epfl.gameboj.RegisterFile;
+import ch.epfl.gameboj.bits.BitVector;
 import ch.epfl.gameboj.bits.Bits;
 import ch.epfl.gameboj.component.Clocked;
 import ch.epfl.gameboj.component.Component;
 import ch.epfl.gameboj.component.cpu.Cpu;
 import ch.epfl.gameboj.component.cpu.Cpu.Interrupt;
 import ch.epfl.gameboj.component.memory.Ram;
-import sun.awt.image.PixelConverter.Bgrx;
 
 /**
  * classe qui représente le controlleur d'écran LCD
@@ -43,6 +43,8 @@ public final class LcdController implements Component, Clocked {
     private LcdImage nextImage = new LcdImage.Builder(LCD_WIDTH, LCD_HEIGHT)
             .build();
     private int winY;
+    private boolean isQuickCopying;
+    private int nbreOfCopiedBytes;
 
     private enum Mode {
         MODE_0(0, 51), MODE_1(1, 114), MODE_2(2, 20), MODE_3(3, 43);
@@ -90,6 +92,7 @@ public final class LcdController implements Component, Clocked {
      */
     @Override
     public void cycle(long cycle) {
+        quickCopy();
 
         if (nextNonIdleCycle == Long.MAX_VALUE && screenIsOn()) {
 
@@ -170,8 +173,10 @@ public final class LcdController implements Component, Clocked {
             case LY:
                 break;
             case DMA: {
+
                 set(reg, data);
-                quickCopy();
+                isQuickCopying = true;
+
             }
             default: {
                 set(reg, data);
@@ -182,6 +187,16 @@ public final class LcdController implements Component, Clocked {
     }
 
     private void quickCopy() {
+        if (isQuickCopying) {
+            int address = Bits.make16(get(Reg.DMA), 0);
+            oam.write(nbreOfCopiedBytes, bus.read(address + nbreOfCopiedBytes));
+            nbreOfCopiedBytes++;
+
+        }
+        if (nbreOfCopiedBytes == AddressMap.OAM_RAM_SIZE) {
+            isQuickCopying = false;
+            nbreOfCopiedBytes = 0;
+        }
 
     }
 
@@ -220,23 +235,55 @@ public final class LcdController implements Component, Clocked {
         }
         bgWindowLine = bgWindowLine.extractWrapped(get(Reg.SCX), LCD_WIDTH)
                 .mapColors(get(Reg.BGP));
+        if (spriteActivated()) {
+            LcdImageLine backgroundSprites = computeSpriteLine(index, true);
+            BitVector opacity = bgWindowLine.getOpacity().not()
+                    .and(backgroundSprites.getOpacity().not());
+            LcdImageLine foregroundSprites = computeSpriteLine(index, false);
+            return backgroundSprites.below(bgWindowLine, opacity)
+                    .below(foregroundSprites);
+        }
+
         return bgWindowLine;
+
+    }
+
+    private boolean spriteActivated() {
+        return Bits.test(get(Reg.LCDC), 1);
 
     }
 
     private LcdImageLine computeSpriteLine(int lineIndex, boolean bgSprites) {
         int[] sprites = spritesIntersectingLine(lineIndex);
+
+        int sprite;
+        LcdImageLine result = new LcdImageLine.Builder(LCD_WIDTH).build();
+
+        int x;
+
         for (int i = 0; i < sprites.length; i++) {
-            
-             
+            sprite = sprites[i];
+
+            x = getSpriteX(sprite);
+
+            if (spriteInBackGround(sprite) == bgSprites) {
+
+                result = spriteLine(sprite, lineIndex)
+                        .mapColors(getSpritePalette(sprite)).shift(x)
+                        .below(result);
+
+            }
         }
-        
+        return result;
 
     }
-    
-    
-    private boolean SpriteinBackGround(int spriteIndex) {
-        return Bits.test(oam.read(spriteIndex*4+3), 7);
+
+    private int getSpriteX(int index) {
+        return oam.read(index * 4 + 1) - 8;
+    }
+
+    private boolean spriteInBackGround(int spriteIndex) {
+        return Bits.test(oam.read(spriteIndex * 4 + 3), 7);
     }
 
     private void setLyLyc(Reg a, int data) {
@@ -255,9 +302,11 @@ public final class LcdController implements Component, Clocked {
 
     private LcdImageLine spriteLine(int index, int line) {
         LcdImageLine.Builder result = new LcdImageLine.Builder(LCD_WIDTH);
-        int tile = line >= TILE_EDGE ? oam.read(index * 4 + 3) :  oam.read(index * 4 + 3) +1 ;
+        int tile = oam.read(index * 4 + 2);
+        line = line - oam.read(index * 4) + TILE_EDGE * 2;
         result.setByte(0, getTileImageByte(line * 2 + 1, tile, true),
                 getTileImageByte(line * 2, tile, true));
+
         return result.build();
     }
 
@@ -290,7 +339,8 @@ public final class LcdController implements Component, Clocked {
     }
 
     private int getSpritePalette(int index) {
-        return Bits.test(oam.read(index * 4 + 3), 4)? get(Reg.OPB1):get(Reg.OPB0);     
+        return Bits.test(oam.read(index * 4 + 3), 4) ? get(Reg.OPB1)
+                : get(Reg.OPB0);
     }
 
     private LcdImageLine reallyComputeLine(int index, boolean area) {
@@ -399,8 +449,6 @@ public final class LcdController implements Component, Clocked {
         return address >= AddressMap.OAM_START && address < AddressMap.OAM_END;
     }
 
-    // index de ligne a l'ecran
-    // pas encore terminé
     private int[] spritesIntersectingLine(int lineIndex) {
         int spriteHeight = spriteHeight();
         int[] intersectingSprites = new int[10];
@@ -411,16 +459,16 @@ public final class LcdController implements Component, Clocked {
             realY = oam.read(spriteIndex * 4) - 16;
             if (realY <= lineIndex && realY + spriteHeight > lineIndex) {
                 intersectingSprites[nbSprites] = Bits
-                        .make16(oam.read(spriteIndex * 4 + 1), spriteIndex);
+                        .make16(getSpriteX(spriteIndex), spriteIndex);
                 nbSprites++;
             }
             spriteIndex++;
         }
         Arrays.sort(intersectingSprites, 0, nbSprites);
-        int[] result= new int [nbSprites];
+
+        int[] result = new int[nbSprites];
         for (int j = 0; j < nbSprites; j++) {
-            result[j] = Bits.clip(Byte.SIZE,
-                    intersectingSprites[j]);
+            result[j] = Bits.clip(Byte.SIZE, intersectingSprites[j]);
         }
         return result;
     }
