@@ -93,6 +93,7 @@ public final class LcdController implements Component, Clocked {
     @Override
     public void cycle(long cycle) {
         quickCopy();
+//        System.out.println(spriteActivated());
 
         if (nextNonIdleCycle == Long.MAX_VALUE && screenIsOn()) {
 
@@ -238,7 +239,7 @@ public final class LcdController implements Component, Clocked {
         if (spriteActivated()) {
             LcdImageLine backgroundSprites = computeSpriteLine(index, true);
             BitVector opacity = bgWindowLine.getOpacity().not()
-                    .and(backgroundSprites.getOpacity().not());
+                    .and(backgroundSprites.getOpacity()).not();
             LcdImageLine foregroundSprites = computeSpriteLine(index, false);
             return backgroundSprites.below(bgWindowLine, opacity)
                     .below(foregroundSprites);
