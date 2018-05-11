@@ -6,7 +6,7 @@ import javafx.scene.image.WritableImage;
 
 public final class ImageConverter {
     public static  Image convert (LcdImage other) {
-        WritableImage result = new WritableImage(LcdController.LCD_WIDTH, LcdController.LCD_HEIGHT);
+        WritableImage result = new WritableImage(LcdController.LCD_WIDTH, LcdController.LCD_HEIGHT);;
         
         
     }
