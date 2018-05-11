@@ -42,8 +42,7 @@ public final class Joypad implements Component {
      *            la touche pressée
      */
     public void keyPressed(Key key) {
-        if(key==Key.START)
-        System.out.println("zaaaaa");
+        
         int ligne = key.ordinal() /4;
         int colonne = key.ordinal() % 4;
         boolean b = Bits.test(read(AddressMap.REG_P1), colonne);

@@ -45,15 +45,13 @@ public final class Cartridge implements Component {
 
         try (FileInputStream input = new FileInputStream(romFile)) {
 
-            byte[] dataInFile = new byte[32768];
-            input.read(dataInFile);
+            byte[] dataInFile= input.readAllBytes(); 
+            
             byte type = dataInFile[CARTRIDGE_TYPE_POSIION];
             // checkArgument(dataInFile[CARTRIDGE_TYPE_POSIION] == 0);
+            int[] ramType = new int [] { 0 ,2048 ,8192 ,32768 };
             return type == 0 ? new Cartridge(new MBC0(new Rom(dataInFile)))
-                    : new Cartridge(new MBC1(new Rom(dataInFile),
-                            dataInFile[0x149] == 0 ? 0
-                                    : 2048 * (Bits.mask(dataInFile[0x149])
-                                            - 1 )* 2));
+                    : new Cartridge(new MBC1(new Rom(dataInFile), ramType[dataInFile[0x149]]));
 
         } catch (FileNotFoundException e) {
             throw new IOException();

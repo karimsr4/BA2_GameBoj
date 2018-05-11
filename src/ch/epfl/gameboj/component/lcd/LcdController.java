@@ -376,7 +376,7 @@ public final class LcdController implements Component, Clocked {
         case MODE_0: {
             setLyLyc(Reg.LY, get(Reg.LY) + 1);
 
-            if (get(Reg.LY) == LCD_HEIGHT - 1) {
+            if (get(Reg.LY) == LCD_HEIGHT ) {
 
                 changeMode(Mode.MODE_1);
                 cpu.requestInterrupt(Interrupt.VBLANK);
