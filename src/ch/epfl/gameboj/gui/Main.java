@@ -10,6 +10,7 @@ import ch.epfl.gameboj.component.Joypad;
 import ch.epfl.gameboj.component.Joypad.Key;
 import ch.epfl.gameboj.component.cartridge.Cartridge;
 import ch.epfl.gameboj.component.lcd.LcdController;
+import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
@@ -48,12 +49,12 @@ public class Main extends Application {
         
         
         
-        Image image = ImageConverter
-                .convert(gameboy.lcdController().currentImage());
+//        Image image = ImageConverter
+//                .convert(gameboy.lcdController().currentImage());
         ImageView imageview = new ImageView();
         imageview.setFitHeight(2 * LcdController.LCD_HEIGHT);
         imageview.setFitWidth(2 * LcdController.LCD_WIDTH);
-        imageview.setImage(image);
+//        imageview.setImage(image);
         imageview.setOnKeyPressed(e -> {
             KeyCode code = e.getCode();
             String text = e.getText().toUpperCase();
@@ -73,9 +74,26 @@ public class Main extends Application {
             }
         });
         
+        
+        
         BorderPane pane = new BorderPane(imageview);
         Scene scene = new Scene(pane);
         primaryStage.setScene(scene);
+        long start =System.nanoTime();
+        
+        AnimationTimer timer = new AnimationTimer() {
+            
+            
+            @Override
+            public void handle(long now) {
+                long elapsed = now-start;
+                gameboy.runUntil((long) (elapsed * GameBoy.CYCLES_PER_NANOSECOND));
+                imageview.setImage(ImageConverter
+                        .convert(gameboy.lcdController().currentImage()));
+            }
+        };
+        timer.start();
+        
         primaryStage.show();
         imageview.requestFocus();
         

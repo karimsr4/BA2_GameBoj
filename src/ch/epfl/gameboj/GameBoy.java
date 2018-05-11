@@ -3,6 +3,7 @@ package ch.epfl.gameboj;
 import static ch.epfl.gameboj.Preconditions.checkArgument;
 import static java.util.Objects.requireNonNull;
 
+import ch.epfl.gameboj.bits.Bits;
 import ch.epfl.gameboj.component.Joypad;
 //import ch.epfl.gameboj.component.Joypad;
 import ch.epfl.gameboj.component.Timer;
@@ -21,6 +22,10 @@ import ch.epfl.gameboj.component.memory.RamController;
  *
  */
 public final class GameBoy {
+    
+    public static final long CYCLES_PER_SECOND = Bits.mask(20);
+    public static final double CYCLES_PER_NANOSECOND= CYCLES_PER_SECOND / Math.pow(10, 9);
+    
     private final Ram ram;
     private final RamController ramController;
     private final RamController echoRamController;

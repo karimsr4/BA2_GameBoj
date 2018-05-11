@@ -1,11 +1,15 @@
 package ch.epfl.gameboj.component.cartridge;
 
+import static ch.epfl.gameboj.Preconditions.checkBits16;
+import static ch.epfl.gameboj.Preconditions.checkBits8;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-import static ch.epfl.gameboj.Preconditions.*;
+import ch.epfl.gameboj.AddressMap;
+import ch.epfl.gameboj.bits.Bits;
 import ch.epfl.gameboj.component.Component;
 import ch.epfl.gameboj.component.memory.Rom;
 
@@ -40,12 +44,17 @@ public final class Cartridge implements Component {
     public static Cartridge ofFile(File romFile) throws IOException {
 
         try (FileInputStream input = new FileInputStream(romFile)) {
-            
+
             byte[] dataInFile = new byte[32768];
             input.read(dataInFile);
-            checkArgument(dataInFile[CARTRIDGE_TYPE_POSIION] == 0);
-            return new Cartridge(new MBC0(new Rom(dataInFile)));
-            
+            byte type = dataInFile[CARTRIDGE_TYPE_POSIION];
+            // checkArgument(dataInFile[CARTRIDGE_TYPE_POSIION] == 0);
+            return type == 0 ? new Cartridge(new MBC0(new Rom(dataInFile)))
+                    : new Cartridge(new MBC1(new Rom(dataInFile),
+                            dataInFile[0x149] == 0 ? 0
+                                    : 2048 * (Bits.mask(dataInFile[0x149])
+                                            - 1 )* 2));
+
         } catch (FileNotFoundException e) {
             throw new IOException();
         }
