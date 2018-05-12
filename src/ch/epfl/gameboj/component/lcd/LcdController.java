@@ -90,19 +90,29 @@ public final class LcdController implements Component, Clocked {
      * 
      * @see ch.epfl.gameboj.component.Clocked#cycle(long)
      */
+
     @Override
     public void cycle(long cycle) {
         quickCopy();
+        
 
         if (nextNonIdleCycle == Long.MAX_VALUE && screenIsOn()) {
 
             nextNonIdleCycle = cycle;
+            if (get(Reg.LY)==1)
+                System.out.print("Cycle = "+cycle + " since frame :" + (nextNonIdleCycle-cycle) + "mode 0 --> 2");
             changeMode(Mode.MODE_2);
-
         }
-        if (cycle == nextNonIdleCycle) {
+
+
+        if(cycle==nextNonIdleCycle) {
             reallyCycle();
         }
+
+    
+      
+
+    
 
     }
 
@@ -156,6 +166,7 @@ public final class LcdController implements Component, Clocked {
                 if (!Bits.test(data, 7)) {
                     setLyLyc(Reg.LY, 0);
                     changeMode(Mode.MODE_0);
+                    
                     nextNonIdleCycle = Long.MAX_VALUE;
                 }
                 set(reg, data);
@@ -178,6 +189,7 @@ public final class LcdController implements Component, Clocked {
                 isQuickCopying = true;
 
             }
+            break;
             default: {
                 set(reg, data);
             }
@@ -213,8 +225,9 @@ public final class LcdController implements Component, Clocked {
         set(Reg.STAT, statNewValue);
         nextNonIdleCycle += nextMode.lineCycles;
         if (Bits.test(get(Reg.STAT), nextMode.mode + 3)
-                && nextMode != Mode.MODE_3)
+                && nextMode != Mode.MODE_3) {
             cpu.requestInterrupt(Interrupt.LCD_STAT);
+            System.out.print("LCDSTAT REQUESTED");}
 
     }
 
@@ -268,7 +281,7 @@ public final class LcdController implements Component, Clocked {
 
             if (spriteInBackGround(sprite) == bgSprites) {
                 result = spriteLine(sprite, lineIndex)
-                        .mapColors(getSpritePalette(sprite)).shift(x-8)
+                        .mapColors(getSpritePalette(sprite)).shift(x - 8)
                         .below(result);
 
             }
@@ -278,7 +291,7 @@ public final class LcdController implements Component, Clocked {
     }
 
     private int getSpriteX(int index) {
-        return oam.read(index * 4 + 1)  ;
+        return oam.read(index * 4 + 1);
     }
 
     private boolean spriteInBackGround(int spriteIndex) {
@@ -296,21 +309,22 @@ public final class LcdController implements Component, Clocked {
 
     private int TileIndex(int tile, boolean area) {
         int start = AddressMap.BG_DISPLAY_DATA[area ? 1 : 0];
+
         return videoRam.read(start + tile - AddressMap.VIDEO_RAM_START);
     }
 
     private LcdImageLine spriteLine(int index, int line) {
         LcdImageLine.Builder result = new LcdImageLine.Builder(LCD_WIDTH);
         int tile = oam.read(index * 4 + 2);
-        line = isFlippedHorizontally(index)
+        line = isFlippedVertically(index)
                 ? spriteHeight()
                         - (line - oam.read(index * 4) + TILE_EDGE * 2 + 1)
                 : line - oam.read(index * 4) + TILE_EDGE * 2;
 
-        boolean verticalFlip = isFlippedVertically(index);
+        boolean horizontalFlip = isFlippedHorizontally(index);
         result.setByte(0,
-                getTileImageByte(line * 2 + 1, tile, true, verticalFlip),
-                getTileImageByte(line * 2, tile, true, verticalFlip));
+                getTileImageByte(line * 2 + 1, tile, true, horizontalFlip),
+                getTileImageByte(line * 2, tile, true, horizontalFlip));
         return result.build();
     }
 
@@ -362,9 +376,9 @@ public final class LcdController implements Component, Clocked {
             int tileIndex = TileIndex(firstTile + i, area);
             builder.setByte(i,
                     getTileImageByte(firstByte + 1, tileIndex,
-                            theTileSourceEffect(),false),
+                            theTileSourceEffect(), false),
                     getTileImageByte(firstByte, tileIndex,
-                            theTileSourceEffect(),false));
+                            theTileSourceEffect(), false));
         }
         return builder.build();
 
@@ -376,7 +390,7 @@ public final class LcdController implements Component, Clocked {
         case MODE_0: {
             setLyLyc(Reg.LY, get(Reg.LY) + 1);
 
-            if (get(Reg.LY) == LCD_HEIGHT ) {
+            if (get(Reg.LY) == LCD_HEIGHT) {
 
                 changeMode(Mode.MODE_1);
                 cpu.requestInterrupt(Interrupt.VBLANK);
