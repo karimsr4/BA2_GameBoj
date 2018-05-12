@@ -50,6 +50,7 @@ public final class Joypad implements Component {
                 true);
         if (Bits.test(read(AddressMap.REG_P1), 4 + ligne) && !(b)) {
             cpu.requestInterrupt(Interrupt.JOYPAD);
+            
         }
 
     }

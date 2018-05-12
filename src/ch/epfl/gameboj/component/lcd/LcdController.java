@@ -94,24 +94,17 @@ public final class LcdController implements Component, Clocked {
     @Override
     public void cycle(long cycle) {
         quickCopy();
-        
 
         if (nextNonIdleCycle == Long.MAX_VALUE && screenIsOn()) {
 
             nextNonIdleCycle = cycle;
-            
+
             changeMode(Mode.MODE_2);
         }
 
-
-        if(cycle==nextNonIdleCycle) {
+        if (cycle == nextNonIdleCycle) {
             reallyCycle();
         }
-
-    
-      
-
-    
 
     }
 
@@ -165,7 +158,7 @@ public final class LcdController implements Component, Clocked {
                 if (!Bits.test(data, 7)) {
                     setLyLyc(Reg.LY, 0);
                     changeMode(Mode.MODE_0);
-                    
+
                     nextNonIdleCycle = Long.MAX_VALUE;
                 }
                 set(reg, data);
@@ -188,7 +181,12 @@ public final class LcdController implements Component, Clocked {
                 isQuickCopying = true;
 
             }
-            break;
+            case SCX: {
+                set(reg, data);
+
+            }
+
+                break;
             default: {
                 set(reg, data);
             }
@@ -224,9 +222,10 @@ public final class LcdController implements Component, Clocked {
         set(Reg.STAT, statNewValue);
         nextNonIdleCycle += nextMode.lineCycles;
         if (Bits.test(get(Reg.STAT), nextMode.mode + 3)
-                && nextMode != Mode.MODE_3) 
+                && nextMode != Mode.MODE_3) {
             cpu.requestInterrupt(Interrupt.LCD_STAT);
-           
+
+        }
 
     }
 
@@ -239,10 +238,15 @@ public final class LcdController implements Component, Clocked {
         }
 
         if (windowActivated() && index >= get(Reg.WY)) {
-            bgWindowLine = bgWindowLine.join(
-                    reallyComputeLine(winY, Bits.test(get(Reg.LCDC), 6))
-                            .shift(get(Reg.WX) - 7 + get(Reg.SCX)),
+            LcdImageLine window = reallyComputeLine(winY,
+                    Bits.test(get(Reg.LCDC), 6));
+            int shift =get(Reg.WX) - 7 + get(Reg.SCX);
+            bgWindowLine = bgWindowLine.join(window.shift(shift),
                     (get(Reg.WX) - 7) + get(Reg.SCX));
+            if(shift>96) {
+                int a = shift -96 ;
+                bgWindowLine=window.shift(a-160).join(bgWindowLine,a);
+            }
             winY++;
         }
         bgWindowLine = bgWindowLine.extractWrapped(get(Reg.SCX), LCD_WIDTH)
