@@ -244,7 +244,7 @@ public final class LcdController implements Component, Clocked {
             bgWindowLine = bgWindowLine.join(window.shift(shift),
                     (get(Reg.WX) - 7) + get(Reg.SCX));
             if(shift>96) {
-                int a = shift -96 ;
+                int a = shift -96 -1+1 ;
                 bgWindowLine=window.shift(a-160).join(bgWindowLine,a);
             }
             winY++;
