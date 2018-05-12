@@ -99,8 +99,7 @@ public final class LcdController implements Component, Clocked {
         if (nextNonIdleCycle == Long.MAX_VALUE && screenIsOn()) {
 
             nextNonIdleCycle = cycle;
-            if (get(Reg.LY)==1)
-                System.out.print("Cycle = "+cycle + " since frame :" + (nextNonIdleCycle-cycle) + "mode 0 --> 2");
+            
             changeMode(Mode.MODE_2);
         }
 
@@ -225,9 +224,9 @@ public final class LcdController implements Component, Clocked {
         set(Reg.STAT, statNewValue);
         nextNonIdleCycle += nextMode.lineCycles;
         if (Bits.test(get(Reg.STAT), nextMode.mode + 3)
-                && nextMode != Mode.MODE_3) {
+                && nextMode != Mode.MODE_3) 
             cpu.requestInterrupt(Interrupt.LCD_STAT);
-            System.out.print("LCDSTAT REQUESTED");}
+           
 
     }
 
