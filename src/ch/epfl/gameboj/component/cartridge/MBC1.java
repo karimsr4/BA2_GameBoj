@@ -3,6 +3,9 @@ package ch.epfl.gameboj.component.cartridge;
 import static ch.epfl.gameboj.Preconditions.checkBits16;
 import static ch.epfl.gameboj.Preconditions.checkBits8;
 
+import com.sun.org.apache.bcel.internal.generic.LoadClass;
+
+import ch.epfl.gameboj.Saveable;
 import ch.epfl.gameboj.bits.Bits;
 import ch.epfl.gameboj.component.Component;
 import ch.epfl.gameboj.component.memory.Ram;
@@ -24,6 +27,7 @@ public final class MBC1 implements Component {
     public MBC1(Rom rom, int ramSize) {
         this.rom = rom;
         this.ram = new Ram(ramSize);
+//        ram.load("save1.gb");
 
         this.ramEnabled = false;
         this.mode = Mode.MODE_0;
@@ -42,6 +46,7 @@ public final class MBC1 implements Component {
             return rom.read(romAddress(ramRom2, romLsb5, address));
         case 5:
             return ramEnabled ? ram.read(ramAddress(address)) : 0xFF;
+
         default:
             return NO_DATA;
         }
@@ -64,8 +69,10 @@ public final class MBC1 implements Component {
             mode = Bits.test(data, 0) ? Mode.MODE_1 : Mode.MODE_0;
             break;
         case 5:
-            if (ramEnabled)
+            if (ramEnabled) {
                 ram.write(ramAddress(address), data);
+//                ram.save("save1.gb");
+            }
             break;
         }
     }
@@ -85,4 +92,18 @@ public final class MBC1 implements Component {
     private int ramAddress(int b_12_0) {
         return ((msb2() << 13) | Bits.clip(13, b_12_0)) & ramMask;
     }
+
+//    @Override
+//    public void save(String pathName) {
+//        // TODO Auto-generated method stub
+//        
+//    }
+//
+//    @Override
+//    public void load(String pathName) {
+//        // TODO Auto-generated method stub
+//        
+//    }
+
+
 }

@@ -8,9 +8,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-import ch.epfl.gameboj.AddressMap;
-import ch.epfl.gameboj.bits.Bits;
 import ch.epfl.gameboj.component.Component;
+import ch.epfl.gameboj.component.memory.Ram;
 import ch.epfl.gameboj.component.memory.Rom;
 
 /**
@@ -25,6 +24,7 @@ public final class Cartridge implements Component {
 
     private Cartridge(Component controller) {
         this.controller = controller;
+        
     }
 
     /**

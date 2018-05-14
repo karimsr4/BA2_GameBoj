@@ -44,6 +44,7 @@ public final class LcdController implements Component, Clocked {
             .build();
     private int winY;
     private boolean isQuickCopying;
+    private int copyStartAddress;
     private int nbreOfCopiedBytes;
 
     private enum Mode {
@@ -165,8 +166,10 @@ public final class LcdController implements Component, Clocked {
             }
                 break;
             case STAT: {
-                set(Reg.STAT, Bits.clip(3, get(Reg.STAT))
-                        | (Bits.extract(get(Reg.STAT), 3, 5) << 3));
+               set(reg, Bits.clip(3, get(reg)) | (Bits.extract(data, 3, 5) << 3 ));
+               changeMode(currentMode());
+               setLyLyc(Reg.LY, get(Reg.LY));
+                
             }
                 break;
             case LYC: {
@@ -179,13 +182,10 @@ public final class LcdController implements Component, Clocked {
 
                 set(reg, data);
                 isQuickCopying = true;
+                copyStartAddress= Bits.make16(data, 0);
 
             }
-            case SCX: {
-                set(reg, data);
-
-            }
-
+           
                 break;
             default: {
                 set(reg, data);
@@ -197,8 +197,7 @@ public final class LcdController implements Component, Clocked {
 
     private void quickCopy() {
         if (isQuickCopying) {
-            int address = Bits.make16(get(Reg.DMA), 0);
-            oam.write(nbreOfCopiedBytes, bus.read(address + nbreOfCopiedBytes));
+            oam.write(nbreOfCopiedBytes, bus.read(copyStartAddress + nbreOfCopiedBytes));
             nbreOfCopiedBytes++;
 
         }
@@ -217,10 +216,14 @@ public final class LcdController implements Component, Clocked {
     }
 
     private void changeMode(Mode nextMode) {
-        int mask = Bits.mask(0) | Bits.mask(1);
+        int mask = 0b11 ;
+//        if (compteur ==1) {
+//            System.out.println("cycles: "+nextNonIdleCycle+  " since frame: "+ cycles+" | mode: "+ currentMode()+" --> "+ nextMode);           
+//        }
         int statNewValue = (nextMode.mode & mask) | (get(Reg.STAT) & (~mask));
         set(Reg.STAT, statNewValue);
         nextNonIdleCycle += nextMode.lineCycles;
+        cycles+=nextMode.lineCycles;
         if (Bits.test(get(Reg.STAT), nextMode.mode + 3)
                 && nextMode != Mode.MODE_3) {
             cpu.requestInterrupt(Interrupt.LCD_STAT);
@@ -237,20 +240,22 @@ public final class LcdController implements Component, Clocked {
                     Bits.test(get(Reg.LCDC), 3));
         }
 
+        
         if (windowActivated() && index >= get(Reg.WY)) {
             LcdImageLine window = reallyComputeLine(winY,
                     Bits.test(get(Reg.LCDC), 6));
-            int shift =get(Reg.WX) - 7 + get(Reg.SCX);
+            int shift =Integer.max((get(Reg.WX) - 7 )% 256+ get(Reg.SCX),0);
             bgWindowLine = bgWindowLine.join(window.shift(shift),
-                    (get(Reg.WX) - 7) + get(Reg.SCX));
-            if(shift>96) {
-                int a = shift -96 -1+1 ;
+                    shift);
+            if(shift>=96) {
+                int a = shift -96  ;
                 bgWindowLine=window.shift(a-160).join(bgWindowLine,a);
             }
             winY++;
         }
         bgWindowLine = bgWindowLine.extractWrapped(get(Reg.SCX), LCD_WIDTH)
                 .mapColors(get(Reg.BGP));
+        
         if (spriteActivated()) {
             LcdImageLine backgroundSprites = computeSpriteLine(index, true);
             BitVector opacity = bgWindowLine.getOpacity().not()
@@ -281,10 +286,11 @@ public final class LcdController implements Component, Clocked {
             sprite = sprites[i];
 
             x = getSpriteX(sprite);
+            
 
             if (spriteInBackGround(sprite) == bgSprites) {
                 result = spriteLine(sprite, lineIndex)
-                        .mapColors(getSpritePalette(sprite)).shift(x - 8)
+                        .mapColors(getSpritePalette(sprite)).shift(x-8 )
                         .below(result);
 
             }
@@ -302,6 +308,12 @@ public final class LcdController implements Component, Clocked {
     }
 
     private void setLyLyc(Reg a, int data) {
+        if (compteur==1) {
+            
+            if (a==Reg.LY)     
+                System.out.println("cycles: "+nextNonIdleCycle+  " since frame: "+ cycles+" | LY "+ get(Reg.LY)+" --> "+ data);            
+            ;
+        }
         set(a, data);
         boolean equal = get(Reg.LY) == get(Reg.LYC);
         set(Reg.STAT, Bits.set(get(Reg.STAT), 2, equal));
@@ -381,37 +393,43 @@ public final class LcdController implements Component, Clocked {
                     getTileImageByte(firstByte + 1, tileIndex,
                             theTileSourceEffect(), false),
                     getTileImageByte(firstByte, tileIndex,
-                            theTileSourceEffect(), false));
+                            theTileSourceEffect(),false));
         }
         return builder.build();
 
     }
 
+    int compteur=0;
+    long cycles=0;
     private void reallyCycle() {
-
         switch (currentMode()) {
         case MODE_0: {
             setLyLyc(Reg.LY, get(Reg.LY) + 1);
 
             if (get(Reg.LY) == LCD_HEIGHT) {
-
-                changeMode(Mode.MODE_1);
+                
                 cpu.requestInterrupt(Interrupt.VBLANK);
+                if(compteur==1)
+                System.out.println("cycles: "+nextNonIdleCycle+  " since frame: "+ cycles+" | request VBLANK ");
+                changeMode(Mode.MODE_1);
                 nextImage = nextImageBuilder.build();
+                
 
             } else {
-
                 changeMode(Mode.MODE_2);
 
             }
         }
             break;
         case MODE_1: {
+            
 
             if (get(Reg.LY) == 153) {
+                cycles=0;
+                compteur++;
+                setLyLyc(Reg.LY, 0);
                 changeMode(Mode.MODE_2);
                 nextImageBuilder = new LcdImage.Builder(LCD_WIDTH, LCD_HEIGHT);
-                setLyLyc(Reg.LY, 0);
                 winY = 0;
 
             } else {
@@ -430,10 +448,11 @@ public final class LcdController implements Component, Clocked {
         }
             break;
         case MODE_3: {
-
             changeMode(Mode.MODE_0);
+            
 
         }
+        break;
 
         }
     }
@@ -451,7 +470,7 @@ public final class LcdController implements Component, Clocked {
     }
 
     private boolean windowActivated() {
-        return Bits.test(get(Reg.LCDC), 5) && get(Reg.WX) >= 7
+        return Bits.test(get(Reg.LCDC), 5) 
                 && get(Reg.WX) < 167;
     }
 
