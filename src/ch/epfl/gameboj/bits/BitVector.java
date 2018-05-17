@@ -219,7 +219,7 @@ public final class BitVector {
         checkArgument(size > 0 && size % CELL_SIZE == 0);
         int[] extracted = new int[size / CELL_SIZE];
         int shift = floorMod(start, CELL_SIZE);
-        if (start % 32 == 0) {
+        if (start % CELL_SIZE == 0) {
             for (int i = 0; i < extracted.length; ++i) {
                 extracted[i] = elementExtracting(start + i * CELL_SIZE, method);
             }
@@ -258,10 +258,10 @@ public final class BitVector {
     private static int[] initialisedVector(int size, boolean initialValue) {
 
         checkArgument((size > 0) && (size % CELL_SIZE == 0));
-        int[] tab = new int[size / CELL_SIZE];
+        int[] vector = new int[size / CELL_SIZE];
         int fillingValue = initialValue ? 0xFFFFFFFF : 0;
-        Arrays.fill(tab, fillingValue);
-        return tab;
+        Arrays.fill(vector, fillingValue);
+        return vector;
     }
 
     /**
