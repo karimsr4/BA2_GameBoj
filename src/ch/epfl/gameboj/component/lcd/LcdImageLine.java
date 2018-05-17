@@ -195,7 +195,6 @@ public final class LcdImageLine {
     public LcdImageLine join(LcdImageLine other, int pixel) {
         checkArgument(checkSize(other));
         checkIndex(pixel, size());
-        // checkArgument((pixel >= 0) && (pixel < size()));
         BitVector mask = new BitVector(size(), true).shift(pixel);
         BinaryOperator<BitVector> join = (x, y) -> (x.and(mask.not()))
                 .or(y.and(mask));

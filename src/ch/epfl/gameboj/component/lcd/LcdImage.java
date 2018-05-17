@@ -153,7 +153,6 @@ public final class LcdImage {
         public Builder setLine(int index, LcdImageLine newLine) {
             if (isBuilded)
                 throw new IllegalStateException();
-
             Objects.checkIndex(index, height);
             checkArgument(newLine.size() == width);
             lines[index] = newLine;
@@ -172,7 +171,6 @@ public final class LcdImage {
         public LcdImage build() {
             if (isBuilded)
                 throw new IllegalStateException();
-
             return new LcdImage(width, height, Arrays.asList(lines));
         }
     }
