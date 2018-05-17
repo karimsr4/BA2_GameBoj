@@ -14,7 +14,9 @@ import ch.epfl.gameboj.component.memory.Rom;
 public final class MBC1 implements Component {
     private static final int RAM_ENABLE = 0xA;
 
-    private enum Mode { MODE_0, MODE_1 };
+    private enum Mode {
+        MODE_0, MODE_1
+    };
 
     private final Rom rom;
     private final Ram ram;
@@ -24,10 +26,17 @@ public final class MBC1 implements Component {
     private int romLsb5, ramRom2;
     private final int romMask, ramMask;
 
+    /**
+     * construit un controleur de banque mémoire de type 1
+     * 
+     * @param rom
+     *            la memoire morte
+     * @param ramSize
+     *            taille de la mémoire vive
+     */
     public MBC1(Rom rom, int ramSize) {
         this.rom = rom;
         this.ram = new Ram(ramSize);
-//        ram.load("save1.gb");
 
         this.ramEnabled = false;
         this.mode = Mode.MODE_0;
@@ -38,11 +47,19 @@ public final class MBC1 implements Component {
         this.ramMask = ramSize - 1;
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see ch.epfl.gameboj.component.Component#read(int)
+     */
+    @Override
     public int read(int address) {
         switch (Bits.extract(checkBits16(address), 13, 3)) {
-        case 0: case 1:
+        case 0:
+        case 1:
             return rom.read(romAddress(msb2(), 0, address));
-        case 2: case 3:
+        case 2:
+        case 3:
             return rom.read(romAddress(ramRom2, romLsb5, address));
         case 5:
             return ramEnabled ? ram.read(ramAddress(address)) : 0xFF;
@@ -52,6 +69,11 @@ public final class MBC1 implements Component {
         }
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see ch.epfl.gameboj.component.Component#write(int, int)
+     */
     @Override
     public void write(int address, int data) {
         checkBits8(data);
@@ -71,7 +93,6 @@ public final class MBC1 implements Component {
         case 5:
             if (ramEnabled) {
                 ram.write(ramAddress(address), data);
-//                ram.save("save1.gb");
             }
             break;
         }
@@ -79,31 +100,22 @@ public final class MBC1 implements Component {
 
     private int msb2() {
         switch (mode) {
-        case MODE_0: return 0;
-        case MODE_1: return ramRom2;
-        default: throw new Error();
+        case MODE_0:
+            return 0;
+        case MODE_1:
+            return ramRom2;
+        default:
+            throw new Error();
         }
     }
 
     private int romAddress(int b_20_19, int b_18_14, int b_13_0) {
-        return ((b_20_19 << 19) | (b_18_14 << 14) | Bits.clip(14, b_13_0)) & romMask;
+        return ((b_20_19 << 19) | (b_18_14 << 14) | Bits.clip(14, b_13_0))
+                & romMask;
     }
 
     private int ramAddress(int b_12_0) {
         return ((msb2() << 13) | Bits.clip(13, b_12_0)) & ramMask;
     }
-
-//    @Override
-//    public void save(String pathName) {
-//        // TODO Auto-generated method stub
-//        
-//    }
-//
-//    @Override
-//    public void load(String pathName) {
-//        // TODO Auto-generated method stub
-//        
-//    }
-
 
 }

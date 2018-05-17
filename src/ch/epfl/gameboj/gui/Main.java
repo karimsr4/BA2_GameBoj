@@ -27,13 +27,7 @@ public class Main extends Application {
     
 
     public static void main(String[] args) {
-        Application.launch("mario1.gb");
-//        Application.launch("Bomberman.gb");
-//        Application.launch("snake.gb");
-//        Application.launch("2048.gb");
-//        Application.launch("mario2.gb");
-//        Application.launch("mario2.gb");
-        
+        Application.launch(args[0]);
     }
     
 

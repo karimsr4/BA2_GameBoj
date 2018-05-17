@@ -24,7 +24,7 @@ public final class Cartridge implements Component {
 
     private Cartridge(Component controller) {
         this.controller = controller;
-        
+
     }
 
     /**
@@ -44,14 +44,12 @@ public final class Cartridge implements Component {
     public static Cartridge ofFile(File romFile) throws IOException {
 
         try (FileInputStream input = new FileInputStream(romFile)) {
-
-            byte[] dataInFile= input.readAllBytes(); 
-            
+            byte[] dataInFile = input.readAllBytes();
             byte type = dataInFile[CARTRIDGE_TYPE_POSIION];
-            // checkArgument(dataInFile[CARTRIDGE_TYPE_POSIION] == 0);
-            int[] ramType = new int [] { 0 ,2048 ,8192 ,32768 };
+            int[] ramType = new int[] { 0, 2048, 8192, 32768 };
             return type == 0 ? new Cartridge(new MBC0(new Rom(dataInFile)))
-                    : new Cartridge(new MBC1(new Rom(dataInFile), ramType[dataInFile[0x149]]));
+                    : new Cartridge(new MBC1(new Rom(dataInFile),
+                            ramType[dataInFile[0x149]]));
 
         } catch (FileNotFoundException e) {
             throw new IOException();

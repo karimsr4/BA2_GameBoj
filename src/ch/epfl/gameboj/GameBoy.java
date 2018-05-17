@@ -22,10 +22,17 @@ import ch.epfl.gameboj.component.memory.RamController;
  *
  */
 public final class GameBoy {
-    
+
+    /**
+     * le nombre de cycles exécutés par seconde
+     */
     public static final long CYCLES_PER_SECOND = Bits.mask(20);
-    public static final double CYCLES_PER_NANOSECOND= CYCLES_PER_SECOND / Math.pow(10, 9);
-    
+    /**
+     * le nombre de cycles exécutés par nanoseconde
+     */
+    public static final double CYCLES_PER_NANOSECOND = CYCLES_PER_SECOND
+            / Math.pow(10, 9);
+
     private final Ram ram;
     private final RamController ramController;
     private final RamController echoRamController;
@@ -56,8 +63,8 @@ public final class GameBoy {
         bus = new Bus();
         bootRomController = new BootRomController(cartridge);
         timer = new Timer(cpu);
-        lcdController=new LcdController(cpu);
-        joypad=new Joypad(cpu);
+        lcdController = new LcdController(cpu);
+        joypad = new Joypad(cpu);
 
         bus.attach(ramController);
         bus.attach(echoRamController);
@@ -66,7 +73,7 @@ public final class GameBoy {
         bus.attach(timer);
         lcdController.attachTo(bus);
         bus.attach(joypad);
-        
+
     }
 
     /**
@@ -124,8 +131,7 @@ public final class GameBoy {
     public Timer timer() {
         return timer;
     }
-    
-    
+
     /**
      * retourne le controlleur LCD du gameboy
      * 
@@ -134,9 +140,12 @@ public final class GameBoy {
     public LcdController lcdController() {
         return lcdController;
     }
-    
-    
-    
+
+    /**
+     * retourne le clavier du gameboy
+     * 
+     * @return le clavier du gameboy
+     */
     public Joypad joypad() {
         return joypad;
     }

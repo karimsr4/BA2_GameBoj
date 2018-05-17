@@ -21,6 +21,11 @@ public final class Joypad implements Component {
     private boolean firstLineIsActive;
     private boolean secondLineIsActive;
 
+    /**
+     * Enumération représentant les touches
+     * @author Karim HADIDANE (271018)
+     * @author Ahmed JELLOULI (274056)
+     */
     public enum Key {
         RIGHT, LEFT, UP, DOWN, A, B, SELECT, START
     }
@@ -42,15 +47,15 @@ public final class Joypad implements Component {
      *            la touche pressée
      */
     public void keyPressed(Key key) {
-        
-        int ligne = key.ordinal() /4;
+
+        int ligne = key.ordinal() / 4;
         int colonne = key.ordinal() % 4;
         boolean b = Bits.test(read(AddressMap.REG_P1), colonne);
         pressedKeysMatrix[ligne] = Bits.set(pressedKeysMatrix[ligne], colonne,
                 true);
         if (Bits.test(read(AddressMap.REG_P1), 4 + ligne) && !(b)) {
             cpu.requestInterrupt(Interrupt.JOYPAD);
-            
+
         }
 
     }
@@ -66,9 +71,7 @@ public final class Joypad implements Component {
         int colonne = key.ordinal() % 4;
         pressedKeysMatrix[ligne] = Bits.set(pressedKeysMatrix[ligne], colonne,
                 false);
-        }
-
-    
+    }
 
     /*
      * (non-Javadoc)
@@ -106,21 +109,18 @@ public final class Joypad implements Component {
     public void write(int address, int data) {
         checkBits16(address);
         checkBits8(data);
-        
+
         if (address == AddressMap.REG_P1) {
-            int previousp1=read(AddressMap.REG_P1);
-           firstLineIsActive=Bits.test(Bits.complement8(data) , 4);
-           secondLineIsActive=Bits.test(Bits.complement8(data), 5);
-           if(Bits.clip(4, (Bits.complement8(previousp1) & read(AddressMap.REG_P1)))>0) {
-               cpu.requestInterrupt(Interrupt.JOYPAD);
-           }
+            int previousp1 = read(AddressMap.REG_P1);
+            firstLineIsActive = Bits.test(Bits.complement8(data), 4);
+            secondLineIsActive = Bits.test(Bits.complement8(data), 5);
+            if (Bits.clip(4, (Bits.complement8(previousp1)
+                    & read(AddressMap.REG_P1))) > 0) {
+                cpu.requestInterrupt(Interrupt.JOYPAD);
+            }
 
-        } 
-        
-        
-
-    }
+        }
 
     }
 
-
+}
