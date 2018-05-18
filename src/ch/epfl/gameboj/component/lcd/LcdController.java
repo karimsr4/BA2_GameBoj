@@ -9,6 +9,7 @@ import ch.epfl.gameboj.AddressMap;
 import ch.epfl.gameboj.Bus;
 import ch.epfl.gameboj.Register;
 import ch.epfl.gameboj.RegisterFile;
+import ch.epfl.gameboj.bits.Bit;
 import ch.epfl.gameboj.bits.BitVector;
 import ch.epfl.gameboj.bits.Bits;
 import ch.epfl.gameboj.component.Clocked;
@@ -18,11 +19,10 @@ import ch.epfl.gameboj.component.cpu.Cpu.Interrupt;
 import ch.epfl.gameboj.component.memory.Ram;
 
 /**
- * classe qui représente le controlleur d'écran LCD
+ * Classe qui simule le controlleur d'écran
  * 
  * @author Karim HADIDANE (271018)
  * @author Ahmed JELLOULI (274056)
- *
  */
 public final class LcdController implements Component, Clocked {
     public static final int LCD_WIDTH = 160;
@@ -31,21 +31,34 @@ public final class LcdController implements Component, Clocked {
 
     private static final int TILE_EDGE = 8;
     private static final int TILE_IMAGE_BYTES = 16;
+    private static final int IMAGE_LINE_TILES = 32;
+    private static final int SCREEN_LINE_TILES = 20;
+
+    private enum LCDCBits implements Bit {
+        BG, OBJ, OBJ_SIZE, BG_AREA, TILE_SOURCE, WIN, WIN_AREA, LCD_STATUS
+    }
+
+    private enum STATBits implements Bit {
+        MODE0, MODE1, LYC_EQ_LY, INT_MODE0, INT_MODE1, INT_MODE2, INT_LYC, UNUSED
+    }
 
     private final Cpu cpu;
     private final Ram videoRam = new Ram(AddressMap.VIDEO_RAM_SIZE);
     private final RegisterFile<Reg> lcdcRegs = new RegisterFile<>(Reg.values());
     private final Ram oam = new Ram(AddressMap.OAM_RAM_SIZE);
     private Bus bus;
+
     private long nextNonIdleCycle = Long.MAX_VALUE;
+
     private LcdImage.Builder nextImageBuilder = new LcdImage.Builder(LCD_WIDTH,
             LCD_HEIGHT);
     private LcdImage nextImage = new LcdImage.Builder(LCD_WIDTH, LCD_HEIGHT)
             .build();
     private int winY;
+
     private boolean isQuickCopying;
     private int copyStartAddress;
-    private int nbreOfCopiedBytes;
+    private int copiedBytes;
 
     private enum Mode {
         MODE_0(0, 51), MODE_1(1, 114), MODE_2(2, 20), MODE_3(3, 43);
@@ -60,6 +73,29 @@ public final class LcdController implements Component, Clocked {
 
     private enum Reg implements Register {
         LCDC, STAT, SCY, SCX, LY, LYC, DMA, BGP, OPB0, OPB1, WY, WX;
+    }
+
+    private enum Position {
+        BACKGOUND, FOREGOUND
+    }
+
+    private enum TileSource {
+        TILE_SOURCE_0(AddressMap.TILE_SOURCE[0]), TILE_SOURCE_1(
+                AddressMap.TILE_SOURCE[1]);
+        private int start;
+
+        private TileSource(int start) {
+            this.start = start;
+        }
+
+    }
+
+    private enum TileDataArea {
+        AREA_0 (AddressMap.BG_DISPLAY_DATA[0]), AREA_1(AddressMap.BG_DISPLAY_DATA[1]);
+        private final int start ;
+        private TileDataArea(int start) {
+            this.start=start;
+        }
     }
 
     /**
@@ -91,23 +127,6 @@ public final class LcdController implements Component, Clocked {
      * 
      * @see ch.epfl.gameboj.component.Clocked#cycle(long)
      */
-
-    @Override
-    public void cycle(long cycle) {
-        quickCopy();
-
-        if (nextNonIdleCycle == Long.MAX_VALUE && screenIsOn()) {
-
-            nextNonIdleCycle = cycle;
-
-            changeMode(Mode.MODE_2);
-        }
-
-        if (cycle == nextNonIdleCycle) {
-            reallyCycle();
-        }
-
-    }
 
     /*
      * (non-Javadoc)
@@ -156,20 +175,22 @@ public final class LcdController implements Component, Clocked {
 
             switch (reg) {
             case LCDC: {
-                if (!Bits.test(data, 7)) {
+                set(reg, data);
+                if (!Bits.test(get(Reg.LCDC), LCDCBits.LCD_STATUS)) {
                     setLyLyc(Reg.LY, 0);
                     changeMode(Mode.MODE_0);
-
                     nextNonIdleCycle = Long.MAX_VALUE;
                 }
-                set(reg, data);
+
             }
                 break;
             case STAT: {
-               set(reg, Bits.clip(3, get(reg)) | (Bits.extract(data, 3, 5) << 3 ));
-               changeMode(currentMode());
-               setLyLyc(Reg.LY, get(Reg.LY));
-                
+                set(reg, Bits.clip(3, get(reg))
+                        | (Bits.extract(data, 3, 5) << 3));
+                if (modeInterruptActive(currentMode())
+                        || (lyEqualsLycInterruptActive()
+                                && get(Reg.LY) == get(Reg.LYC)))
+                    cpu.requestInterrupt(Interrupt.LCD_STAT);
             }
                 break;
             case LYC: {
@@ -179,31 +200,15 @@ public final class LcdController implements Component, Clocked {
             case LY:
                 break;
             case DMA: {
-
                 set(reg, data);
                 isQuickCopying = true;
-                copyStartAddress= Bits.make16(data, 0);
-
+                copyStartAddress = Bits.make16(data, 0);
             }
-           
                 break;
             default: {
                 set(reg, data);
             }
             }
-        }
-
-    }
-
-    private void quickCopy() {
-        if (isQuickCopying) {
-            oam.write(nbreOfCopiedBytes, bus.read(copyStartAddress + nbreOfCopiedBytes));
-            nbreOfCopiedBytes++;
-
-        }
-        if (nbreOfCopiedBytes == AddressMap.OAM_RAM_SIZE) {
-            isQuickCopying = false;
-            nbreOfCopiedBytes = 0;
         }
 
     }
@@ -215,205 +220,39 @@ public final class LcdController implements Component, Clocked {
 
     }
 
-    private void changeMode(Mode nextMode) {
-        int mask = 0b11 ;
-//        if (compteur ==1) {
-//            System.out.println("cycles: "+nextNonIdleCycle+  " since frame: "+ cycles+" | mode: "+ currentMode()+" --> "+ nextMode);           
-//        }
-        int statNewValue = (nextMode.mode & mask) | (get(Reg.STAT) & (~mask));
-        set(Reg.STAT, statNewValue);
-        nextNonIdleCycle += nextMode.lineCycles;
-        cycles+=nextMode.lineCycles;
-        if (Bits.test(get(Reg.STAT), nextMode.mode + 3)
-                && nextMode != Mode.MODE_3) {
-            cpu.requestInterrupt(Interrupt.LCD_STAT);
+    /*
+     * (non-Javadoc)
+     * 
+     * @see ch.epfl.gameboj.component.Clocked#cycle(long)
+     */
 
+    @Override
+    public void cycle(long cycle) {
+        quickCopy();
+
+        if (nextNonIdleCycle == Long.MAX_VALUE && screenIsOn()) {
+
+            nextNonIdleCycle = cycle;
+
+            changeMode(Mode.MODE_2);
+        }
+
+        if (cycle == nextNonIdleCycle) {
+            reallyCycle();
         }
 
     }
 
-    private LcdImageLine computeLine(int index) {
-        int realIndex = (index + get(Reg.SCY)) % IMAGE_EDGE;
-        LcdImageLine bgWindowLine = new LcdImageLine.Builder(256).build();
-        if (backGroundActivated()) {
-            bgWindowLine = reallyComputeLine(realIndex,
-                    Bits.test(get(Reg.LCDC), 3));
-        }
-
-        
-        if (windowActivated() && index >= get(Reg.WY)) {
-            LcdImageLine window = reallyComputeLine(winY,
-                    Bits.test(get(Reg.LCDC), 6));
-            int shift =Integer.max((get(Reg.WX) - 7 )% 256+ get(Reg.SCX),0);
-            bgWindowLine = bgWindowLine.join(window.shift(shift),
-                    shift);
-            if(shift>=96) {
-                int a = shift -96  ;
-                bgWindowLine=window.shift(a-160).join(bgWindowLine,a);
-            }
-            winY++;
-        }
-        bgWindowLine = bgWindowLine.extractWrapped(get(Reg.SCX), LCD_WIDTH)
-                .mapColors(get(Reg.BGP));
-        
-        if (spriteActivated()) {
-            LcdImageLine backgroundSprites = computeSpriteLine(index, true);
-            BitVector opacity = bgWindowLine.getOpacity().not()
-                    .and(backgroundSprites.getOpacity()).not();
-            LcdImageLine foregroundSprites = computeSpriteLine(index, false);
-            return backgroundSprites.below(bgWindowLine, opacity)
-                    .below(foregroundSprites);
-        }
-
-        return bgWindowLine;
-
-    }
-
-    private boolean spriteActivated() {
-        return Bits.test(get(Reg.LCDC), 1);
-
-    }
-
-    private LcdImageLine computeSpriteLine(int lineIndex, boolean bgSprites) {
-        int[] sprites = spritesIntersectingLine(lineIndex);
-
-        int sprite;
-        LcdImageLine result = new LcdImageLine.Builder(LCD_WIDTH).build();
-
-        int x;
-
-        for (int i = 0; i < sprites.length; i++) {
-            sprite = sprites[i];
-
-            x = getSpriteX(sprite);
-            
-
-            if (spriteInBackGround(sprite) == bgSprites) {
-                result = spriteLine(sprite, lineIndex)
-                        .mapColors(getSpritePalette(sprite)).shift(x-8 )
-                        .below(result);
-
-            }
-        }
-        return result;
-
-    }
-
-    private int getSpriteX(int index) {
-        return oam.read(index * 4 + 1);
-    }
-
-    private boolean spriteInBackGround(int spriteIndex) {
-        return Bits.test(oam.read(spriteIndex * 4 + 3), 7);
-    }
-
-    private void setLyLyc(Reg a, int data) {
-        if (compteur==1) {
-            
-            if (a==Reg.LY)     
-                System.out.println("cycles: "+nextNonIdleCycle+  " since frame: "+ cycles+" | LY "+ get(Reg.LY)+" --> "+ data);            
-            ;
-        }
-        set(a, data);
-        boolean equal = get(Reg.LY) == get(Reg.LYC);
-        set(Reg.STAT, Bits.set(get(Reg.STAT), 2, equal));
-        if (Bits.test(get(Reg.STAT), 6) && equal)
-            cpu.requestInterrupt(Interrupt.LCD_STAT);
-
-    }
-
-    private int TileIndex(int tile, boolean area) {
-        int start = AddressMap.BG_DISPLAY_DATA[area ? 1 : 0];
-
-        return videoRam.read(start + tile - AddressMap.VIDEO_RAM_START);
-    }
-
-    private LcdImageLine spriteLine(int index, int line) {
-        LcdImageLine.Builder result = new LcdImageLine.Builder(LCD_WIDTH);
-        int tile = oam.read(index * 4 + 2);
-        line = isFlippedVertically(index)
-                ? spriteHeight()
-                        - (line - oam.read(index * 4) + TILE_EDGE * 2 + 1)
-                : line - oam.read(index * 4) + TILE_EDGE * 2;
-
-        boolean horizontalFlip = isFlippedHorizontally(index);
-        result.setByte(0,
-                getTileImageByte(line * 2 + 1, tile, true, horizontalFlip),
-                getTileImageByte(line * 2, tile, true, horizontalFlip));
-        return result.build();
-    }
-
-    private boolean isFlippedVertically(int index) {
-        return Bits.test(oam.read(index * 4 + 3), 6);
-    }
-
-    private boolean isFlippedHorizontally(int index) {
-        return Bits.test(oam.read(index * 4 + 3), 5);
-    }
-
-    private int getTileImageByte(int byteIndex, int tileIndex, boolean area,
-            boolean reverse) {
-
-        int address;
-        if (area) {
-
-            address = AddressMap.TILE_SOURCE[1] + tileIndex * TILE_IMAGE_BYTES
-                    + byteIndex;
-
-        } else {
-
-            int shift = tileIndex < 0x80 ? 0x80 : -0x80;
-            address = AddressMap.TILE_SOURCE[0]
-                    + (tileIndex + shift) * TILE_IMAGE_BYTES + byteIndex;
-
-        }
-
-        return reverse ? videoRam.read(address - AddressMap.VIDEO_RAM_START)
-                : Bits.reverse8(
-                        videoRam.read(address - AddressMap.VIDEO_RAM_START));
-
-    }
-
-    private boolean theTileSourceEffect() {
-        return Bits.test(get(Reg.LCDC), 4);
-    }
-
-    private int getSpritePalette(int index) {
-        return Bits.test(oam.read(index * 4 + 3), 4) ? get(Reg.OPB1)
-                : get(Reg.OPB0);
-    }
-
-    private LcdImageLine reallyComputeLine(int index, boolean area) {
-        int firstByte = (index % TILE_EDGE) * 2;
-        int firstTile = (index / TILE_EDGE) * (IMAGE_EDGE / TILE_EDGE);
-        LcdImageLine.Builder builder = new LcdImageLine.Builder(IMAGE_EDGE);
-        for (int i = 0; i < 32; i++) {
-            int tileIndex = TileIndex(firstTile + i, area);
-            builder.setByte(i,
-                    getTileImageByte(firstByte + 1, tileIndex,
-                            theTileSourceEffect(), false),
-                    getTileImageByte(firstByte, tileIndex,
-                            theTileSourceEffect(),false));
-        }
-        return builder.build();
-
-    }
-
-    int compteur=0;
-    long cycles=0;
     private void reallyCycle() {
         switch (currentMode()) {
         case MODE_0: {
             setLyLyc(Reg.LY, get(Reg.LY) + 1);
 
             if (get(Reg.LY) == LCD_HEIGHT) {
-                
+
                 cpu.requestInterrupt(Interrupt.VBLANK);
-                if(compteur==1)
-                System.out.println("cycles: "+nextNonIdleCycle+  " since frame: "+ cycles+" | request VBLANK ");
                 changeMode(Mode.MODE_1);
                 nextImage = nextImageBuilder.build();
-                
 
             } else {
                 changeMode(Mode.MODE_2);
@@ -422,11 +261,9 @@ public final class LcdController implements Component, Clocked {
         }
             break;
         case MODE_1: {
-            
 
             if (get(Reg.LY) == 153) {
-                cycles=0;
-                compteur++;
+
                 setLyLyc(Reg.LY, 0);
                 changeMode(Mode.MODE_2);
                 nextImageBuilder = new LcdImage.Builder(LCD_WIDTH, LCD_HEIGHT);
@@ -442,58 +279,92 @@ public final class LcdController implements Component, Clocked {
         case MODE_2: {
 
             changeMode(Mode.MODE_3);
-
-            nextImageBuilder.setLine(get(Reg.LY), computeLine(get(Reg.LY)));
+            int ly = get(Reg.LY);
+            nextImageBuilder.setLine(ly, computeLine(ly));
 
         }
             break;
         case MODE_3: {
             changeMode(Mode.MODE_0);
-            
 
         }
-        break;
+            break;
 
         }
     }
 
-    private void set(Reg a, int data) {
-        lcdcRegs.set(a, data);
+    private LcdImageLine computeLine(int index) {
+
+        LcdImageLine line = new LcdImageLine.Builder(IMAGE_EDGE).build();
+        if (backGroundActivated()) {
+            int realIndex = (index + get(Reg.SCY)) % IMAGE_EDGE;
+            int scx = get(Reg.SCX);
+            TileDataArea tileArea = Bits.test(get(Reg.LCDC), LCDCBits.BG_AREA)
+                    ? TileDataArea.AREA_1
+                    : TileDataArea.AREA_0;
+            line = reallyComputeLine(scx, realIndex, tileArea)
+                    .shift(-(scx % TILE_EDGE));
+
+        }
+        if (windowActivated() && index >= get(Reg.WY)) {
+            TileDataArea tileArea = Bits.test(get(Reg.LCDC), LCDCBits.WIN_AREA)
+                    ? TileDataArea.AREA_1
+                    : TileDataArea.AREA_0;
+            LcdImageLine window = reallyComputeLine(0, winY, tileArea);
+            int shift = get(Reg.WX) - 7;
+            line = line.join(window.shift(shift), Integer.max(0, shift));
+            winY++;
+        }
+        line = line.extractWrapped(0, LCD_WIDTH).mapColors(get(Reg.BGP));
+
+        if (spritesActivated()) {
+            int[] lineSprites = spritesIntersectingLine(index);
+            LcdImageLine backgroundSprites = computeSpriteLine(lineSprites,
+                    index, Position.BACKGOUND);
+            BitVector opacity = line.getOpacity().not()
+                    .and(backgroundSprites.getOpacity()).not();
+            LcdImageLine foregroundSprites = computeSpriteLine(lineSprites,
+                    index, Position.FOREGOUND);
+            return backgroundSprites.below(line, opacity)
+                    .below(foregroundSprites);
+        }
+
+        return line;
+
     }
 
-    private Mode currentMode() {
-        return Mode.values()[Bits.clip(2, get(Reg.STAT))];
+    private LcdImageLine reallyComputeLine(int startPixel, int index,
+            TileDataArea tileArea) {
+        int firstByte = (index % TILE_EDGE) * 2;
+        int start = startPixel / TILE_EDGE;
+        int firstTile = (index / TILE_EDGE) * (IMAGE_EDGE / TILE_EDGE);
+        LcdImageLine.Builder builder = new LcdImageLine.Builder(IMAGE_EDGE);
+        int tileIndex;
+        for (int i = start; i <= start + SCREEN_LINE_TILES; i++) {
+            tileIndex = tileIndex(firstTile + (i % IMAGE_LINE_TILES), tileArea);
+            builder.setByte(i - start,
+                    getTileImageByte(firstByte + 1, tileIndex, tileSource(),
+                            false),
+                    getTileImageByte(firstByte, tileIndex, tileSource(),
+                            false));
+        }
+        return builder.build();
+
     }
 
-    private int get(Reg a) {
-        return lcdcRegs.get(a);
-    }
+    private LcdImageLine computeSpriteLine(int[] sprites, int lineIndex,
+            Position spritePosition) {
 
-    private boolean windowActivated() {
-        return Bits.test(get(Reg.LCDC), 5) 
-                && get(Reg.WX) < 167;
-    }
+        int sprite;
+        LcdImageLine result = new LcdImageLine.Builder(LCD_WIDTH).build();
+        for (int i = 0; i < sprites.length; i++) {
+            sprite = sprites[i];
+            if (spritePosition(sprite) == spritePosition) {
+                result = spriteLine(sprite, lineIndex).below(result);
+            }
+        }
+        return result;
 
-    private boolean backGroundActivated() {
-        return Bits.test(get(Reg.LCDC), 0);
-    }
-
-    private boolean screenIsOn() {
-        return Bits.test(get(Reg.LCDC), 7);
-    }
-
-    private boolean addressBelongsToVideoRam(int address) {
-        return address >= AddressMap.VIDEO_RAM_START
-                && address < AddressMap.VIDEO_RAM_END;
-    }
-
-    private boolean addressBelongsToRegisters(int address) {
-        return address >= AddressMap.REGS_LCDC_START
-                && address < AddressMap.REGS_LCDC_END;
-    }
-
-    private boolean addressBelongstoObjectsRam(int address) {
-        return address >= AddressMap.OAM_START && address < AddressMap.OAM_END;
     }
 
     private int[] spritesIntersectingLine(int lineIndex) {
@@ -520,9 +391,173 @@ public final class LcdController implements Component, Clocked {
         return result;
     }
 
-    private int spriteHeight() {
-        return Bits.test(get(Reg.LCDC), 2) ? 2 * TILE_EDGE : TILE_EDGE;
+    private LcdImageLine spriteLine(int sprite, int line) {
 
+        LcdImageLine.Builder result = new LcdImageLine.Builder(LCD_WIDTH);
+
+        int tile = oam.read(sprite * 4 + 2);
+        int spriteAttributes = oam.read(sprite * 4 + 3);
+        boolean verticalFlip = Bits.test(spriteAttributes, 6);
+        boolean horizontalFlip = Bits.test(spriteAttributes, 5);
+        int spritePalette = Bits.test(spriteAttributes, 4) ? get(Reg.OPB1)
+                : get(Reg.OPB0);
+        
+
+        line = verticalFlip
+                ? spriteHeight()
+                        - (line - oam.read(sprite * 4) + TILE_EDGE * 2 + 1)
+                : line - oam.read(sprite * 4) + TILE_EDGE * 2;
+
+        result.setByte(0,
+                getTileImageByte(line * 2 + 1, tile, TileSource.TILE_SOURCE_1,
+                        horizontalFlip),
+                getTileImageByte(line * 2, tile, TileSource.TILE_SOURCE_1,
+                        horizontalFlip));
+
+        return result.build().mapColors(spritePalette)
+                .shift(getSpriteX(sprite) - 8);
+    }
+
+    private int tileIndex(int tile, TileDataArea tileArea) {
+        return videoRam.read(tileArea.start + tile - AddressMap.VIDEO_RAM_START);
+    }
+
+    private int getTileImageByte(int byteIndex, int tileIndex,
+            TileSource source, boolean reverse) {
+
+        int address = source.start;
+        switch (source) {
+
+        case TILE_SOURCE_1:
+            address += tileIndex * TILE_IMAGE_BYTES + byteIndex;
+            break;
+        case TILE_SOURCE_0: {
+
+            int shift = tileIndex < 0x80 ? 0x80 : -0x80;
+            address += (tileIndex + shift) * TILE_IMAGE_BYTES + byteIndex;
+        }
+        }
+
+        return reverse ? videoRam.read(address - AddressMap.VIDEO_RAM_START)
+                : Bits.reverse8(
+                        videoRam.read(address - AddressMap.VIDEO_RAM_START));
+
+    }
+
+    private void changeMode(Mode nextMode) {
+
+        int mask = 0b11;
+        int statNewValue = (nextMode.mode & mask) | (get(Reg.STAT) & (~mask));
+
+        set(Reg.STAT, statNewValue);
+        nextNonIdleCycle += nextMode.lineCycles;
+
+        if (modeInterruptActive(nextMode)) {
+            cpu.requestInterrupt(Interrupt.LCD_STAT);
+
+        }
+
+    }
+
+    private void setLyLyc(Reg a, int data) {
+
+        set(a, data);
+        boolean equal = get(Reg.LY) == get(Reg.LYC);
+        set(Reg.STAT,
+                Bits.set(get(Reg.STAT), STATBits.LYC_EQ_LY.index(), equal));
+        if (lyEqualsLycInterruptActive() && equal)
+            cpu.requestInterrupt(Interrupt.LCD_STAT);
+
+    }
+
+    private void quickCopy() {
+        if (isQuickCopying) {
+            oam.write(copiedBytes, bus.read(copyStartAddress + copiedBytes));
+            copiedBytes++;
+
+        }
+        if (copiedBytes == AddressMap.OAM_RAM_SIZE) {
+            isQuickCopying = false;
+            copiedBytes = 0;
+        }
+
+    }
+
+    private int getSpriteX(int index) {
+        return oam.read(index * 4 + 1);
+    }
+
+    // méthodes pour faciliter l'accés au banc de registres
+    private void set(Reg a, int data) {
+        lcdcRegs.set(a, data);
+    }
+
+    private int get(Reg a) {
+        return lcdcRegs.get(a);
+    }
+
+    private TileSource tileSource() {
+        return Bits.test(get(Reg.LCDC), LCDCBits.TILE_SOURCE)
+                ? TileSource.TILE_SOURCE_1
+                : TileSource.TILE_SOURCE_0;
+    }
+
+    private Position spritePosition(int spriteIndex) {
+        return Bits.test(oam.read(spriteIndex * 4 + 3), 7) ? Position.BACKGOUND
+                : Position.FOREGOUND;
+    }
+
+    private Mode currentMode() {
+        return Mode.values()[Bits.clip(2, get(Reg.STAT))];
+    }
+
+    // Méthodes de tests sur les registres
+    private boolean spritesActivated() {
+        return Bits.test(get(Reg.LCDC), LCDCBits.OBJ);
+
+    }
+
+    private boolean windowActivated() {
+        return Bits.test(get(Reg.LCDC), LCDCBits.WIN)
+                && get(Reg.WX) - 7 < LCD_WIDTH;
+    }
+
+    private boolean backGroundActivated() {
+        return Bits.test(get(Reg.LCDC), LCDCBits.BG);
+    }
+
+    private int spriteHeight() {
+        return Bits.test(get(Reg.LCDC), LCDCBits.OBJ_SIZE) ? 2 * TILE_EDGE
+                : TILE_EDGE;
+
+    }
+
+    private boolean modeInterruptActive(Mode mode) {
+        return mode != Mode.MODE_3 && Bits.test(get(Reg.STAT), mode.mode + 3);
+
+    }
+
+    private boolean lyEqualsLycInterruptActive() {
+        return Bits.test(get(Reg.STAT), STATBits.INT_LYC);
+    }
+
+    private boolean screenIsOn() {
+        return Bits.test(get(Reg.LCDC), LCDCBits.LCD_STATUS);
+    }
+
+    // Méthodes de tests d'adresses
+    private boolean addressBelongsToVideoRam(int address) {
+        return address >= AddressMap.VIDEO_RAM_START
+                && address < AddressMap.VIDEO_RAM_END;
+    }
+
+    private boolean addressBelongsToRegisters(int address) {
+        return address >= AddressMap.REGS_LCDC_START
+                && address < AddressMap.REGS_LCDC_END;
+    }
+
+    private boolean addressBelongstoObjectsRam(int address) {
+        return address >= AddressMap.OAM_START && address < AddressMap.OAM_END;
     }
 
 }

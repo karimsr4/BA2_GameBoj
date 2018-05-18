@@ -95,6 +95,8 @@ public final class GameBoy {
 
     }
 
+    
+
     /**
      * simule le fonctionnement du GameBoy jusqu'au cycle donné moins 1
      * 
@@ -110,7 +112,7 @@ public final class GameBoy {
             timer.cycle(cycles);
             lcdController.cycle(cycles);
             cpu.cycle(cycles);
-            cycles++;
+            cycles ++;
         }
     }
 

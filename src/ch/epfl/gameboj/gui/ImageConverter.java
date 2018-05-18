@@ -9,7 +9,7 @@ import javafx.scene.image.WritableImage;
 
 public final class ImageConverter {
     private static final int[] COLOR_MAP = new int[] {
-            0xFF_FF_FF_FF, 0xFF_D3_D3_D3, 0xFF_A9_A9_A9, 0xFF_00_00_00
+            0xFF_FF_FF_05, 0xFF_D3_D3_D3, 0xFF_FF_00_00, 0xFF_00_00_00
           };
     private static final int[] COLOR_MAP_BUFF = new int[] {
             0xFF_FF_FF, 0xD3_D3_D3, 0xA9_A9_A9, 0x00_00_00
