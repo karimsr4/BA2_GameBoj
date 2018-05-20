@@ -213,6 +213,9 @@ public final class LcdController implements Component, Clocked {
 
     }
 
+    /* (non-Javadoc)
+     * @see ch.epfl.gameboj.component.Component#attachTo(ch.epfl.gameboj.Bus)
+     */
     @Override
     public void attachTo(Bus bus) {
         this.bus = bus;

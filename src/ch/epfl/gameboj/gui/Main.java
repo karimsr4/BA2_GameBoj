@@ -56,8 +56,8 @@ public class Main extends Application {
         
         
         ImageView imageview = new ImageView();
-        imageview.setFitHeight(4 * LcdController.LCD_HEIGHT);
-        imageview.setFitWidth(4 * LcdController.LCD_WIDTH);
+        imageview.setFitHeight(2 * LcdController.LCD_HEIGHT);
+        imageview.setFitWidth(2 * LcdController.LCD_WIDTH);
         imageview.setOnKeyPressed(e -> {
             KeyCode code = e.getCode();
             String text = e.getText().toUpperCase();
@@ -106,7 +106,7 @@ public class Main extends Application {
             @Override
             public void handle(long now) {
                 long elapsed = now-start;
-                long cycles=(long) (gameboy.cycles()+(counter.getCounter()*elapsed * GameBoy.CYCLES_PER_NANOSECOND)); 
+                long cycles=(long) (counter.getCounter()*elapsed * GameBoy.CYCLES_PER_NANOSECOND); 
                 gameboy.runUntil(cycles) ;
                 imageview.setImage(ImageConverter
                         .convert(gameboy.lcdController().currentImage()));
