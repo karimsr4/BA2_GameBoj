@@ -107,9 +107,7 @@ public final class LcdController implements Component, Clocked {
     public LcdController(Cpu cpu) {
         for (Reg o : Reg.values())
             set(o, 0);
-
         this.cpu = cpu;
-
     }
 
     /**
@@ -119,14 +117,7 @@ public final class LcdController implements Component, Clocked {
      */
     public LcdImage currentImage() {
         return nextImage;
-
     }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see ch.epfl.gameboj.component.Clocked#cycle(long)
-     */
 
     /*
      * (non-Javadoc)
@@ -135,7 +126,6 @@ public final class LcdController implements Component, Clocked {
      */
     @Override
     public int read(int address) {
-
         checkBits16(address);
         if (addressBelongsToVideoRam(address))
 
@@ -208,6 +198,7 @@ public final class LcdController implements Component, Clocked {
             default: {
                 set(reg, data);
             }
+            break;
             }
         }
 
@@ -220,7 +211,6 @@ public final class LcdController implements Component, Clocked {
     public void attachTo(Bus bus) {
         this.bus = bus;
         bus.attach(this);
-
     }
 
     /*
@@ -231,7 +221,8 @@ public final class LcdController implements Component, Clocked {
 
     @Override
     public void cycle(long cycle) {
-        quickCopy();
+        if (isQuickCopying) 
+             quickCopy();
 
         if (nextNonIdleCycle == Long.MAX_VALUE && screenIsOn()) {
 
@@ -377,7 +368,7 @@ public final class LcdController implements Component, Clocked {
         int nbSprites = 0;
         int realY = 0;
         while (nbSprites < 10 && spriteIndex < 40) {
-            realY = oam.read(spriteIndex * 4) - 16;
+            realY = getSpriteRealY(spriteIndex);
             if (realY <= lineIndex && realY + spriteHeight > lineIndex) {
                 intersectingSprites[nbSprites] = Bits
                         .make16(getSpriteX(spriteIndex), spriteIndex);
@@ -394,22 +385,22 @@ public final class LcdController implements Component, Clocked {
         return result;
     }
 
+    
+    
     private LcdImageLine spriteLine(int sprite, int line) {
-
         LcdImageLine.Builder result = new LcdImageLine.Builder(LCD_WIDTH);
-
         int tile = oam.read(sprite * 4 + 2);
         int spriteAttributes = oam.read(sprite * 4 + 3);
         boolean verticalFlip = Bits.test(spriteAttributes, 6);
         boolean horizontalFlip = Bits.test(spriteAttributes, 5);
         int spritePalette = Bits.test(spriteAttributes, 4) ? get(Reg.OPB1)
                 : get(Reg.OPB0);
-        
+        int realY=getSpriteRealY(sprite);
 
         line = verticalFlip
                 ? spriteHeight()
-                        - (line - oam.read(sprite * 4) + TILE_EDGE * 2 + 1)
-                : line - oam.read(sprite * 4) + TILE_EDGE * 2;
+                        - (line - realY + 1)
+                : line - realY;
 
         result.setByte(0,
                 getTileImageByte(line * 2 + 1, tile, TileSource.TILE_SOURCE_1,
@@ -418,7 +409,7 @@ public final class LcdController implements Component, Clocked {
                         horizontalFlip));
 
         return result.build().mapColors(spritePalette)
-                .shift(getSpriteX(sprite) - 8);
+                .shift(getSpriteRealX(sprite));
     }
 
     private int tileIndex(int tile, TileDataArea tileArea) {
@@ -474,11 +465,8 @@ public final class LcdController implements Component, Clocked {
     }
 
     private void quickCopy() {
-        if (isQuickCopying) {
             oam.write(copiedBytes, bus.read(copyStartAddress + copiedBytes));
             copiedBytes++;
-
-        }
         if (copiedBytes == AddressMap.OAM_RAM_SIZE) {
             isQuickCopying = false;
             copiedBytes = 0;
@@ -486,10 +474,17 @@ public final class LcdController implements Component, Clocked {
 
     }
 
-    private int getSpriteX(int index) {
-        return oam.read(index * 4 + 1);
+    private int getSpriteRealX(int spriteIndex) {
+        return getSpriteX(spriteIndex)-8;
+    }
+    
+    private int getSpriteX(int spriteIndex) {
+        return oam.read(spriteIndex * 4 + 1);
     }
 
+    private int getSpriteRealY(int spriteIndex) {
+        return oam.read(spriteIndex * 4) - TILE_EDGE * 2;
+    }
     // méthodes pour faciliter l'accés au banc de registres
     private void set(Reg a, int data) {
         lcdcRegs.set(a, data);
