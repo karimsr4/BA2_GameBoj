@@ -306,7 +306,7 @@ public final class LcdController implements Component, Clocked {
                     ? TileDataArea.AREA_1
                     : TileDataArea.AREA_0;
             LcdImageLine window = reallyComputeLine(0, winY, tileArea);
-            int shift = get(Reg.WX) - 7;
+            int shift = getRealWX();
             line = line.join(window.shift(shift), Integer.max(0, shift));
             winY++;
         }
@@ -328,16 +328,26 @@ public final class LcdController implements Component, Clocked {
 
     }
 
+
+    
+    /**
+     * calcule une ligne d'image LCD d'index donné dont la première tuile 
+     * contient le pixel d'index donné
+     * @param startPixel pixel donné 
+     * @param index index de la ligne
+     * @param tileArea plage d'indexs des tuiles
+     * @return
+     */
     private LcdImageLine reallyComputeLine(int startPixel, int index,
             TileDataArea tileArea) {
         int firstByte = (index % TILE_EDGE) * 2;
         int start = startPixel / TILE_EDGE;
-        int firstTile = (index / TILE_EDGE) * (IMAGE_EDGE / TILE_EDGE);
+        int firstTile = (index / TILE_EDGE) * (IMAGE_LINE_TILES);
         LcdImageLine.Builder builder = new LcdImageLine.Builder(IMAGE_EDGE);
         int tileIndex;
-        for (int i = start; i <= start + SCREEN_LINE_TILES; i++) {
-            tileIndex = tileIndex(firstTile + (i % IMAGE_LINE_TILES), tileArea);
-            builder.setByte(i - start,
+        for (int i = 0; i <=  SCREEN_LINE_TILES; ++i) {
+            tileIndex = tileIndex(firstTile + ((i+start) % IMAGE_LINE_TILES), tileArea);
+            builder.setByte(i ,
                     getTileImageByte(firstByte + 1, tileIndex, tileSource(),
                             false),
                     getTileImageByte(firstByte, tileIndex, tileSource(),
@@ -378,7 +388,6 @@ public final class LcdController implements Component, Clocked {
             spriteIndex++;
         }
         Arrays.sort(intersectingSprites, 0, nbSprites);
-
         int[] result = new int[nbSprites];
         for (int j = 0; j < nbSprites; j++) {
             result[j] = Bits.clip(Byte.SIZE, intersectingSprites[j]);
@@ -387,6 +396,9 @@ public final class LcdController implements Component, Clocked {
     }
 
     
+    private int getRealWX() {
+        return get(Reg.WX) - 7;
+    }
     
     private LcdImageLine spriteLine(int sprite, int line) {
         LcdImageLine.Builder result = new LcdImageLine.Builder(LCD_WIDTH);
@@ -518,7 +530,7 @@ public final class LcdController implements Component, Clocked {
 
     private boolean windowActivated() {
         return Bits.test(get(Reg.LCDC), LCDCBits.WIN)
-                && get(Reg.WX) - 7 < LCD_WIDTH;
+                && getRealWX() < LCD_WIDTH;
     }
 
     private boolean backGroundActivated() {

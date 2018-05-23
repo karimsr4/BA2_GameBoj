@@ -219,7 +219,7 @@ public final class BitVector {
         checkArgument(size > 0 && size % CELL_SIZE == 0);
         int[] extracted = new int[size / CELL_SIZE];
         int shift = floorMod(start, CELL_SIZE);
-        if (start % CELL_SIZE == 0) {
+        if (start % CELL_SIZE == 0 ) {
             for (int i = 0; i < extracted.length; ++i) {
                 extracted[i] = elementExtracting(start + i * CELL_SIZE, method);
             }
