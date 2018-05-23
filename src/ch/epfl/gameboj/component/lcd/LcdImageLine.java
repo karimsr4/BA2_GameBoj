@@ -236,7 +236,6 @@ public final class LcdImageLine {
         private final BitVector.Builder msbBuilder;
         private final BitVector.Builder lsbBuilder;
         private boolean isBuilded;
-        private final int size;
 
         /**
          * construit un bâtisseur de ligne d'image avec la taille donnée
@@ -244,19 +243,18 @@ public final class LcdImageLine {
          * @param size
          *            taille de la ligne à construire
          * @throws IllegalArgumentException
-         *             si la taille est négatie, nulle ou n'est pas multiple de
-         *             32
+         *             si la taille est négative, nulle ou n'est pas un multiple
+         *             de 32
          */
         public Builder(int size) {
             msbBuilder = new BitVector.Builder(size);
             lsbBuilder = new BitVector.Builder(size);
-            this.size = size;
             isBuilded = false;
 
         }
 
         /**
-         * définir la valeur des octets de poids fort et de poids faible de la
+         * définit la valeur des octets de poids fort et de poids faible de la
          * ligne, à un index donné
          * 
          * @param index
@@ -270,8 +268,8 @@ public final class LcdImageLine {
          *             si les valeurs ne sont pas des entiers 8 bits ou si
          *             l'index n'est pas valide
          * @throws IllegalStateException
-         *             si la méthode est appelée après que le vecteur de bits
-         *             est construit
+         *             si la méthode est appelée après que la ligne
+         *             est construite
          */
         public Builder setByte(int index, int msbByte, int lsbByte) {
             if (isBuilded)
@@ -287,14 +285,16 @@ public final class LcdImageLine {
          * 
          * @return la ligne d'image
          * @throws IllegalStateException
-         *             si la méthode est appelée après que le vecteur de bits
-         *             est construit
+         *             si la méthode est appelée après que la ligne
+         *             est construite
          */
         public LcdImageLine build() {
+
             if (isBuilded) {
                 throw new IllegalStateException();
             }
             isBuilded = true;
+
             BitVector msb = msbBuilder.build();
             BitVector lsb = lsbBuilder.build();
 

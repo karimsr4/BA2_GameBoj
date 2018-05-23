@@ -8,6 +8,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
+import ch.epfl.gameboj.bits.Bits;
+
 /**
  * Classe représentant une image Game Boy
  * 
@@ -30,7 +32,7 @@ public final class LcdImage {
      * @param lines
      *            les lignes de l'image
      * @throws IllegalArgumentException
-     *             si le nombre des lignes est différent de la haiteur
+     *             si le nombre des lignes est différent de la hauteur
      * 
      */
     public LcdImage(int width, int height, List<LcdImageLine> lines) {
@@ -51,7 +53,7 @@ public final class LcdImage {
      */
     @Override
     public boolean equals(Object o) {
-        return o instanceof LcdImage && lines.equals(((LcdImage) o).lines);
+        return (o instanceof LcdImage) && lines.equals(((LcdImage) o).lines);
     }
 
     /*
@@ -80,10 +82,9 @@ public final class LcdImage {
     public int get(int x, int y) {
 
         LcdImageLine line = lines.get(y);
-        int msb = line.getMsb().testBit(x) ? 1 : 0;
-        int lsb = line.getLsb().testBit(x) ? 1 : 0;
 
-        return (msb << 1) | lsb;
+        return Bits.set(0, 1, line.getMsb().testBit(x))
+                | Bits.set(0, 0, line.getLsb().testBit(x));
 
     }
 
@@ -113,7 +114,7 @@ public final class LcdImage {
      */
     public final static class Builder {
 
-        private final LcdImageLine[] lines;
+        private final List<LcdImageLine> lines;
         private final int height, width;
         private boolean isBuilded;
 
@@ -126,52 +127,49 @@ public final class LcdImage {
          *            hauteur de l'image
          */
         public Builder(int width, int height) {
-            lines = new LcdImageLine[height];
-            for (int i = 0; i < height; i++) {
-                lines[i] = new LcdImageLine.Builder(width).build();
-            }
-
+            lines = new ArrayList<>(Collections.nCopies(height,
+                    new LcdImageLine.Builder(width).build()));
             this.width = width;
             this.height = height;
             isBuilded = false;
         }
 
         /**
-         * change la ligne d'index donné
+         * change la ligne d'index donné en la ligne donnèe
          * 
          * @param index
          *            index donné
          * @param newLine
          *            nouvelle ligne
-         * @return le bâtisseur
+         * @return ce bâtisseur
          * @throws IndexOutOfBoundsException
          *             si l'index n'est pas valide
          * @throws IllegalStateException
-         *             si la méthode est appelée après que le vecteur de bits
-         *             est construit
+         *             si la méthode est appelée après que l'image
+         *             est construite
          */
         public Builder setLine(int index, LcdImageLine newLine) {
             if (isBuilded)
                 throw new IllegalStateException();
             Objects.checkIndex(index, height);
             checkArgument(newLine.size() == width);
-            lines[index] = newLine;
+            lines.set(index, newLine) ;
             return this;
 
         }
 
         /**
-         * construit l'image
+         * construit l'image associée à ce batisseur
          * 
-         * @return l'image
+         * @return l'image construite
          * @throws IllegalStateException
-         *             si la méthode est appelée après que le vecteur de bits
-         *             est construit
+         *             si la méthode est appelée après que l'image
+         *             est construite
          */
         public LcdImage build() {
             if (isBuilded)
                 throw new IllegalStateException();
-            return new LcdImage(width, height, Arrays.asList(lines));
+            return new LcdImage(width, height, lines);
         }
     }
 
