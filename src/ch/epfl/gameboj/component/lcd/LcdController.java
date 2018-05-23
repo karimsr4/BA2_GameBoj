@@ -25,15 +25,19 @@ import ch.epfl.gameboj.component.memory.Ram;
  * @author Ahmed JELLOULI (274056)
  */
 public final class LcdController implements Component, Clocked {
+
     public static final int LCD_WIDTH = 160;
     public static final int LCD_HEIGHT = 144;
-    public static final int IMAGE_EDGE = 256;
 
+    private static final int IMAGE_EDGE = 256;
+    private static final int BYTES_PER_SPRITE = 4;
+    private static final int MAX_SPRITES = 40;
+    private static final int MAX_SPRITES_PER_LINE = 10;
     private static final int TILE_EDGE = 8;
     private static final int TILE_IMAGE_BYTES = 16;
     private static final int IMAGE_LINE_TILES = 32;
     private static final int SCREEN_LINE_TILES = 20;
-
+    private static final int TILES_AVAILABLE = 384;
 
     private final Cpu cpu;
     private final Ram videoRam = new Ram(AddressMap.VIDEO_RAM_SIZE);
@@ -56,10 +60,11 @@ public final class LcdController implements Component, Clocked {
     private enum LCDCBits implements Bit {
         BG, OBJ, OBJ_SIZE, BG_AREA, TILE_SOURCE, WIN, WIN_AREA, LCD_STATUS
     }
-    
+
     private enum STATBits implements Bit {
         MODE0, MODE1, LYC_EQ_LY, INT_MODE0, INT_MODE1, INT_MODE2, INT_LYC, UNUSED
     }
+
     private enum Mode {
         MODE_0(0, 51), MODE_1(1, 114), MODE_2(2, 20), MODE_3(3, 43);
         private int mode;
@@ -91,10 +96,12 @@ public final class LcdController implements Component, Clocked {
     }
 
     private enum TileDataArea {
-        AREA_0 (AddressMap.BG_DISPLAY_DATA[0]), AREA_1(AddressMap.BG_DISPLAY_DATA[1]);
-        private final int start ;
+        AREA_0(AddressMap.BG_DISPLAY_DATA[0]), AREA_1(
+                AddressMap.BG_DISPLAY_DATA[1]);
+        private final int start;
+
         private TileDataArea(int start) {
-            this.start=start;
+            this.start = start;
         }
     }
 
@@ -176,9 +183,8 @@ public final class LcdController implements Component, Clocked {
                 break;
             case STAT: {
                 int mask = 0b111;
-                set(Reg.STAT, (get(Reg.STAT) & mask)
-                        | (data & ~mask) );
-                
+                set(Reg.STAT, (get(Reg.STAT) & mask) | (data & ~mask));
+
                 if (modeInterruptActive(currentMode())
                         || (lyEqualsLycInterruptActive()
                                 && get(Reg.LY) == get(Reg.LYC)))
@@ -200,13 +206,15 @@ public final class LcdController implements Component, Clocked {
             default: {
                 set(reg, data);
             }
-            break;
+                break;
             }
         }
 
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see ch.epfl.gameboj.component.Component#attachTo(ch.epfl.gameboj.Bus)
      */
     @Override
@@ -223,8 +231,8 @@ public final class LcdController implements Component, Clocked {
 
     @Override
     public void cycle(long cycle) {
-        if (isQuickCopying) 
-             quickCopy();
+        if (isQuickCopying)
+            quickCopy();
 
         if (nextNonIdleCycle == Long.MAX_VALUE && screenIsOn()) {
 
@@ -235,6 +243,16 @@ public final class LcdController implements Component, Clocked {
 
         else if (cycle == nextNonIdleCycle) {
             reallyCycle();
+        }
+
+    }
+
+    private void quickCopy() {
+        oam.write(copiedBytes, bus.read(copyStartAddress + copiedBytes));
+        copiedBytes++;
+        if (copiedBytes == AddressMap.OAM_RAM_SIZE) {
+            isQuickCopying = false;
+            copiedBytes = 0;
         }
 
     }
@@ -259,7 +277,7 @@ public final class LcdController implements Component, Clocked {
         case MODE_1: {
 
             setLyLyc(Reg.LY, get(Reg.LY) + 1);
-            if (get(Reg.LY) == LCD_HEIGHT+10) {
+            if (get(Reg.LY) == LCD_HEIGHT + 10) {
 
                 setLyLyc(Reg.LY, 0);
                 changeMode(Mode.MODE_2);
@@ -328,14 +346,16 @@ public final class LcdController implements Component, Clocked {
 
     }
 
-
-    
     /**
-     * calcule une ligne d'image LCD d'index donné dont la première tuile 
+     * calcule une ligne d'image LCD d'index donné dont la première tuile
      * contient le pixel d'index donné
-     * @param startPixel pixel donné 
-     * @param index index de la ligne
-     * @param tileArea plage d'indexs des tuiles
+     * 
+     * @param startPixel
+     *            pixel donné
+     * @param index
+     *            index de la ligne
+     * @param tileArea
+     *            plage d'indexs des tuiles
      * @return
      */
     private LcdImageLine reallyComputeLine(int startPixel, int index,
@@ -345,9 +365,10 @@ public final class LcdController implements Component, Clocked {
         int firstTile = (index / TILE_EDGE) * (IMAGE_LINE_TILES);
         LcdImageLine.Builder builder = new LcdImageLine.Builder(IMAGE_EDGE);
         int tileIndex;
-        for (int i = 0; i <=  SCREEN_LINE_TILES; ++i) {
-            tileIndex = tileIndex(firstTile + ((i+start) % IMAGE_LINE_TILES), tileArea);
-            builder.setByte(i ,
+        for (int i = 0; i <= SCREEN_LINE_TILES; ++i) {
+            tileIndex = tileIndex(firstTile + ((i + start) % IMAGE_LINE_TILES),
+                    tileArea);
+            builder.setByte(i,
                     getTileImageByte(firstByte + 1, tileIndex, tileSource(),
                             false),
                     getTileImageByte(firstByte, tileIndex, tileSource(),
@@ -364,7 +385,7 @@ public final class LcdController implements Component, Clocked {
         LcdImageLine result = new LcdImageLine.Builder(LCD_WIDTH).build();
         for (int i = 0; i < sprites.length; i++) {
             sprite = sprites[i];
-            if (spritePosition(sprite) == spritePosition) {
+            if (getSpritePosition(sprite) == spritePosition) {
                 result = spriteLine(sprite, lineIndex).below(result);
             }
         }
@@ -374,11 +395,11 @@ public final class LcdController implements Component, Clocked {
 
     private int[] spritesIntersectingLine(int lineIndex) {
         int spriteHeight = spriteHeight();
-        int[] intersectingSprites = new int[10];
+        int[] intersectingSprites = new int[MAX_SPRITES_PER_LINE];
         int spriteIndex = 0;
         int nbSprites = 0;
         int realY = 0;
-        while (nbSprites < 10 && spriteIndex < 40) {
+        while (nbSprites < MAX_SPRITES_PER_LINE && spriteIndex < MAX_SPRITES) {
             realY = getSpriteRealY(spriteIndex);
             if (realY <= lineIndex && realY + spriteHeight > lineIndex) {
                 intersectingSprites[nbSprites] = Bits
@@ -395,24 +416,19 @@ public final class LcdController implements Component, Clocked {
         return result;
     }
 
-    
-    private int getRealWX() {
-        return get(Reg.WX) - 7;
-    }
-    
     private LcdImageLine spriteLine(int sprite, int line) {
+
         LcdImageLine.Builder result = new LcdImageLine.Builder(LCD_WIDTH);
-        int tile = oam.read(sprite * 4 + 2);
-        int spriteAttributes = oam.read(sprite * 4 + 3);
+        int tile = getSpriteTile(sprite);
+        int spriteAttributes = getSpriteProperties(sprite);
+        int realY = getSpriteRealY(sprite);
+
         boolean verticalFlip = Bits.test(spriteAttributes, 6);
         boolean horizontalFlip = Bits.test(spriteAttributes, 5);
         int spritePalette = Bits.test(spriteAttributes, 4) ? get(Reg.OPB1)
                 : get(Reg.OPB0);
-        int realY=getSpriteRealY(sprite);
 
-        line = verticalFlip
-                ? spriteHeight()
-                        - (line - realY + 1)
+        line = verticalFlip ? spriteHeight() - (line - realY + 1)
                 : line - realY;
 
         result.setByte(0,
@@ -425,25 +441,30 @@ public final class LcdController implements Component, Clocked {
                 .shift(getSpriteRealX(sprite));
     }
 
+    /**
+     * retourne l'identifiant(octet) de la tuile d'index (dans l'image) donné
+     * 
+     * @param tile
+     *            index de la tuile dans l'image
+     * @param tileArea
+     *            plage ou sont stockés les différent identifiants des tuiles
+     * @return
+     */
     private int tileIndex(int tile, TileDataArea tileArea) {
-        return videoRam.read(tileArea.start + tile - AddressMap.VIDEO_RAM_START);
+        return videoRam
+                .read(tileArea.start + tile - AddressMap.VIDEO_RAM_START);
     }
 
     private int getTileImageByte(int byteIndex, int tileIndex,
             TileSource source, boolean reverse) {
 
-        int address = source.start;
-        switch (source) {
+        int shift = 0;
 
-        case SOURCE_1:
-            address += tileIndex * TILE_IMAGE_BYTES + byteIndex;
-            break;
-        case SOURCE_0: {
+        if (source == TileSource.SOURCE_0)
+            shift = tileIndex < 0x80 ? 0x80 : -0x80;
 
-            int shift = tileIndex < 0x80 ? 0x80 : -0x80;
-            address += (tileIndex + shift) * TILE_IMAGE_BYTES + byteIndex;
-        }
-        }
+        int address = source.start + (tileIndex + shift) * TILE_IMAGE_BYTES
+                + byteIndex;
 
         return reverse ? videoRam.read(address - AddressMap.VIDEO_RAM_START)
                 : Bits.reverse8(
@@ -465,84 +486,84 @@ public final class LcdController implements Component, Clocked {
         }
 
     }
-
+    
     private void setLyLyc(Reg a, int data) {
-
+        
         set(a, data);
         boolean equal = get(Reg.LY) == get(Reg.LYC);
-        set(Reg.STAT,
-                Bits.set(get(Reg.STAT), STATBits.LYC_EQ_LY.index(), equal));
+        int statNewValue = Bits.set(get(Reg.STAT), STATBits.LYC_EQ_LY.index(),
+                equal);
+        set(Reg.STAT, statNewValue);
         if (lyEqualsLycInterruptActive() && equal)
             cpu.requestInterrupt(Interrupt.LCD_STAT);
-
-    }
-
-    private void quickCopy() {
-            oam.write(copiedBytes, bus.read(copyStartAddress + copiedBytes));
-            copiedBytes++;
-        if (copiedBytes == AddressMap.OAM_RAM_SIZE) {
-            isQuickCopying = false;
-            copiedBytes = 0;
-        }
-
-    }
-
-    private int getSpriteRealX(int spriteIndex) {
-        return getSpriteX(spriteIndex)-8;
+        
     }
     
+    private int getRealWX() {
+        return get(Reg.WX) - 7;
+    }
+   
+    private TileSource tileSource() {
+        return Bits.test(get(Reg.LCDC), LCDCBits.TILE_SOURCE)
+                ? TileSource.SOURCE_1
+                        : TileSource.SOURCE_0;
+    }
+    
+    private Mode currentMode() {
+        return Mode.values()[Bits.clip(2, get(Reg.STAT))];
+    }
+    
+    // Methodes en relation avec les sprites 
+    private int getSpriteProperties(int sprite) {
+        return oam.read(sprite * BYTES_PER_SPRITE + 3);
+    }
+    private int getSpriteTile(int sprite) {
+        return oam.read(sprite * BYTES_PER_SPRITE + 2);
+    }
+    private int getSpriteRealX(int spriteIndex) {
+        return getSpriteX(spriteIndex) - 8;
+    }
     private int getSpriteX(int spriteIndex) {
-        return oam.read(spriteIndex * 4 + 1);
+        return oam.read(spriteIndex * BYTES_PER_SPRITE + 1);
+    }
+    private int getSpriteRealY(int spriteIndex) {
+        return oam.read(spriteIndex * BYTES_PER_SPRITE) - TILE_EDGE * 2;
+    }
+    private Position getSpritePosition(int spriteIndex) {
+        return Bits.test(oam.read(spriteIndex * BYTES_PER_SPRITE + 3), 7)
+                ? Position.BACKGOUND
+                : Position.FOREGOUND;
+    }
+    private int spriteHeight() {
+        return Bits.test(get(Reg.LCDC), LCDCBits.OBJ_SIZE) ? 2 * TILE_EDGE
+                : TILE_EDGE;
     }
 
-    private int getSpriteRealY(int spriteIndex) {
-        return oam.read(spriteIndex * 4) - TILE_EDGE * 2;
-    }
     // méthodes pour faciliter l'accés au banc de registres
     private void set(Reg a, int data) {
         lcdcRegs.set(a, data);
     }
-
     private int get(Reg a) {
         return lcdcRegs.get(a);
     }
 
-    private TileSource tileSource() {
-        return Bits.test(get(Reg.LCDC), LCDCBits.TILE_SOURCE)
-                ? TileSource.SOURCE_1
-                : TileSource.SOURCE_0;
-    }
-
-    private Position spritePosition(int spriteIndex) {
-        return Bits.test(oam.read(spriteIndex * 4 + 3), 7) ? Position.BACKGOUND
-                : Position.FOREGOUND;
-    }
-
-    private Mode currentMode() {
-        return Mode.values()[Bits.clip(2, get(Reg.STAT))];
-    }
-
-    // Méthodes de tests sur les registres
+    // Methodes de tests sur l'état de l'écran et l'activation des différents composants de
+    // l'image
     private boolean spritesActivated() {
         return Bits.test(get(Reg.LCDC), LCDCBits.OBJ);
-
     }
-
     private boolean windowActivated() {
         return Bits.test(get(Reg.LCDC), LCDCBits.WIN)
                 && getRealWX() < LCD_WIDTH;
     }
-
     private boolean backGroundActivated() {
         return Bits.test(get(Reg.LCDC), LCDCBits.BG);
     }
-
-    private int spriteHeight() {
-        return Bits.test(get(Reg.LCDC), LCDCBits.OBJ_SIZE) ? 2 * TILE_EDGE
-                : TILE_EDGE;
-
+    private boolean screenIsOn() {
+        return Bits.test(get(Reg.LCDC), LCDCBits.LCD_STATUS);
     }
 
+    // Méthodes de test d'activation des interruptions
     private boolean modeInterruptActive(Mode mode) {
         return mode != Mode.MODE_3 && Bits.test(get(Reg.STAT), mode.mode + 3);
 
@@ -550,10 +571,6 @@ public final class LcdController implements Component, Clocked {
 
     private boolean lyEqualsLycInterruptActive() {
         return Bits.test(get(Reg.STAT), STATBits.INT_LYC);
-    }
-
-    private boolean screenIsOn() {
-        return Bits.test(get(Reg.LCDC), LCDCBits.LCD_STATUS);
     }
 
     // Méthodes de tests d'adresses

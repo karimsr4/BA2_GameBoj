@@ -1,13 +1,10 @@
 package ch.epfl.gameboj.gui;
 
-import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.imageio.ImageIO;
 
 import ch.epfl.gameboj.GameBoy;
 import ch.epfl.gameboj.component.Joypad;
@@ -33,7 +30,6 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        TurboCounter counter=new TurboCounter();
         
         List<String> param = getParameters().getRaw();
         if (param.size() != 1)
@@ -58,6 +54,7 @@ public class Main extends Application {
         ImageView imageview = new ImageView();
         imageview.setFitHeight(2 * LcdController.LCD_HEIGHT);
         imageview.setFitWidth(2 * LcdController.LCD_WIDTH);
+       
         imageview.setOnKeyPressed(e -> {
             KeyCode code = e.getCode();
             String text = e.getText().toUpperCase();
@@ -65,22 +62,7 @@ public class Main extends Application {
                 gameboy.joypad().keyPressed(codeKeysMap.get(code));
             }else if (textKeysMap.containsKey(text)) {
                 gameboy.joypad().keyPressed(textKeysMap.get(text));
-            }else if (text.equals("P")) {
-                BufferedImage i =ImageConverter
-                        .Bufferedconvert(gameboy.lcdController().currentImage());
-                
-                try {
-                    ImageIO.write(i, "png", new File("print.png"));
-                } catch (IOException e1) {
-                    e1.printStackTrace();
-                }
-                
-            }else if (text.equals("T")) {
-                counter.increment();
-            }else if(text.equals("Y")) {
-                counter.reset();
             }
-            
         });
         imageview.setOnKeyReleased(e -> {
             KeyCode code = e.getCode();
@@ -106,7 +88,7 @@ public class Main extends Application {
             @Override
             public void handle(long now) {
                 long elapsed = now-start;
-                long cycles=(long) (counter.getCounter()*elapsed * GameBoy.CYCLES_PER_NANOSECOND); 
+                long cycles=(long) (elapsed * GameBoy.CYCLES_PER_NANOSECOND); 
                 gameboy.runUntil(cycles) ;
                 imageview.setImage(ImageConverter
                         .convert(gameboy.lcdController().currentImage()));

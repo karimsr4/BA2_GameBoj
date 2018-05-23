@@ -14,7 +14,6 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import ch.epfl.gameboj.Saveable;
 
 /**
  * Classe qui simule la mémoire vive RAM
