@@ -345,7 +345,7 @@ public final class BitVector {
     }
 
     private static int byteMask(int byteIndex) {
-        return ((Bits.mask(Byte.SIZE)) - 1) << (byteIndex * Byte.SIZE);
+        return (0xFF) << (byteIndex * Byte.SIZE);
     }
 
 }

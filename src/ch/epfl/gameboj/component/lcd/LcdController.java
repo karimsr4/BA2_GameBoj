@@ -34,13 +34,6 @@ public final class LcdController implements Component, Clocked {
     private static final int IMAGE_LINE_TILES = 32;
     private static final int SCREEN_LINE_TILES = 20;
 
-    private enum LCDCBits implements Bit {
-        BG, OBJ, OBJ_SIZE, BG_AREA, TILE_SOURCE, WIN, WIN_AREA, LCD_STATUS
-    }
-
-    private enum STATBits implements Bit {
-        MODE0, MODE1, LYC_EQ_LY, INT_MODE0, INT_MODE1, INT_MODE2, INT_LYC, UNUSED
-    }
 
     private final Cpu cpu;
     private final Ram videoRam = new Ram(AddressMap.VIDEO_RAM_SIZE);
@@ -60,6 +53,13 @@ public final class LcdController implements Component, Clocked {
     private int copyStartAddress;
     private int copiedBytes;
 
+    private enum LCDCBits implements Bit {
+        BG, OBJ, OBJ_SIZE, BG_AREA, TILE_SOURCE, WIN, WIN_AREA, LCD_STATUS
+    }
+    
+    private enum STATBits implements Bit {
+        MODE0, MODE1, LYC_EQ_LY, INT_MODE0, INT_MODE1, INT_MODE2, INT_LYC, UNUSED
+    }
     private enum Mode {
         MODE_0(0, 51), MODE_1(1, 114), MODE_2(2, 20), MODE_3(3, 43);
         private int mode;
@@ -80,7 +80,7 @@ public final class LcdController implements Component, Clocked {
     }
 
     private enum TileSource {
-        TILE_SOURCE_0(AddressMap.TILE_SOURCE[0]), TILE_SOURCE_1(
+        SOURCE_0(AddressMap.TILE_SOURCE[0]), SOURCE_1(
                 AddressMap.TILE_SOURCE[1]);
         private int start;
 
@@ -165,8 +165,8 @@ public final class LcdController implements Component, Clocked {
 
             switch (reg) {
             case LCDC: {
-                set(reg, data);
-                if (!Bits.test(get(Reg.LCDC), LCDCBits.LCD_STATUS)) {
+                set(Reg.LCDC, data);
+                if (!screenIsOn()) {
                     setLyLyc(Reg.LY, 0);
                     changeMode(Mode.MODE_0);
                     nextNonIdleCycle = Long.MAX_VALUE;
@@ -175,8 +175,10 @@ public final class LcdController implements Component, Clocked {
             }
                 break;
             case STAT: {
-                set(reg, Bits.clip(3, get(reg))
-                        | (Bits.extract(data, 3, 5) << 3));
+                int mask = 0b111;
+                set(Reg.STAT, (get(Reg.STAT) & mask)
+                        | (data & ~mask) );
+                
                 if (modeInterruptActive(currentMode())
                         || (lyEqualsLycInterruptActive()
                                 && get(Reg.LY) == get(Reg.LYC)))
@@ -231,7 +233,7 @@ public final class LcdController implements Component, Clocked {
             changeMode(Mode.MODE_2);
         }
 
-        if (cycle == nextNonIdleCycle) {
+        else if (cycle == nextNonIdleCycle) {
             reallyCycle();
         }
 
@@ -256,7 +258,8 @@ public final class LcdController implements Component, Clocked {
             break;
         case MODE_1: {
 
-            if (get(Reg.LY) == 153) {
+            setLyLyc(Reg.LY, get(Reg.LY) + 1);
+            if (get(Reg.LY) == LCD_HEIGHT+10) {
 
                 setLyLyc(Reg.LY, 0);
                 changeMode(Mode.MODE_2);
@@ -264,9 +267,7 @@ public final class LcdController implements Component, Clocked {
                 winY = 0;
 
             } else {
-                setLyLyc(Reg.LY, get(Reg.LY) + 1);
                 nextNonIdleCycle += Mode.MODE_1.lineCycles;
-
             }
         }
             break;
@@ -403,9 +404,9 @@ public final class LcdController implements Component, Clocked {
                 : line - realY;
 
         result.setByte(0,
-                getTileImageByte(line * 2 + 1, tile, TileSource.TILE_SOURCE_1,
+                getTileImageByte(line * 2 + 1, tile, TileSource.SOURCE_1,
                         horizontalFlip),
-                getTileImageByte(line * 2, tile, TileSource.TILE_SOURCE_1,
+                getTileImageByte(line * 2, tile, TileSource.SOURCE_1,
                         horizontalFlip));
 
         return result.build().mapColors(spritePalette)
@@ -422,10 +423,10 @@ public final class LcdController implements Component, Clocked {
         int address = source.start;
         switch (source) {
 
-        case TILE_SOURCE_1:
+        case SOURCE_1:
             address += tileIndex * TILE_IMAGE_BYTES + byteIndex;
             break;
-        case TILE_SOURCE_0: {
+        case SOURCE_0: {
 
             int shift = tileIndex < 0x80 ? 0x80 : -0x80;
             address += (tileIndex + shift) * TILE_IMAGE_BYTES + byteIndex;
@@ -496,8 +497,8 @@ public final class LcdController implements Component, Clocked {
 
     private TileSource tileSource() {
         return Bits.test(get(Reg.LCDC), LCDCBits.TILE_SOURCE)
-                ? TileSource.TILE_SOURCE_1
-                : TileSource.TILE_SOURCE_0;
+                ? TileSource.SOURCE_1
+                : TileSource.SOURCE_0;
     }
 
     private Position spritePosition(int spriteIndex) {
