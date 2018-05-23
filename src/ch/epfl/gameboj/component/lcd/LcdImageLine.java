@@ -17,11 +17,11 @@ import ch.epfl.gameboj.bits.Bits;
  * @author Ahmed JELLOULI (274056)
  */
 public final class LcdImageLine {
+    private final static int IDENTITY_MAP = 0b11100100;
+
     private final BitVector msb;
     private final BitVector lsb;
     private final BitVector opacity;
-
-    private final int IDENTITY_MAP = 0b11100100;
 
     /**
      * @param msb
@@ -47,27 +47,27 @@ public final class LcdImageLine {
     }
 
     /**
-     * obtenir le vecteur des bits de poids fort
+     * obtenir le vecteur de bits de poids fort
      * 
-     * @return le vecteur des bits de poids fort
+     * @return le vecteur de bits de poids fort
      */
     public BitVector getMsb() {
         return msb;
     }
 
     /**
-     * obtenir le vecteur des bits de poids faible
+     * obtenir le vecteur de bits de poids faible
      * 
-     * @return le vecteur des bits de poids faible
+     * @return le vecteur de bits de poids faible
      */
     public BitVector getLsb() {
         return lsb;
     }
 
     /**
-     * obtenir le vecteur des bits de l'opacité
+     * obtenir le vecteur de bits de l'opacité
      * 
-     * @return le vecteur des bits de l'opacité
+     * @return le vecteur de bits de l'opacité
      */
     public BitVector getOpacity() {
         return opacity;
@@ -91,7 +91,7 @@ public final class LcdImageLine {
      * 
      * @param pixel
      * @param length
-     * @return
+     * @return l'extension infinie par enroulement de la ligne courante
      */
     public LcdImageLine extractWrapped(int pixel, int length) {
         return new LcdImageLine(msb.extractWrapped(pixel, length),
@@ -103,8 +103,8 @@ public final class LcdImageLine {
      * transformer les couleurs de la ligne en fonction d'une palette donnée
      * 
      * @param map
-     *            la palette sous forme d'un octet
-     * @return le résultat de la transformation des couleurs de la ligne
+     *            la palette sous la forme d'un octet
+     * @return ligne avec les couleurs transformées
      * @throws IllegalArgumentException
      *             si la palette n'est pas un entier de 8 bits
      */
@@ -114,26 +114,17 @@ public final class LcdImageLine {
         if (map == IDENTITY_MAP) {
             return this;
         }
-        BitVector couleur_00 = msb.not().and(lsb.not());
-        BitVector couleur_01 = msb.not().and(lsb);
-        BitVector couleur_10 = msb.and(lsb.not());
-        BitVector couleur_11 = msb.and(lsb);
 
         BitVector newMsb = new BitVector(size(), false);
         BitVector newLsb = new BitVector(size(), false);
 
-        BitVector[] maskArray = new BitVector[] { couleur_00, couleur_01,
-                couleur_10, couleur_11 };
-        for (int i = 0; i < 8; i++) {
-            if (Bits.test(map, i)) {
-                if (i % 2 == 0) {
-                    newLsb = newLsb.or(maskArray[i / 2]);
-                } else {
-                    newMsb = newMsb.or(maskArray[i / 2]);
-                }
-
-            }
-
+        for (int i = 0; i < 4; ++i) {
+            BitVector mask = (i % 2 == 0 ? lsb.not() : lsb)
+                    .and(i < 2 ? msb.not() : msb);
+            if (Bits.test(map, i * 2))
+                newLsb = newLsb.or(mask);
+            if (Bits.test(map, i * 2 + 1))
+                newMsb = newMsb.or(mask);
         }
 
         return new LcdImageLine(newMsb, newLsb, opacity);
@@ -141,8 +132,9 @@ public final class LcdImageLine {
     }
 
     /**
-     * composer la ligne avec une seconde de même longueur en utilisant
-     * l'opacité de la ligne supérieure pour effectuer la composition
+     * composer la ligne avec une seconde de même longueur placée au dessus
+     * d'elle en utilisant l'opacité de la ligne supérieure pour effectuer la
+     * composition
      * 
      * @param other
      *            la seconde ligne
@@ -198,7 +190,6 @@ public final class LcdImageLine {
         BitVector mask = new BitVector(size(), true).shift(pixel);
         BinaryOperator<BitVector> join = (x, y) -> (x.and(mask.not()))
                 .or(y.and(mask));
-
         return new LcdImageLine(join.apply(msb, other.msb),
                 join.apply(lsb, other.lsb), join.apply(opacity, other.opacity));
 
@@ -257,7 +248,6 @@ public final class LcdImageLine {
          *             32
          */
         public Builder(int size) {
-            checkArgument(size > 0 && size % 32 == 0);
             msbBuilder = new BitVector.Builder(size);
             lsbBuilder = new BitVector.Builder(size);
             this.size = size;
@@ -272,26 +262,23 @@ public final class LcdImageLine {
          * @param index
          *            l'index de l'octet a définir
          * @param msbByte
-         *            la valeur de l'octet du poids fort
+         *            la valeur de l'octet du vecteur de bits de poids fort
          * @param lsbByte
-         *            la valeur de l'octet du poids faible
-         * @return le bâtisseur de la ligne d'image
+         *            la valeur de l'octet du vecteur de bits de poids faible
+         * @return ce bâtisseur de ligne d'image
          * @throws IllegalArgumentException
-         *             si les valeurs ne sont pas des entiers 8 bits
+         *             si les valeurs ne sont pas des entiers 8 bits ou si
+         *             l'index n'est pas valide
          * @throws IllegalStateException
          *             si la méthode est appelée après que le vecteur de bits
          *             est construit
          */
         public Builder setByte(int index, int msbByte, int lsbByte) {
-            checkBits8(msbByte);
-            checkBits8(lsbByte);
             if (isBuilded)
                 throw new IllegalStateException();
 
-            checkIndex(index, size / 8);
             msbBuilder.setByte(index, msbByte);
             lsbBuilder.setByte(index, lsbByte);
-
             return this;
         }
 
