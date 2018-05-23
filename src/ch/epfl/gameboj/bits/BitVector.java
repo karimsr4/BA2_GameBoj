@@ -9,7 +9,7 @@ import java.util.Objects;
 import java.util.function.IntBinaryOperator;
 
 /**
- * Classe réprésentant un vecteur de bits
+ * Classe représentant un vecteur de bits
  * 
  * @author Karim HADIDANE (271018)
  * @author Ahmed JELLOULI (274056)
@@ -21,7 +21,7 @@ public final class BitVector {
 
     /**
      * construit un nouveau vecteur de bits de taille donnée avec la valeur
-     * initiale donnée
+     * initiale donnée ( 1 si vrai 0 si faux)
      * 
      * @param size
      *            la taille du vecteur
@@ -55,7 +55,7 @@ public final class BitVector {
      * 
      * @param that
      *            le vecteur de bits donné
-     * @return le vecteur de bits résultant de la conjuction du vecteur de bits
+     * @return le vecteur de bits résultant de la conjonction du vecteur de bits
      *         et l'argument
      * @throws IllegalArgumentException
      *             si le vecteur de bits passé en argument n'est pas de même
@@ -132,7 +132,7 @@ public final class BitVector {
      * 
      * @param distance
      *            entier representant la distance de décalage
-     * @return un nouveau vecteur de bits résultat du décalage
+     * @return un nouveau vecteur de bits résultant du décalage
      */
     public BitVector shift(int distance) {
         return extractZeroExtended(-distance, size());
@@ -239,14 +239,15 @@ public final class BitVector {
 
     private int elementExtracting(int index, ExtractionMethod method) {
         switch (method) {
-        case WRAPPED:
-            int div = floorDiv(index, CELL_SIZE);
-            int mod = floorMod(div, vector.length);
-            return vector[mod];
-
-        default:
+        case WRAPPED: {
+            int cell = floorMod(floorDiv(index, CELL_SIZE), vector.length);
+            return vector[cell];
+        }
+        case ZERO:
             return (index >= size() || index < 0) ? 0
                     : vector[index / CELL_SIZE];
+        default:
+            throw new Error();
         }
 
     }
@@ -271,6 +272,7 @@ public final class BitVector {
      * @author Ahmed JELLOULI (274056)
      */
     public final static class Builder {
+        private static final int BYTES_PER_CELL = 4;
         private final int[] vector;
         private final int size;
         private boolean isBuilded;
@@ -293,14 +295,14 @@ public final class BitVector {
         }
 
         /**
-         * définir la valeur d'un octet désigné par son index
+         * définit la valeur d'un octet désigné par son index
          * 
          * @param index
          *            entier répresentant l'index de l'octet
          * @param valeur
          *            entier de 8 bits représentant la nouvelle valeur de
          *            l'octet d'index donné
-         * @return le bâtisseur
+         * @return ce bâtisseur
          * @throws IllegalStateException
          *             si la méthode est appelée après que le vecteur de bits
          *             est construit
@@ -312,19 +314,19 @@ public final class BitVector {
         public Builder setByte(int index, int valeur) {
             if (isBuilded)
                 throw new IllegalStateException();
-            checkIndex(index, size / 8);
+            checkIndex(index, size / Byte.SIZE);
             checkBits8(valeur);
-            int cell = index / 4;
-            int byteIndex = index % 4;
-            int result = (vector[cell] | activateByte(byteIndex))
-                    & (valeur << (byteIndex * 8) | ~(activateByte(byteIndex)));
+            int cell = index / BYTES_PER_CELL;
+            int byteIndex = index % BYTES_PER_CELL;
+            int result = (vector[cell] & ~byteMask(byteIndex))
+                    | (valeur << (byteIndex * Byte.SIZE) & byteMask(byteIndex));
             vector[cell] = result;
             return this;
 
         }
 
         /**
-         * construire le vecteur de bits
+         * construit le vecteur de bits
          * 
          * @return le vecteur de bits
          * @throws IllegalStateException
@@ -342,8 +344,8 @@ public final class BitVector {
 
     }
 
-    private static int activateByte(int byteIndex) {
-        return ((1 << 8) - 1) << (byteIndex * 8);
+    private static int byteMask(int byteIndex) {
+        return ((Bits.mask(Byte.SIZE)) - 1) << (byteIndex * Byte.SIZE);
     }
 
 }
