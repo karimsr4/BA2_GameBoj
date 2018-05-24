@@ -563,7 +563,7 @@ public final class LcdController implements Component, Clocked {
         return Bits.test(get(Reg.LCDC), LCDCBits.LCD_STATUS);
     }
 
-    // Méthodes de test d'activation des interruptions
+    // Méthodes de tests d'activation des interruptions
     private boolean modeInterruptActive(Mode mode) {
         return mode != Mode.MODE_3 && Bits.test(get(Reg.STAT), mode.mode + 3);
 
