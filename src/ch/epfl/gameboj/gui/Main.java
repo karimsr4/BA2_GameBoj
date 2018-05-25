@@ -73,12 +73,29 @@ public final class Main extends Application {
         controllerImageView.setFitWidth(2*LcdController.LCD_WIDTH);
         Pane controllerPane = new StackPane(controllerImageView);
 //        controllerPane.add(controllerImageView,0,0);
-        Circle s= new Circle(10);
-        s.setTranslateX(78);
-        controllerPane.getChildren().add(s);
+        Circle s= new Circle(20,javafx.scene.paint.Color.RED);
+       
+        s.setTranslateX(62);
+        s.setTranslateY(-35);
+//        controllerPane.getChildren().add(s);
+        
+        Circle s2=new Circle(20,javafx.scene.paint.Color.RED);
+        s2.setTranslateX(111);
+        s2.setTranslateY(-60);
+        controllerPane.getChildren().add(s2);
+        controllerImageView.setOnMouseClicked(e -> {
+            System.out.println(e.getX());
+            System.out.println(e.getY());
+        });
+        
+        controllerImageView.setOnKeyPressed(e -> {
+            
+        });
+        
+        
         
 
-        imageview.setOnKeyPressed(e -> {
+        controllerImageView.setOnKeyPressed(e -> {
             String keyString= e.getText().toUpperCase();
             Key code = codeKeysMap.get(e.getCode());
             Key text = textKeysMap.get(keyString);
@@ -92,16 +109,23 @@ public final class Main extends Application {
                 } catch (Exception e1) {
                     e1.printStackTrace();
                 }
-            }
+            } 
+            if(keyString.equals("A"))
+                controllerPane.getChildren().add(s);
+                
         });
-        imageview.setOnKeyReleased(e -> {
+        controllerImageView.setOnKeyReleased(e -> {
+            String keyString= e.getText().toUpperCase();
             Key code = codeKeysMap.get(e.getCode());
             Key text = textKeysMap.get(e.getText().toUpperCase());
             if (code != null) {
                 gameboy.joypad().keyReleased(code);
             } else if (text != null) {
                 gameboy.joypad().keyReleased(text);
-            } }) ;
+            }
+            if(keyString.equals("A"))
+                controllerPane.getChildren().remove(s);
+            }) ;
        
        
         BorderPane pane = new BorderPane(imageview);
@@ -126,7 +150,7 @@ public final class Main extends Application {
         timer.start();
 
         primaryStage.show();
-        imageview.requestFocus();
+        controllerImageView.requestFocus();
 
     }
     
