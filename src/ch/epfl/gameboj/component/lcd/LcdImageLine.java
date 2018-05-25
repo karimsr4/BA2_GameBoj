@@ -3,7 +3,6 @@ package ch.epfl.gameboj.component.lcd;
 import static ch.epfl.gameboj.Preconditions.*;
 import static java.util.Objects.checkIndex;
 
-import java.util.Arrays;
 import java.util.Objects;
 import java.util.function.BinaryOperator;
 

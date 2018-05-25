@@ -4,15 +4,7 @@ import static ch.epfl.gameboj.Preconditions.checkArgument;
 import static ch.epfl.gameboj.Preconditions.checkBits8;
 import static java.util.Objects.checkIndex;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
+
 
 
 /**
@@ -83,38 +75,5 @@ public final class Ram  {
         return data.length;
     }
 
-//    @Override
-//    public void save(String pathName) {
-//        try {
-//            BufferedOutputStream output = new BufferedOutputStream(
-//                    new FileOutputStream(pathName, true));
-//            output.write(data);
-//            output.close();
-//        } catch (IOException e) {
-//            // TODO Auto-generated catch block
-//            e.printStackTrace();
-//        }
-//
-//    }
-//
-//    @Override
-//    public void load(String pathName) {
-//        byte[] result=new byte[size()];
-//        try {
-//            BufferedInputStream input = new BufferedInputStream(
-//                    new FileInputStream(pathName));
-//            result=input.readAllBytes();
-//            input.close();
-//        } catch (IOException e) {
-//            // TODO Auto-generated catch block
-//            e.printStackTrace();
-//        }
-//        
-//        
-//        for(int i=0; i<size(); i++) {
-//            write(i, result[i]);
-//        }
-//
-//    }
 
 }

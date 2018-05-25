@@ -37,7 +37,6 @@ public final class LcdController implements Component, Clocked {
     private static final int TILE_IMAGE_BYTES = 16;
     private static final int IMAGE_LINE_TILES = 32;
     private static final int SCREEN_LINE_TILES = 20;
-    private static final int TILES_AVAILABLE = 384;
 
     private final Cpu cpu;
     private final Ram videoRam = new Ram(AddressMap.VIDEO_RAM_SIZE);
@@ -57,11 +56,11 @@ public final class LcdController implements Component, Clocked {
     private int copyStartAddress;
     private int copiedBytes;
 
-    private enum LCDCBits implements Bit {
+    private enum LCDCBit implements Bit {
         BG, OBJ, OBJ_SIZE, BG_AREA, TILE_SOURCE, WIN, WIN_AREA, LCD_STATUS
     }
 
-    private enum STATBits implements Bit {
+    private enum STATBit implements Bit {
         MODE0, MODE1, LYC_EQ_LY, INT_MODE0, INT_MODE1, INT_MODE2, INT_LYC, UNUSED
     }
 
@@ -312,7 +311,7 @@ public final class LcdController implements Component, Clocked {
         if (backGroundActivated()) {
             int realIndex = (index + get(Reg.SCY)) % IMAGE_EDGE;
             int scx = get(Reg.SCX);
-            TileDataArea tileArea = Bits.test(get(Reg.LCDC), LCDCBits.BG_AREA)
+            TileDataArea tileArea = Bits.test(get(Reg.LCDC), LCDCBit.BG_AREA)
                     ? TileDataArea.AREA_1
                     : TileDataArea.AREA_0;
             line = reallyComputeLine(scx, realIndex, tileArea)
@@ -320,7 +319,7 @@ public final class LcdController implements Component, Clocked {
 
         }
         if (windowActivated() && index >= get(Reg.WY)) {
-            TileDataArea tileArea = Bits.test(get(Reg.LCDC), LCDCBits.WIN_AREA)
+            TileDataArea tileArea = Bits.test(get(Reg.LCDC), LCDCBit.WIN_AREA)
                     ? TileDataArea.AREA_1
                     : TileDataArea.AREA_0;
             LcdImageLine window = reallyComputeLine(0, winY, tileArea);
@@ -491,7 +490,7 @@ public final class LcdController implements Component, Clocked {
         
         set(a, data);
         boolean equal = get(Reg.LY) == get(Reg.LYC);
-        int statNewValue = Bits.set(get(Reg.STAT), STATBits.LYC_EQ_LY.index(),
+        int statNewValue = Bits.set(get(Reg.STAT), STATBit.LYC_EQ_LY.index(),
                 equal);
         set(Reg.STAT, statNewValue);
         if (lyEqualsLycInterruptActive() && equal)
@@ -504,7 +503,7 @@ public final class LcdController implements Component, Clocked {
     }
    
     private TileSource tileSource() {
-        return Bits.test(get(Reg.LCDC), LCDCBits.TILE_SOURCE)
+        return Bits.test(get(Reg.LCDC), LCDCBit.TILE_SOURCE)
                 ? TileSource.SOURCE_1
                         : TileSource.SOURCE_0;
     }
@@ -535,7 +534,7 @@ public final class LcdController implements Component, Clocked {
                 : Position.FOREGOUND;
     }
     private int spriteHeight() {
-        return Bits.test(get(Reg.LCDC), LCDCBits.OBJ_SIZE) ? 2 * TILE_EDGE
+        return Bits.test(get(Reg.LCDC), LCDCBit.OBJ_SIZE) ? 2 * TILE_EDGE
                 : TILE_EDGE;
     }
 
@@ -550,17 +549,17 @@ public final class LcdController implements Component, Clocked {
     // Methodes de tests sur l'état de l'écran et l'activation des différents composants de
     // l'image
     private boolean spritesActivated() {
-        return Bits.test(get(Reg.LCDC), LCDCBits.OBJ);
+        return Bits.test(get(Reg.LCDC), LCDCBit.OBJ);
     }
     private boolean windowActivated() {
-        return Bits.test(get(Reg.LCDC), LCDCBits.WIN)
+        return Bits.test(get(Reg.LCDC), LCDCBit.WIN)
                 && getRealWX() < LCD_WIDTH;
     }
     private boolean backGroundActivated() {
-        return Bits.test(get(Reg.LCDC), LCDCBits.BG);
+        return Bits.test(get(Reg.LCDC), LCDCBit.BG);
     }
     private boolean screenIsOn() {
-        return Bits.test(get(Reg.LCDC), LCDCBits.LCD_STATUS);
+        return Bits.test(get(Reg.LCDC), LCDCBit.LCD_STATUS);
     }
 
     // Méthodes de tests d'activation des interruptions
@@ -570,7 +569,7 @@ public final class LcdController implements Component, Clocked {
     }
 
     private boolean lyEqualsLycInterruptActive() {
-        return Bits.test(get(Reg.STAT), STATBits.INT_LYC);
+        return Bits.test(get(Reg.STAT), STATBit.INT_LYC);
     }
 
     // Méthodes de tests d'adresses

@@ -272,7 +272,7 @@ public final class BitVector {
      * @author Ahmed JELLOULI (274056)
      */
     public final static class Builder {
-        private static final int BYTES_PER_CELL = 4;
+        private static final int BYTES_PER_CELL = Integer.BYTES;
         private final int[] vector;
         private final int size;
         private boolean isBuilded;

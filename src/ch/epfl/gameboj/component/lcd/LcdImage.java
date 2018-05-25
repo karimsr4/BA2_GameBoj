@@ -3,7 +3,6 @@ package ch.epfl.gameboj.component.lcd;
 import static ch.epfl.gameboj.Preconditions.checkArgument;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
