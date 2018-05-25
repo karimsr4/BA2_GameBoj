@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.sun.javafx.geom.Shape;
+
 import ch.epfl.gameboj.GameBoy;
 import ch.epfl.gameboj.component.Joypad;
 import ch.epfl.gameboj.component.Joypad.Key;
@@ -53,12 +55,12 @@ public final class Main extends Application {
         textKeysMap.put(" ", Key.SELECT);
         textKeysMap.put("S", Key.START);
         
-//        Map<Joypad.Key, > keyPosition =new HashMap<> ();
+        Map<Joypad.Key,Shape > keyPosition =new HashMap<> ();
 //        keyPosition.put( Key.A, );
 //        keyPosition.put( Key.B);
 //        keyPosition.put( Key.SELECT);
 //        keyPosition.put( Key.START);
-//        
+        
             
         
 
@@ -74,6 +76,7 @@ public final class Main extends Application {
         Pane controllerPane = new StackPane(controllerImageView);
 //        controllerPane.add(controllerImageView,0,0);
         Circle s= new Circle(10);
+        s.setTranslateX(78);
         s.setTranslateX(78);
         controllerPane.getChildren().add(s);
         
