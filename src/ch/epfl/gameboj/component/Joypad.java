@@ -6,7 +6,6 @@ import static ch.epfl.gameboj.Preconditions.checkBits8;
 import java.util.Objects;
 
 import ch.epfl.gameboj.AddressMap;
-import ch.epfl.gameboj.bits.Bit;
 import ch.epfl.gameboj.bits.Bits;
 import ch.epfl.gameboj.component.cpu.Cpu;
 import ch.epfl.gameboj.component.cpu.Cpu.Interrupt;
