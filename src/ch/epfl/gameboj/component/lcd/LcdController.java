@@ -26,7 +26,7 @@ import ch.epfl.gameboj.component.memory.Ram;
  */
 public final class LcdController implements Component, Clocked {
 
-    private static final int SHIFTCORRECTION = 0x80;
+    private static final int SHIFT_CORRECTION = 0x80;
     public static final int LCD_WIDTH = 160;
     public static final int LCD_HEIGHT = 144;
 
@@ -468,7 +468,7 @@ public final class LcdController implements Component, Clocked {
         int shift = 0;
 
         if (source == TileSource.SOURCE_0)
-            shift = tileIndex < 0x80 ? SHIFTCORRECTION : -SHIFTCORRECTION;
+            shift = tileIndex < 0x80 ? SHIFT_CORRECTION : -SHIFT_CORRECTION;
 
         int address = source.start + (tileIndex + shift) * TILE_IMAGE_BYTES
                 + byteIndex;
