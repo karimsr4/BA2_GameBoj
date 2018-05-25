@@ -13,13 +13,14 @@ import ch.epfl.gameboj.component.cartridge.Cartridge;
 import ch.epfl.gameboj.component.lcd.LcdController;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
-import javafx.geometry.Point2D;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.shape.Circle;
 import javafx.stage.Stage;
 
 public final class Main extends Application {
@@ -52,25 +53,30 @@ public final class Main extends Application {
         textKeysMap.put(" ", Key.SELECT);
         textKeysMap.put("S", Key.START);
         
-//        Map<Joypad.Key, Point2D> keyPosition =new HashMap<> ();
-//        keyPosition.put( Key.A, new Point2D(294, ));
+//        Map<Joypad.Key, > keyPosition =new HashMap<> ();
+//        keyPosition.put( Key.A, );
 //        keyPosition.put( Key.B);
 //        keyPosition.put( Key.SELECT);
 //        keyPosition.put( Key.START);
-        
+//        
             
         
 
         ImageView imageview = new ImageView();
         imageview.setFitHeight(2 * LcdController.LCD_HEIGHT);
         imageview.setFitWidth(2 * LcdController.LCD_WIDTH);
-        GridPane controllerPane = new GridPane();
-        FileInputStream controls = new FileInputStream("controls.png");
-        Image controllerImage = new Image(controls);
+        
+       
+        Image controllerImage = new Image(new FileInputStream("controls.png"));
         ImageView controllerImageView =new ImageView(controllerImage);
         controllerImageView.setPreserveRatio(true);
         controllerImageView.setFitWidth(2*LcdController.LCD_WIDTH);
-        controllerPane.add(controllerImageView,0,0);
+        Pane controllerPane = new StackPane(controllerImageView);
+//        controllerPane.add(controllerImageView,0,0);
+        Circle s= new Circle(10);
+        s.setTranslateX(78);
+        controllerPane.getChildren().add(s);
+        
 
         imageview.setOnKeyPressed(e -> {
             String keyString= e.getText().toUpperCase();
