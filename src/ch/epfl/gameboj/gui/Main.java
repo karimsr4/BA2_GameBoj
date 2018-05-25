@@ -19,8 +19,11 @@ import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
 public class Main extends Application {
+    
+    
 
     public static void main(String[] args) {
+        
         Application.launch(args[0]);
     }
 
@@ -50,12 +53,19 @@ public class Main extends Application {
         imageview.setFitWidth(2 * LcdController.LCD_WIDTH);
 
         imageview.setOnKeyPressed(e -> {
+            String keyString= e.getText().toUpperCase();
             Key code = codeKeysMap.get(e.getCode());
-            Key text = textKeysMap.get(e.getText().toUpperCase());
+            Key text = textKeysMap.get(keyString);
             if (code != null) {
                 gameboy.joypad().keyPressed(code);
             } else if (text != null) {
                 gameboy.joypad().keyPressed(text);
+            } if (keyString.equals("R")) {
+                try {
+                    start(primaryStage);
+                } catch (Exception e1) {
+                    e1.printStackTrace();
+                }
             }
         });
         imageview.setOnKeyReleased(e -> {
