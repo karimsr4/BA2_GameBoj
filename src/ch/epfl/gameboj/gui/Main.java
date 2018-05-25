@@ -1,6 +1,7 @@
 package ch.epfl.gameboj.gui;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,10 +13,13 @@ import ch.epfl.gameboj.component.cartridge.Cartridge;
 import ch.epfl.gameboj.component.lcd.LcdController;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
+import javafx.geometry.Point2D;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 
 public final class Main extends Application {
@@ -47,10 +51,26 @@ public final class Main extends Application {
         textKeysMap.put("B", Key.B);
         textKeysMap.put(" ", Key.SELECT);
         textKeysMap.put("S", Key.START);
+        
+//        Map<Joypad.Key, Point2D> keyPosition =new HashMap<> ();
+//        keyPosition.put( Key.A, new Point2D(294, ));
+//        keyPosition.put( Key.B);
+//        keyPosition.put( Key.SELECT);
+//        keyPosition.put( Key.START);
+        
+            
+        
 
         ImageView imageview = new ImageView();
         imageview.setFitHeight(2 * LcdController.LCD_HEIGHT);
         imageview.setFitWidth(2 * LcdController.LCD_WIDTH);
+        GridPane controllerPane = new GridPane();
+        FileInputStream controls = new FileInputStream("controls.png");
+        Image controllerImage = new Image(controls);
+        ImageView controllerImageView =new ImageView(controllerImage);
+        controllerImageView.setPreserveRatio(true);
+        controllerImageView.setFitWidth(2*LcdController.LCD_WIDTH);
+        controllerPane.add(controllerImageView,0,0);
 
         imageview.setOnKeyPressed(e -> {
             String keyString= e.getText().toUpperCase();
@@ -76,8 +96,11 @@ public final class Main extends Application {
             } else if (text != null) {
                 gameboy.joypad().keyReleased(text);
             } }) ;
-
+       
+       
         BorderPane pane = new BorderPane(imageview);
+        pane.setBottom(controllerPane);
+       
         Scene scene = new Scene(pane);
         primaryStage.setScene(scene);
         long start = System.nanoTime();
@@ -100,5 +123,6 @@ public final class Main extends Application {
         imageview.requestFocus();
 
     }
+    
 
 }
