@@ -26,6 +26,7 @@ import ch.epfl.gameboj.component.memory.Ram;
  */
 public final class LcdController implements Component, Clocked {
 
+    private static final int SHIFTCORRECTION = 0x80;
     public static final int LCD_WIDTH = 160;
     public static final int LCD_HEIGHT = 144;
 
@@ -37,7 +38,6 @@ public final class LcdController implements Component, Clocked {
     private static final int TILE_IMAGE_BYTES = 16;
     private static final int IMAGE_LINE_TILES = 32;
     private static final int SCREEN_LINE_TILES = 20;
-    private static final int TILES_AVAILABLE = 384;
 
     private final Cpu cpu;
     private final Ram videoRam = new Ram(AddressMap.VIDEO_RAM_SIZE);
@@ -455,13 +455,20 @@ public final class LcdController implements Component, Clocked {
                 .read(tileArea.start + tile - AddressMap.VIDEO_RAM_START);
     }
 
+    /** retourne l'octet d'index byteIndex de l'image de la tuile d'index tileIndex
+     * @param byteIndex
+     * @param tileIndex
+     * @param source
+     * @param reverse
+     * @return
+     */
     private int getTileImageByte(int byteIndex, int tileIndex,
             TileSource source, boolean reverse) {
 
         int shift = 0;
 
         if (source == TileSource.SOURCE_0)
-            shift = tileIndex < 0x80 ? 0x80 : -0x80;
+            shift = tileIndex < 0x80 ? SHIFTCORRECTION : -SHIFTCORRECTION;
 
         int address = source.start + (tileIndex + shift) * TILE_IMAGE_BYTES
                 + byteIndex;
