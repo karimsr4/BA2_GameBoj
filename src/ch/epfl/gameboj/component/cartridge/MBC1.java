@@ -3,6 +3,7 @@ package ch.epfl.gameboj.component.cartridge;
 import static ch.epfl.gameboj.Preconditions.checkBits16;
 import static ch.epfl.gameboj.Preconditions.checkBits8;
 
+import java.io.FileNotFoundException;
 
 import ch.epfl.gameboj.bits.Bits;
 import ch.epfl.gameboj.component.Component;
@@ -35,6 +36,11 @@ public final class MBC1 implements Component {
     public MBC1(Rom rom, int ramSize) {
         this.rom = rom;
         this.ram = new Ram(ramSize);
+        Runtime c = Runtime.getRuntime();
+
+        c.addShutdownHook(new Thread(() -> 
+                ram.createSaveFile("aasba.sav")) );
+        
 
         this.ramEnabled = false;
         this.mode = Mode.MODE_0;
@@ -74,6 +80,7 @@ public final class MBC1 implements Component {
      */
     @Override
     public void write(int address, int data) {
+
         checkBits8(data);
         switch (Bits.extract(checkBits16(address), 13, 3)) {
         case 0:
@@ -89,8 +96,10 @@ public final class MBC1 implements Component {
             mode = Bits.test(data, 0) ? Mode.MODE_1 : Mode.MODE_0;
             break;
         case 5:
+
             if (ramEnabled) {
                 ram.write(ramAddress(address), data);
+
             }
             break;
         }

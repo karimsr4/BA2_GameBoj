@@ -4,8 +4,15 @@ import static ch.epfl.gameboj.Preconditions.checkArgument;
 import static ch.epfl.gameboj.Preconditions.checkBits8;
 import static java.util.Objects.checkIndex;
 
-
-
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 /**
  * Classe qui simule la mémoire vive RAM
@@ -13,7 +20,7 @@ import static java.util.Objects.checkIndex;
  * @author Karim HADIDANE (271018)
  * @author Ahmed JELLOULI (274056)
  */
-public final class Ram  {
+public final class Ram {
 
     private final byte[] data;
 
@@ -30,6 +37,10 @@ public final class Ram  {
         checkArgument(size >= 0);
         data = new byte[size];
 
+    }
+
+    private Ram(byte[] data) {
+        this.data = data;
     }
 
     /**
@@ -75,5 +86,23 @@ public final class Ram  {
         return data.length;
     }
 
+    public void createSaveFile(String fileName) {
+
+        try (OutputStream stream = new BufferedOutputStream(
+                new FileOutputStream(new File(fileName)))) {
+            stream.write(data);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static Ram getRamFromFile(File file) throws IOException {
+        
+        InputStream stream = new BufferedInputStream(new FileInputStream(file));
+        byte[] data = stream.readAllBytes() ;
+        stream.close();
+        return new Ram(data);
+
+    }
 
 }

@@ -53,7 +53,7 @@ public final class Cartridge implements Component {
 
             return type == 0 ? new Cartridge(new MBC0(new Rom(dataInFile)))
                     : new Cartridge(new MBC1(new Rom(dataInFile),
-                            ramType[dataInFile[RAM_SIZE_ADDRESS]]));
+                            ramType[dataInFile[RAM_SIZE_ADDRESS]] ));
 
         } catch (FileNotFoundException e) {
             throw new IOException();

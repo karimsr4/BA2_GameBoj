@@ -30,7 +30,6 @@ public final class Main extends Application {
 
     private final static Map<KeyCode, Joypad.Key> codeKeyMap = computeCodeKeyMap();
     private final static Map<String, Joypad.Key> textKeyMap = computeTextKeyMap();
-
     private final static Map<Joypad.Key, Shape> shapeMap = computeShapeMap();
 
     public static void main(String[] args) {
@@ -38,13 +37,15 @@ public final class Main extends Application {
         Application.launch(args[0]);
     }
 
-    private static Map<Joypad.Key, Shape> computeShapeMap() {
+    private static Map<Key, Shape> computeShapeMap() {
 
         Map<Joypad.Key, Shape> map = new HashMap<>();
+        
+        
 
         Circle a = new Circle(19.5, Color.RED);
         a.setTranslateX(111);
-        a.setTranslateY(-58);
+        a.setTranslateY(-59);
         map.put(Key.A, a);
 
         Circle b = new Circle(19.5, Color.RED);
@@ -114,16 +115,19 @@ public final class Main extends Application {
             System.exit(1);
 
         GameBoy gameboy = new GameBoy(Cartridge.ofFile(new File(param.get(0))));
-
         ImageView imageview = new ImageView();
         imageview.setFitHeight(2 * LcdController.LCD_HEIGHT);
         imageview.setFitWidth(2 * LcdController.LCD_WIDTH);
+     
 
         Image controllerImage = new Image(new FileInputStream("controls.png"));
         ImageView controllerImageView = new ImageView(controllerImage);
+
         controllerImageView.setPreserveRatio(true);
         controllerImageView.setFitWidth(2 * LcdController.LCD_WIDTH);
         Pane controllerPane = new StackPane(controllerImageView);
+        long start = System.nanoTime();
+        TurboCounter a = new TurboCounter(0);
 
         controllerImageView.setOnKeyPressed(e -> {
             String keyString = e.getText().toUpperCase();
@@ -137,18 +141,23 @@ public final class Main extends Application {
                 gameboy.joypad().keyPressed(text);
                 if (!controllerPane.getChildren().contains(shapeMap.get(text)))
                     controllerPane.getChildren().add(shapeMap.get(text));
-            }
-            if (keyString.equals("R")) {
+            } else if (keyString.equals("R")) {
                 try {
                     start(primaryStage);
                 } catch (Exception e1) {
                     e1.printStackTrace();
                 }
+            } else if (keyString.equals("T")) {
+                a.setRatio(1.1);
+//                a.setStart(0);
+            } else if (keyString.equals("H")) {
+                a.setRatio(1);
+//                a.setStart(1);
+
             }
 
         });
         controllerImageView.setOnKeyReleased(e -> {
-            String keyString = e.getText().toUpperCase();
             Key code = codeKeyMap.get(e.getCode());
             Key text = textKeyMap.get(e.getText().toUpperCase());
             if (code != null) {
@@ -161,24 +170,28 @@ public final class Main extends Application {
 
         });
 
+        AnimationTimer timer = new AnimationTimer() {
+            @Override
+            
+            public void handle(long now) {
+                long elapsed = now - start;
+//                a.setStart(a.getStart()==1 ? ((long)(gameboy.cycles()
+//                        - elapsed * GameBoy.CYCLES_PER_NANOSECOND)): a.getStart());
+                long cycles = (long) (a.getRatio() * elapsed
+                        * GameBoy.CYCLES_PER_NANOSECOND );
+//                        + a.getStart() );
+                gameboy.runUntil(cycles);
+                if (a.getRatio()!=1  && a.getRatio() <1.5)
+                    a.setRatio(a.getRatio()+ 0.000000000000000000000000000000000000000000000005);
+                imageview.setImage(ImageConverter
+                        .convert(gameboy.lcdController().currentImage()));
+            }
+        };
         BorderPane pane = new BorderPane(imageview);
         pane.setBottom(controllerPane);
 
         Scene scene = new Scene(pane);
         primaryStage.setScene(scene);
-        long start = System.nanoTime();
-
-        AnimationTimer timer = new AnimationTimer() {
-
-            @Override
-            public void handle(long now) {
-                long elapsed = now - start;
-                long cycles = (long) (elapsed * GameBoy.CYCLES_PER_NANOSECOND);
-                gameboy.runUntil(cycles);
-                imageview.setImage(ImageConverter
-                        .convert(gameboy.lcdController().currentImage()));
-            }
-        };
 
         timer.start();
 
