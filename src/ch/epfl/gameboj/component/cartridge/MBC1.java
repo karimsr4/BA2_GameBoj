@@ -37,11 +37,13 @@ public final class MBC1 implements Component {
      * @param ramSize
      *            taille de la mémoire vive
      */
-    public MBC1(Rom rom, int ramSize , String ramFile) {
+    public MBC1(Rom rom, int ramSize , String saveFile) {
+       
         this.rom = rom;
+        
         Ram ram1;
-        try (InputStream in=new BufferedInputStream(new FileInputStream(ramFile))){
-            ram1=Ram.getRamFromFile(new File(ramFile));
+        try (InputStream in=new BufferedInputStream(new FileInputStream(saveFile))){
+            ram1=Ram.getRamFromFile(new File(saveFile));
         }catch(IOException e){
             ram1 = new Ram(ramSize); 
         }
@@ -50,7 +52,7 @@ public final class MBC1 implements Component {
         Runtime c = Runtime.getRuntime();
 
         c.addShutdownHook(new Thread(() -> 
-                ram.createSaveFile("zelda.sav")) );
+                ram.createSaveFile(saveFile)) );
         
         
 

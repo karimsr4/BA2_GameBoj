@@ -65,7 +65,7 @@ public final class Cartridge implements Component {
     
     private static String getSaveFileName(File romFile) {
         
-        return romFile.getPath().substring(0, romFile.getPath().length()-3);
+        return romFile.getPath().substring(0, romFile.getPath().length()-3)+".sav";
     }
 
     /*
