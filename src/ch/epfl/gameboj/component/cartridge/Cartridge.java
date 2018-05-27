@@ -53,12 +53,19 @@ public final class Cartridge implements Component {
 
             return type == 0 ? new Cartridge(new MBC0(new Rom(dataInFile)))
                     : new Cartridge(new MBC1(new Rom(dataInFile),
-                            ramType[dataInFile[RAM_SIZE_ADDRESS]] ));
+                            ramType[dataInFile[RAM_SIZE_ADDRESS]], getSaveFileName(romFile) ));
 
         } catch (FileNotFoundException e) {
             throw new IOException();
         }
 
+    }
+    
+    
+    
+    private static String getSaveFileName(File romFile) {
+        
+        return romFile.getPath().substring(0, romFile.getPath().length()-3);
     }
 
     /*

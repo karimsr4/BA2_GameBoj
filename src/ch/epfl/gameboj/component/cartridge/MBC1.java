@@ -3,7 +3,11 @@ package ch.epfl.gameboj.component.cartridge;
 import static ch.epfl.gameboj.Preconditions.checkBits16;
 import static ch.epfl.gameboj.Preconditions.checkBits8;
 
-import java.io.FileNotFoundException;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 
 import ch.epfl.gameboj.bits.Bits;
 import ch.epfl.gameboj.component.Component;
@@ -33,13 +37,21 @@ public final class MBC1 implements Component {
      * @param ramSize
      *            taille de la mémoire vive
      */
-    public MBC1(Rom rom, int ramSize) {
+    public MBC1(Rom rom, int ramSize , String ramFile) {
         this.rom = rom;
-        this.ram = new Ram(ramSize);
+        Ram ram1;
+        try (InputStream in=new BufferedInputStream(new FileInputStream(ramFile))){
+            ram1=Ram.getRamFromFile(new File(ramFile));
+        }catch(IOException e){
+            ram1 = new Ram(ramSize); 
+        }
+        
+        this.ram=ram1;
         Runtime c = Runtime.getRuntime();
 
         c.addShutdownHook(new Thread(() -> 
-                ram.createSaveFile("aasba.sav")) );
+                ram.createSaveFile("zelda.sav")) );
+        
         
 
         this.ramEnabled = false;
