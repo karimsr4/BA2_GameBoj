@@ -1,16 +1,21 @@
 package ch.epfl.gameboj.gui;
 
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.imageio.ImageIO;
 
 import ch.epfl.gameboj.GameBoy;
 import ch.epfl.gameboj.component.Joypad;
 import ch.epfl.gameboj.component.Joypad.Key;
 import ch.epfl.gameboj.component.cartridge.Cartridge;
 import ch.epfl.gameboj.component.lcd.LcdController;
+import ch.epfl.gameboj.component.lcd.LcdController.LCDMode;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -40,8 +45,6 @@ public final class Main extends Application {
     private static Map<Key, Shape> computeShapeMap() {
 
         Map<Joypad.Key, Shape> map = new HashMap<>();
-        
-        
 
         Circle a = new Circle(19.5, Color.RED);
         a.setTranslateX(111);
@@ -113,12 +116,11 @@ public final class Main extends Application {
         List<String> param = getParameters().getRaw();
         if (param.size() != 1)
             System.exit(1);
-        
+
         GameBoy gameboy = new GameBoy(Cartridge.ofFile(new File(param.get(0))));
         ImageView imageview = new ImageView();
         imageview.setFitHeight(2 * LcdController.LCD_HEIGHT);
         imageview.setFitWidth(2 * LcdController.LCD_WIDTH);
-     
 
         Image controllerImage = new Image(new FileInputStream("controls.png"));
         ImageView controllerImageView = new ImageView(controllerImage);
@@ -147,13 +149,23 @@ public final class Main extends Application {
                 } catch (Exception e1) {
                     e1.printStackTrace();
                 }
-            } else if (keyString.equals("T")) {
-                a.setRatio(1.1);
-//                a.setStart(0);
-            } else if (keyString.equals("H")) {
-                a.setRatio(1);
-//                a.setStart(1);
+            } else if (keyString.equals("P")) {
+                BufferedImage i = ImageConverter.Bufferedconvert(
+                        gameboy.lcdController().currentImage());
+                try {
+                    ImageIO.write(i, "png", new File("print.png"));
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
+            } else if (keyString.equals("E")) {
+                gameboy.lcdController().setMode(LCDMode.SPRITES);
 
+            } else if (keyString.equals("N")) {
+                gameboy.lcdController().setMode(LCDMode.NORMAL);
+            } else if (keyString.equals("W")) {
+                gameboy.lcdController().setMode(LCDMode.WINDOW);
+            } else if (keyString.equals("L")) {
+                gameboy.lcdController().setMode(LCDMode.BACKGROUND);
             }
 
         });
@@ -172,17 +184,18 @@ public final class Main extends Application {
 
         AnimationTimer timer = new AnimationTimer() {
             @Override
-            
+
             public void handle(long now) {
                 long elapsed = now - start;
-//                a.setStart(a.getStart()==1 ? ((long)(gameboy.cycles()
-//                        - elapsed * GameBoy.CYCLES_PER_NANOSECOND)): a.getStart());
+                // a.setStart(a.getStart()==1 ? ((long)(gameboy.cycles()
+                // - elapsed * GameBoy.CYCLES_PER_NANOSECOND)): a.getStart());
                 long cycles = (long) (a.getRatio() * elapsed
-                        * GameBoy.CYCLES_PER_NANOSECOND );
-//                        + a.getStart() );
+                        * GameBoy.CYCLES_PER_NANOSECOND);
+                // + a.getStart() );
                 gameboy.runUntil(cycles);
-                if (a.getRatio()!=1  && a.getRatio() <1.5)
-                    a.setRatio(a.getRatio()+ 0.000000000000000000000000000000000000000000000005);
+                if (a.getRatio() != 1 && a.getRatio() < 1.5)
+                    a.setRatio(a.getRatio()
+                            + 0.000000000000000000000000000000000000000000000005);
                 imageview.setImage(ImageConverter
                         .convert(gameboy.lcdController().currentImage()));
             }
