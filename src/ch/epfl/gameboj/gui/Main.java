@@ -131,6 +131,24 @@ public final class Main extends Application {
         long start = System.nanoTime();
         TurboCounter a = new TurboCounter(0);
 
+        AnimationTimer timer = new AnimationTimer() {
+            @Override
+            
+            public void handle(long now) {
+                long elapsed = now - start;
+                // a.setStart(a.getStart()==1 ? ((long)(gameboy.cycles()
+                // - elapsed * GameBoy.CYCLES_PER_NANOSECOND)): a.getStart());
+                long cycles = (long) (a.getRatio() * elapsed
+                        * GameBoy.CYCLES_PER_NANOSECOND);
+                // + a.getStart() );
+                gameboy.runUntil(cycles);
+                if (a.getRatio() != 1 && a.getRatio() < 1.5)
+                    a.setRatio(a.getRatio()
+                            + 0.000000000000000000000000000000000000000000000005);
+                imageview.setImage(ImageConverter
+                        .convert(gameboy.lcdController().currentImage()));
+            }
+        };
         controllerImageView.setOnKeyPressed(e -> {
             String keyString = e.getText().toUpperCase();
             Key code = codeKeyMap.get(e.getCode());
@@ -158,10 +176,12 @@ public final class Main extends Application {
                     e1.printStackTrace();
                 }
             } else if (keyString.equals("E")) {
-                gameboy.lcdController().setMode(LCDMode.SPRITES);
+                timer.stop();
+//                gameboy.lcdController().setMode(LCDMode.SPRITES);
 
             } else if (keyString.equals("N")) {
-                gameboy.lcdController().setMode(LCDMode.NORMAL);
+                timer.start();
+//                gameboy.lcdController().setMode(LCDMode.NORMAL);
             } else if (keyString.equals("W")) {
                 gameboy.lcdController().setMode(LCDMode.WINDOW);
             } else if (keyString.equals("L")) {
@@ -182,24 +202,6 @@ public final class Main extends Application {
 
         });
 
-        AnimationTimer timer = new AnimationTimer() {
-            @Override
-
-            public void handle(long now) {
-                long elapsed = now - start;
-                // a.setStart(a.getStart()==1 ? ((long)(gameboy.cycles()
-                // - elapsed * GameBoy.CYCLES_PER_NANOSECOND)): a.getStart());
-                long cycles = (long) (a.getRatio() * elapsed
-                        * GameBoy.CYCLES_PER_NANOSECOND);
-                // + a.getStart() );
-                gameboy.runUntil(cycles);
-                if (a.getRatio() != 1 && a.getRatio() < 1.5)
-                    a.setRatio(a.getRatio()
-                            + 0.000000000000000000000000000000000000000000000005);
-                imageview.setImage(ImageConverter
-                        .convert(gameboy.lcdController().currentImage()));
-            }
-        };
         BorderPane pane = new BorderPane(imageview);
         pane.setBottom(controllerPane);
 

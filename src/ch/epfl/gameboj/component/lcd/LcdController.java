@@ -332,14 +332,15 @@ public final class LcdController implements Component, Clocked {
                 return line.extractWrapped(0, LCD_WIDTH);
 
         }
+        int realIndex = (index + winY) % IMAGE_EDGE;
+        TileDataArea tileArea = Bits.test(get(Reg.LCDC), LCDCBit.WIN_AREA)
+                ? TileDataArea.AREA_1
+                        : TileDataArea.AREA_0;
+        int shift = getRealWX();
+        if (mode ==LCDMode.WINDOW )
+            return reallyComputeLine(0,realIndex, tileArea).extractWrapped(0, LCD_WIDTH);
         if (windowActivated() && index >= get(Reg.WY)) {
-            TileDataArea tileArea = Bits.test(get(Reg.LCDC), LCDCBit.WIN_AREA)
-                    ? TileDataArea.AREA_1
-                    : TileDataArea.AREA_0;
-            int shift = getRealWX();
             LcdImageLine window = reallyComputeLine(0, winY, tileArea).shift(shift);
-            if (mode ==LCDMode.WINDOW )
-                return reallyComputeLine(0,get(Reg.LY), tileArea).shift(shift).extractWrapped(0, LCD_WIDTH);
 
             line = line.join(window, Integer.max(0, shift));
             winY++;
