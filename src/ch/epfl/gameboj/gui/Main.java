@@ -176,12 +176,10 @@ public final class Main extends Application {
                     e1.printStackTrace();
                 }
             } else if (keyString.equals("E")) {
-                timer.stop();
-//                gameboy.lcdController().setMode(LCDMode.SPRITES);
+                gameboy.lcdController().setMode(LCDMode.SPRITES);
 
             } else if (keyString.equals("N")) {
-                timer.start();
-//                gameboy.lcdController().setMode(LCDMode.NORMAL);
+                gameboy.lcdController().setMode(LCDMode.NORMAL);
             } else if (keyString.equals("W")) {
                 gameboy.lcdController().setMode(LCDMode.WINDOW);
             } else if (keyString.equals("L")) {

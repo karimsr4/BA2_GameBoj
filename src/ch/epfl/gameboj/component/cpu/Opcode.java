@@ -4,7 +4,7 @@ package ch.epfl.gameboj.component.cpu;
 
 public enum Opcode {
     // Direct (non-prefixed) opcodes
-    ADD_A_B(Kind.DIRECT, Family.ADD_A_R8, 0x80, 1, 1),
+    ADD_A_B(Kind.DIRECT, Family.ADD_A_R8, 0x80, 1, 1 ),
     ADD_A_C(Kind.DIRECT, Family.ADD_A_R8, 0x81, 1, 1),
     ADD_A_D(Kind.DIRECT, Family.ADD_A_R8, 0x82, 1, 1),
     ADD_A_E(Kind.DIRECT, Family.ADD_A_R8, 0x83, 1, 1),
@@ -632,6 +632,8 @@ public enum Opcode {
     public final int encoding;
     public final int totalBytes;
     public final int cycles, additionalCycles;
+    
+//    private final VariableParametersStringFunction representation ;
 
     private Opcode(Kind kind, Family family, int encoding, int totalBytes, int cycles, int additionalCycles) {
         this.kind = kind;
@@ -644,5 +646,15 @@ public enum Opcode {
 
     private Opcode(Kind kind, Family family, int encoding, int totalBytes, int cycles) {
         this(kind, family, encoding, totalBytes, cycles, 0);
+    }
+    
+    
+    public String getString( int... parameters) {
+        return representation.getString(parameters);
+    }
+    
+    @FunctionalInterface
+    interface VariableParametersStringFunction {
+        String getString( int... parameters);
     }
 }
