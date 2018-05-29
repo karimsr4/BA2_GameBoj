@@ -39,7 +39,7 @@ public final class Main extends Application {
 
     public static void main(String[] args) {
 
-        Application.launch(args[0]);
+        Application.launch(args[0],args[1]);
     }
 
     private static Map<Key, Shape> computeShapeMap() {
@@ -110,11 +110,18 @@ public final class Main extends Application {
         return map;
     }
 
+    private enum Mode {
+        GAMER, DEVELOPER
+    };
+
     @Override
     public void start(Stage primaryStage) throws Exception {
 
         List<String> param = getParameters().getRaw();
-        if (param.size() != 1)
+        System.out.println(param.size());
+        Mode mode = Mode.values()[Integer.parseInt(param.get(1))];
+
+        if (param.size() != 2)
             System.exit(1);
 
         GameBoy gameboy = new GameBoy(Cartridge.ofFile(new File(param.get(0))));
@@ -130,26 +137,49 @@ public final class Main extends Application {
         Pane controllerPane = new StackPane(controllerImageView);
         long start = System.nanoTime();
         TurboCounter a = new TurboCounter(0);
+        AnimationTimer timer;
+        if (mode == Mode.DEVELOPER) {
+            timer = new AnimationTimer() {
+                @Override
 
-        AnimationTimer timer = new AnimationTimer() {
-            @Override
-            
-            public void handle(long now) {
-                long elapsed = now - start;
-                // a.setStart(a.getStart()==1 ? ((long)(gameboy.cycles()
-                // - elapsed * GameBoy.CYCLES_PER_NANOSECOND)): a.getStart());
-                long cycles = (long) (a.getRatio() * elapsed
-                        * GameBoy.CYCLES_PER_NANOSECOND);
-                // + a.getStart() );
-                gameboy.runUntil(cycles);
-                if (a.getRatio() != 1 && a.getRatio() < 1.5)
-                    a.setRatio(a.getRatio()
-                            + 0.000000000000000000000000000000000000000000000005);
-                imageview.setImage(ImageConverter
-                        .convert(gameboy.lcdController().currentImage()));
-            }
-        };
-        controllerImageView.setOnKeyPressed(e -> {
+                public void handle(long now) {
+                    long elapsed = now - start;
+                    // a.setStart(a.getStart()==1 ? ((long)(gameboy.cycles()
+                    // - elapsed * GameBoy.CYCLES_PER_NANOSECOND)):
+                    // a.getStart());
+                    long cycles = (long) (a.getRatio() * elapsed
+                            * GameBoy.CYCLES_PER_NANOSECOND);
+                    // + a.getStart() );
+                    gameboy.runUntil(cycles);
+                    if (a.getRatio() != 1 && a.getRatio() < 1.5)
+                        a.setRatio(a.getRatio()
+                                + 0.000000000000000000000000000000000000000000000005);
+                    imageview.setImage(ImageConverter
+                            .convert(gameboy.lcdController().currentImage()));
+                }
+            };
+        } else {
+            timer = new AnimationTimer() {
+                @Override
+
+                public void handle(long now) {
+                    long elapsed = now - start;
+                    // a.setStart(a.getStart()==1 ? ((long)(gameboy.cycles()
+                    // - elapsed * GameBoy.CYCLES_PER_NANOSECOND)):
+                    // a.getStart());
+                    long cycles = (long) (a.getRatio() * elapsed
+                            * GameBoy.CYCLES_PER_NANOSECOND);
+                    // + a.getStart() );
+                    gameboy.runUntil(cycles);
+                    if (a.getRatio() != 1 && a.getRatio() < 1.5)
+                        a.setRatio(a.getRatio()
+                                + 0.000000000000000000000000000000000000000000000005);
+                    imageview.setImage(ImageConverter
+                            .convert(gameboy.lcdController().currentImage()));
+                }
+            };
+        }
+        imageview.setOnKeyPressed(e -> {
             String keyString = e.getText().toUpperCase();
             Key code = codeKeyMap.get(e.getCode());
             Key text = textKeyMap.get(keyString);
@@ -187,7 +217,7 @@ public final class Main extends Application {
             }
 
         });
-        controllerImageView.setOnKeyReleased(e -> {
+        imageview.setOnKeyReleased(e -> {
             Key code = codeKeyMap.get(e.getCode());
             Key text = textKeyMap.get(e.getText().toUpperCase());
             if (code != null) {
@@ -210,6 +240,7 @@ public final class Main extends Application {
 
         primaryStage.show();
         controllerImageView.requestFocus();
+        imageview.requestFocus();
 
     }
 

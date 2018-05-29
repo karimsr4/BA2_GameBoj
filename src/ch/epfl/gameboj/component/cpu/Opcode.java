@@ -649,9 +649,9 @@ public enum Opcode {
     }
     
     
-    public String getString( int... parameters) {
-        return representation.getString(parameters);
-    }
+//    public String getString( int... parameters) {
+//        return representation.getString(parameters);
+//    }
     
     @FunctionalInterface
     interface VariableParametersStringFunction {
