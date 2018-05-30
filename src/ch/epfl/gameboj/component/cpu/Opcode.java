@@ -657,9 +657,9 @@ public enum Opcode {
         return hex.substring(hex.length()-4,hex.length() );
     }
     
-    public String getString( int... parameters) {
-        return representation.getString(parameters);
-    }
+//    public String getString( int... parameters) {
+//        return representation.getString(parameters);
+//    }
     
     @FunctionalInterface
     interface VariableStringFunction {
