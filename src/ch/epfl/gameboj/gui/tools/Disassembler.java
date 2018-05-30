@@ -14,20 +14,22 @@ import java.util.HashMap;
 import java.util.Map;
 
 import ch.epfl.gameboj.component.cpu.Opcode;
+import ch.epfl.gameboj.component.cpu.Opcode.Kind;
 
 public final class Disassembler {
 
     private final static int PREFIXED_INSTRUC_FLAG = 0xCB;
-    private static final Map<Integer, Opcode> opcodeTable = getOpcodeTable();
-
+    private static final Map<Integer, Opcode> prefixedOpcodeTable = getOpcodeTable(Kind.PREFIXED);
+    private static final Map<Integer, Opcode> directOpcodeTable = getOpcodeTable(Kind.DIRECT);
     private Disassembler() {
     };
 
-    private static Map<Integer, Opcode> getOpcodeTable() {
+    private static Map<Integer, Opcode> getOpcodeTable(Kind kind) {
         
         Map<Integer, Opcode> map = new HashMap<>();
         for (Opcode o : Opcode.values())
-            map.put(o.encoding, o);
+            if(o.kind==kind)
+                map.put(o.encoding, o);
 
         return Collections.unmodifiableMap(map);
     }
@@ -39,7 +41,6 @@ public final class Disassembler {
         }
     }
     public static void disassemble(File source) throws FileNotFoundException {
-        int c=0;
         int e;
         try (InputStream input = new FileInputStream(source);
                 FileWriter writer = new FileWriter(new File("assembly.txt"));) {
@@ -47,12 +48,10 @@ public final class Disassembler {
             while ((e = input.read()) != -1) {
                 if (e == PREFIXED_INSTRUC_FLAG) {
                     e = input.read();
-                    writer.write(opcodeTable.get(e).getString());
+                    writer.write(prefixedOpcodeTable.get(e).getString());
 
                 } else {
-                    System.out.println(c);
-                    c++;
-                    Opcode o = opcodeTable.get(e);
+                    Opcode o = directOpcodeTable.get(e);
                     if (o.totalBytes == 1) {
                         writer.write(o.toString());
                     } else if (o.totalBytes == 2) {
@@ -60,6 +59,7 @@ public final class Disassembler {
                     } else {
                         writer.write(o.getString(input.read(), input.read()));
                     }
+                    System.out.println(o);
                 }
                 writer.write("\r\n");
 
