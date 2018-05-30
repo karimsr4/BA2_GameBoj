@@ -56,7 +56,7 @@ public final class LcdController implements Component, Clocked {
     private boolean isQuickCopying;
     private int copyStartAddress;
     private int copiedBytes;
-    private LCDMode mode ;
+    private LCDMode mode;
 
     public void setMode(LCDMode mode) {
         this.mode = mode;
@@ -124,7 +124,7 @@ public final class LcdController implements Component, Clocked {
         for (Reg o : Reg.values())
             set(o, 0);
         this.cpu = cpu;
-        mode =LCDMode.NORMAL;
+        mode = LCDMode.NORMAL;
     }
 
     /**
@@ -134,6 +134,32 @@ public final class LcdController implements Component, Clocked {
      */
     public LcdImage currentImage() {
         return nextImage;
+    }
+
+//    public LcdImage getAllTiles() {
+//        LcdImage.Builder image = new LcdImage.Builder(256, 96);
+//        int firstTile;
+//        TileSource source ;
+//        for(int i=0 ; i< 96; i++) {
+//            firstTile=( i /TILE_EDGE) * IMAGE_LINE_TILES ;
+//            source= firstTile > 0xFF ? TileSource.SOURCE_1 : TileSource.SOURCE_0;
+//            firstTile = firstTile >0xFF ? firstTile-0x80: firstTile;
+//            for (int j=0 ;j<IMAGE_LINE_TILES;++j) {
+//                
+//            }
+//        }
+//    }
+
+    public LcdImage getCurrentBackground() {
+        return null;
+    }
+
+    public LcdImage getCurrentSpriteTiles() {
+        return null;
+    }
+
+    public LcdImage getCurrentWindow() {
+        return null;
     }
 
     /*
@@ -317,8 +343,8 @@ public final class LcdController implements Component, Clocked {
         }
     }
 
-    private LcdImageLine computeLine(int index  ) {
-        
+    private LcdImageLine computeLine(int index) {
+
         LcdImageLine line = new LcdImageLine.Builder(IMAGE_EDGE).build();
         if (backGroundActivated()) {
             int realIndex = (index + get(Reg.SCY)) % IMAGE_EDGE;
@@ -328,20 +354,22 @@ public final class LcdController implements Component, Clocked {
                     : TileDataArea.AREA_0;
             line = reallyComputeLine(scx, realIndex, tileArea)
                     .shift(-(scx % TILE_EDGE));
-            if (mode == LCDMode.BACKGROUND) 
+            if (mode == LCDMode.BACKGROUND)
                 return line.extractWrapped(0, LCD_WIDTH);
 
         }
-        int realIndex = (index + winY) % IMAGE_EDGE;
-        TileDataArea tileArea = Bits.test(get(Reg.LCDC), LCDCBit.WIN_AREA)
-                ? TileDataArea.AREA_1
-                        : TileDataArea.AREA_0;
-        int shift = getRealWX();
-        if (mode ==LCDMode.WINDOW )
-            return reallyComputeLine(0,realIndex, tileArea).extractWrapped(0, LCD_WIDTH);
         if (windowActivated() && index >= get(Reg.WY)) {
-            LcdImageLine window = reallyComputeLine(0, winY, tileArea).shift(shift);
+            int realIndex = (index + winY) % IMAGE_EDGE;
+            TileDataArea tileArea = Bits.test(get(Reg.LCDC), LCDCBit.WIN_AREA)
+                    ? TileDataArea.AREA_1
+                            : TileDataArea.AREA_0;
+            int shift = getRealWX();
+            LcdImageLine window = reallyComputeLine(0, winY, tileArea)
+                    .shift(shift);
 
+            if (mode == LCDMode.WINDOW)
+                return reallyComputeLine(0, realIndex, tileArea).extractWrapped(0,
+                        LCD_WIDTH);
             line = line.join(window, Integer.max(0, shift));
             winY++;
         }
@@ -355,10 +383,10 @@ public final class LcdController implements Component, Clocked {
                     .and(backgroundSprites.getOpacity()).not();
             LcdImageLine foregroundSprites = computeSpriteLine(lineSprites,
                     index, Position.FOREGOUND);
-            
-            if (mode== LCDMode.SPRITES)
+
+            if (mode == LCDMode.SPRITES)
                 return backgroundSprites.below(foregroundSprites);
-            
+
             return backgroundSprites.below(line, opacity)
                     .below(foregroundSprites);
         }

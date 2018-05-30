@@ -40,7 +40,7 @@ public final class Main extends Application {
 
     public static void main(String[] args) {
 
-        Application.launch(args[0],args[1]);
+        Application.launch(args[0]);
     }
 
     private static Map<Key, Shape> computeShapeMap() {
@@ -111,17 +111,11 @@ public final class Main extends Application {
         return map;
     }
 
-    private enum Mode {
-        GAMER, DEVELOPER
-    };
-
     @Override
     public void start(Stage primaryStage) throws Exception {
 
         List<String> param = getParameters().getRaw();
-        Mode mode = Mode.values()[Integer.parseInt(param.get(1))];
-
-        if (param.size() != 2)
+        if (param.size() != 1)
             System.exit(1);
 
         final GameBoy gameboy = new GameBoy(Cartridge.ofFile(new File(param.get(0))));
@@ -153,22 +147,7 @@ public final class Main extends Application {
                            .convert(gameboy.lcdController().currentImage()));
                 }
             };
-            timer = new AnimationTimer() {
-                @Override
-
-                public void handle(long now) {
-                    long elapsed = now - start;
-            
-                    long cycles = (long) (a.getRatio() * elapsed
-                            * GameBoy.CYCLES_PER_NANOSECOND);
-
-                    gameboy.runUntil(cycles);
-
-                    imageview.setImage(ImageConverter
-                            .convert(gameboy.lcdController().currentImage()));
-                }
-            };
-            
+        
             
         imageview.setOnKeyPressed(e -> {
             String keyString = e.getText().toUpperCase();
@@ -212,6 +191,9 @@ public final class Main extends Application {
             
             });
         imageview.setOnKeyReleased(e -> {
+        });
+        controllerImageView.setOnKeyReleased(e -> {
+
             Key code = codeKeyMap.get(e.getCode());
             Key text = textKeyMap.get(e.getText().toUpperCase());
             if (code != null) {
@@ -238,7 +220,6 @@ public final class Main extends Application {
 
         primaryStage.show();
         controllerImageView.requestFocus();
-        imageview.requestFocus();
 
     }
 

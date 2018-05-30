@@ -6,6 +6,7 @@ import static ch.epfl.gameboj.Preconditions.checkBits8;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -37,24 +38,26 @@ public final class MBC1 implements Component {
      * @param ramSize
      *            taille de la mémoire vive
      */
-    public MBC1(Rom rom, int ramSize , String saveFile) {
-       
-        this.rom = rom;
-        
-        Ram ram1;
-        try (InputStream in=new BufferedInputStream(new FileInputStream(saveFile))){
-            ram1=Ram.getRamFromFile(new File(saveFile));
-        }catch(IOException e){
-            ram1 = new Ram(ramSize); 
-        }
-        
-        this.ram=ram1;
-        Runtime c = Runtime.getRuntime();
+    public MBC1(Rom rom, int ramSize, String gameName) {
 
-        c.addShutdownHook(new Thread(() -> 
-                ram.createSaveFile(saveFile)) );
-        
-        
+        this.rom = rom;
+
+        // ici on cherche une sauvegarde possible en utilisant la supposition
+        // que la sauvegarde se nomme "nomDuJeu.sav"
+        Ram ram1 = new Ram(ramSize);
+        try {
+            ram1 = Ram.getRamFromFile(new File(getSaveFileName(gameName)));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        this.ram = ram1;
+
+        // on sauvegarde la ram quand on ferme la fenêtre
+        Runtime runtime = Runtime.getRuntime();
+        runtime.addShutdownHook(new Thread(() -> {
+            if (ramSize != 0)
+                ram.createSaveFile(getSaveFileName(gameName));
+        }));
 
         this.ramEnabled = false;
         this.mode = Mode.MODE_0;
@@ -139,4 +142,8 @@ public final class MBC1 implements Component {
         return ((msb2() << 13) | Bits.clip(13, b_12_0)) & ramMask;
     }
 
+    private static String getSaveFileName(String gameName) {
+
+        return gameName.substring(0, gameName.length() - 3) + ".sav";
+    }
 }
