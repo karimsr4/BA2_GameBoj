@@ -108,7 +108,7 @@ public final class GameBoy {
      */
     public void runUntil(long cycle) {
         checkArgument(cycles <= cycle);
-        while (cycles <= cycle) {
+        while (cycles < cycle) {
             timer.cycle(cycles);
             lcdController.cycle(cycles);
             cpu.cycle(cycles);
@@ -151,5 +151,12 @@ public final class GameBoy {
     public Joypad joypad() {
         return joypad;
     }
+    
+    
+    
 
+    
+
+    
+ 
 }

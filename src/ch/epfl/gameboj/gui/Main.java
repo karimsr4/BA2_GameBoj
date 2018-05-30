@@ -10,6 +10,7 @@ import java.util.Map;
 
 import javax.imageio.ImageIO;
 
+
 import ch.epfl.gameboj.GameBoy;
 import ch.epfl.gameboj.component.Joypad;
 import ch.epfl.gameboj.component.Joypad.Key;
@@ -117,10 +118,11 @@ public final class Main extends Application {
         if (param.size() != 1)
             System.exit(1);
 
-        GameBoy gameboy = new GameBoy(Cartridge.ofFile(new File(param.get(0))));
+        final GameBoy gameboy = new GameBoy(Cartridge.ofFile(new File(param.get(0))));
         ImageView imageview = new ImageView();
         imageview.setFitHeight(2 * LcdController.LCD_HEIGHT);
         imageview.setFitWidth(2 * LcdController.LCD_WIDTH);
+        
 
         Image controllerImage = new Image(new FileInputStream("controls.png"));
         ImageView controllerImageView = new ImageView(controllerImage);
@@ -129,27 +131,25 @@ public final class Main extends Application {
         controllerImageView.setFitWidth(2 * LcdController.LCD_WIDTH);
         Pane controllerPane = new StackPane(controllerImageView);
         long start = System.nanoTime();
-        TurboCounter a = new TurboCounter(0);
+        SimulationTimer a = new SimulationTimer();
+        a.setElapsedTime(start);
+        AnimationTimer timer;
+            timer = new AnimationTimer() {
+                @Override
 
-        AnimationTimer timer = new AnimationTimer() {
-            @Override
+                public void handle(long now) {
+                   long elapsedSinceLastCalled =a.computeTimeDifference(now);
+                   long cycles=(long)(a.getRatio()*elapsedSinceLastCalled*GameBoy.CYCLES_PER_NANOSECOND);
+                   a.addCycles(cycles);
+                   gameboy.runUntil(a.getCycles());
+                   a.setElapsedTime(now);
+                   imageview.setImage(ImageConverter
+                           .convert(gameboy.lcdController().currentImage()));
+                }
+            };
+        
             
-            public void handle(long now) {
-                long elapsed = now - start;
-                // a.setStart(a.getStart()==1 ? ((long)(gameboy.cycles()
-                // - elapsed * GameBoy.CYCLES_PER_NANOSECOND)): a.getStart());
-                long cycles = (long) (a.getRatio() * elapsed
-                        * GameBoy.CYCLES_PER_NANOSECOND);
-                // + a.getStart() );
-                gameboy.runUntil(cycles);
-                if (a.getRatio() != 1 && a.getRatio() < 1.5)
-                    a.setRatio(a.getRatio()
-                            + 0.000000000000000000000000000000000000000000000005);
-                imageview.setImage(ImageConverter
-                        .convert(gameboy.lcdController().currentImage()));
-            }
-        };
-        controllerImageView.setOnKeyPressed(e -> {
+        imageview.setOnKeyPressed(e -> {
             String keyString = e.getText().toUpperCase();
             Key code = codeKeyMap.get(e.getCode());
             Key text = textKeyMap.get(keyString);
@@ -184,10 +184,16 @@ public final class Main extends Application {
                 gameboy.lcdController().setMode(LCDMode.WINDOW);
             } else if (keyString.equals("L")) {
                 gameboy.lcdController().setMode(LCDMode.BACKGROUND);
-            }
+            }else if(keyString.equals("T")) {
+                a.setAccelerationRatio(7);    
 
+            }
+            
+            });
+        imageview.setOnKeyReleased(e -> {
         });
         controllerImageView.setOnKeyReleased(e -> {
+
             Key code = codeKeyMap.get(e.getCode());
             Key text = textKeyMap.get(e.getText().toUpperCase());
             if (code != null) {
@@ -196,6 +202,10 @@ public final class Main extends Application {
             } else if (text != null) {
                 gameboy.joypad().keyReleased(text);
                 controllerPane.getChildren().remove(shapeMap.get(text));
+             
+            }else if (e.getText().toUpperCase().equals("T")) {
+                a.setAccelerationRatio(1);
+
             }
 
         });
