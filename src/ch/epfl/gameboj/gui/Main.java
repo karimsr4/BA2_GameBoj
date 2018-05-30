@@ -118,7 +118,7 @@ public final class Main extends Application {
         if (param.size() != 1)
             System.exit(1);
 
-        final GameBoy gameboy = new GameBoy(Cartridge.ofFile(new File(param.get(0))));
+         GameBoy gameboy = new GameBoy(Cartridge.ofFile(new File(param.get(0))));
         ImageView imageview = new ImageView();
         imageview.setFitHeight(2 * LcdController.LCD_HEIGHT);
         imageview.setFitWidth(2 * LcdController.LCD_WIDTH);
