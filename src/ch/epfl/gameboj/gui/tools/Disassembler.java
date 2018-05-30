@@ -24,15 +24,22 @@ public final class Disassembler {
     };
 
     private static Map<Integer, Opcode> getOpcodeTable() {
+        
         Map<Integer, Opcode> map = new HashMap<>();
         for (Opcode o : Opcode.values())
             map.put(o.encoding, o);
 
         return Collections.unmodifiableMap(map);
     }
-
+    public static void main(String[] args) {
+        try {
+            disassemble(new File("tetris.gb"));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
     public static void disassemble(File source) throws FileNotFoundException {
-
+        int c=0;
         int e;
         try (InputStream input = new FileInputStream(source);
                 FileWriter writer = new FileWriter(new File("assembly.txt"));) {
@@ -43,6 +50,8 @@ public final class Disassembler {
                     writer.write(opcodeTable.get(e).getString());
 
                 } else {
+                    System.out.println(c);
+                    c++;
                     Opcode o = opcodeTable.get(e);
                     if (o.totalBytes == 1) {
                         writer.write(o.toString());
