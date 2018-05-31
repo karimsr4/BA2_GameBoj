@@ -3,12 +3,8 @@ package ch.epfl.gameboj.component.cartridge;
 import static ch.epfl.gameboj.Preconditions.checkBits16;
 import static ch.epfl.gameboj.Preconditions.checkBits8;
 
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 
 import ch.epfl.gameboj.bits.Bits;
 import ch.epfl.gameboj.component.Component;

@@ -85,6 +85,11 @@ public final class Ram {
         return data.length;
     }
 
+    /**
+     * méthode pour enregistrer le contenu de la mémore vive Ram dans un fichier
+     * @param ram Ram  écrire
+     * @param fileName nom du fichier à écrire
+     */
     public static void createSaveFile(Ram ram ,String fileName) {
 
         try (OutputStream stream = new BufferedOutputStream(
@@ -95,6 +100,12 @@ public final class Ram {
         }
     }
 
+    /**
+     * méthode pour lecture du fichier contenant la Ram 
+     * @param file fichier à lire
+     * @return Ram contenant les octets lus depuis le fichier file
+     * @throws IOException
+     */
     public static Ram getRamFromFile(File file) throws IOException {
         
         InputStream stream = new BufferedInputStream(new FileInputStream(file));

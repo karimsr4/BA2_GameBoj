@@ -10,7 +10,6 @@ import java.util.Map;
 
 import javax.imageio.ImageIO;
 
-
 import ch.epfl.gameboj.GameBoy;
 import ch.epfl.gameboj.component.Joypad;
 import ch.epfl.gameboj.component.Joypad.Key;
@@ -118,11 +117,10 @@ public final class Main extends Application {
         if (param.size() != 1)
             System.exit(1);
 
-         GameBoy gameboy = new GameBoy(Cartridge.ofFile(new File(param.get(0))));
+        GameBoy gameboy = new GameBoy(Cartridge.ofFile(new File(param.get(0))));
         ImageView imageview = new ImageView();
         imageview.setFitHeight(2 * LcdController.LCD_HEIGHT);
         imageview.setFitWidth(2 * LcdController.LCD_WIDTH);
-        
 
         Image controllerImage = new Image(new FileInputStream("controls.png"));
         ImageView controllerImageView = new ImageView(controllerImage);
@@ -132,23 +130,43 @@ public final class Main extends Application {
         Pane controllerPane = new StackPane(controllerImageView);
         long start = System.nanoTime();
         PaceController a = new PaceController();
-        a.setElapsedTime(start);
+        a.setTime(start);
         AnimationTimer timer;
-            timer = new AnimationTimer() {
-                @Override
+        timer = new AnimationTimer() {
+            private boolean isRunning;
 
-                public void handle(long now) {
-                   long elapsedSinceLastCalled =a.computeTimeDifference(now);
-                   long cycles=(long)(a.getRatio()*elapsedSinceLastCalled*GameBoy.CYCLES_PER_NANOSECOND);
-                   a.addCycles(cycles);
-                   gameboy.runUntil(a.getCycles());
-                   a.setElapsedTime(now);
-                   imageview.setImage(ImageConverter
-                           .convert(gameboy.lcdController().currentImage()));
+
+            @Override
+            public void start() {
+                if (isRunning)
+                    this.stop();
+                else {
+                    super.start();
+                    isRunning = true;
                 }
-            };
-        
-            
+            }
+
+            @Override
+            public void stop() {
+                super.stop();
+                isRunning = false;
+
+            }
+
+            @Override
+            public void handle(long now) {
+                long elapsedSinceLastCalled = a.computeElapsedTime(now);
+                long cycles = (long) (a.getAccelerationRatio()
+                        * elapsedSinceLastCalled
+                        * GameBoy.CYCLES_PER_NANOSECOND);
+                a.addCycles(cycles);
+                gameboy.runUntil(a.getCycles());
+                a.setTime(now);
+                imageview.setImage(ImageConverter
+                        .convert(gameboy.lcdController().currentImage()));
+            }
+        };
+
         controllerImageView.setOnKeyPressed(e -> {
             String keyString = e.getText().toUpperCase();
             Key code = codeKeyMap.get(e.getCode());
@@ -184,18 +202,16 @@ public final class Main extends Application {
                 gameboy.lcdController().setMode(LCDMode.WINDOW);
             } else if (keyString.equals("L")) {
                 gameboy.lcdController().setMode(LCDMode.BACKGROUND);
-            }else if(keyString.equals("T")) {
-                a.setAccelerationRatio(7);    
-            } else if (keyString.equals("\n")) {
-                timer.stop();
+            } else if (keyString.equals("T")) {
+                a.setAccelerationRatio(7);
+            } else if (keyString.equals("Z")) {
+                timer.start();
             }
-            
-            });
-    
 
-        
+        });
+
         controllerImageView.setOnKeyReleased(e -> {
-            String s =e.getText().toUpperCase();
+            String s = e.getText().toUpperCase();
             Key code = codeKeyMap.get(e.getCode());
             Key text = textKeyMap.get(e.getText().toUpperCase());
             if (code != null) {
@@ -204,10 +220,10 @@ public final class Main extends Application {
             } else if (text != null) {
                 gameboy.joypad().keyReleased(text);
                 controllerPane.getChildren().remove(shapeMap.get(text));
-             
-            }else if (s.equals("T")) {
+
+            } else if (s.equals("T")) {
                 a.setAccelerationRatio(1);
-                
+
             }
         });
 
@@ -220,11 +236,11 @@ public final class Main extends Application {
         timer.start();
 
         primaryStage.show();
-        
+
         primaryStage.setTitle("Gameboy Emulator");
-        imageview.requestFocus();
+        controllerImageView.requestFocus();
 
     }
-    
 
+    
 }
