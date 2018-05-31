@@ -1,6 +1,6 @@
 package ch.epfl.gameboj.gui;
 
-public final class SimulationTimer {
+public final class PaceController {
     private double accelerationRatio = 1;
     private long elapsedTime;
     private long actualCycles;
@@ -9,7 +9,7 @@ public final class SimulationTimer {
     
     public void setElapsedTime(long timeNow)
     {
-        this.elapsedTime=timeNow;
+        elapsedTime=timeNow;
     }
     
     
@@ -22,7 +22,7 @@ public final class SimulationTimer {
     
  
 
-    public SimulationTimer() {
+    public PaceController() {
         this.accelerationRatio=1;
     }
     

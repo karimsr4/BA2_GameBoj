@@ -131,7 +131,7 @@ public final class Main extends Application {
         controllerImageView.setFitWidth(2 * LcdController.LCD_WIDTH);
         Pane controllerPane = new StackPane(controllerImageView);
         long start = System.nanoTime();
-        SimulationTimer a = new SimulationTimer();
+        PaceController a = new PaceController();
         a.setElapsedTime(start);
         AnimationTimer timer;
             timer = new AnimationTimer() {
@@ -190,9 +190,8 @@ public final class Main extends Application {
             }
             
             });
+    
         imageview.setOnKeyReleased(e -> {
-        });
-        controllerImageView.setOnKeyReleased(e -> {
 
             Key code = codeKeyMap.get(e.getCode());
             Key text = textKeyMap.get(e.getText().toUpperCase());
@@ -219,7 +218,9 @@ public final class Main extends Application {
         timer.start();
 
         primaryStage.show();
-        controllerImageView.requestFocus();
+        
+        primaryStage.setTitle("Gameboy Emulator");
+        imageview.requestFocus();
 
     }
 
