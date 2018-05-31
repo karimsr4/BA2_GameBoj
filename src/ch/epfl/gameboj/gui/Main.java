@@ -149,7 +149,7 @@ public final class Main extends Application {
             };
         
             
-        imageview.setOnKeyPressed(e -> {
+        controllerImageView.setOnKeyPressed(e -> {
             String keyString = e.getText().toUpperCase();
             Key code = codeKeyMap.get(e.getCode());
             Key text = textKeyMap.get(keyString);
@@ -186,14 +186,14 @@ public final class Main extends Application {
                 gameboy.lcdController().setMode(LCDMode.BACKGROUND);
             }else if(keyString.equals("T")) {
                 a.setAccelerationRatio(7);    
-
+            } else if (keyString.equals("\n")) {
+                timer.stop();
             }
             
             });
-        imageview.setOnKeyReleased(e -> {
-        });
+        
         controllerImageView.setOnKeyReleased(e -> {
-
+            String s =e.getText().toUpperCase();
             Key code = codeKeyMap.get(e.getCode());
             Key text = textKeyMap.get(e.getText().toUpperCase());
             if (code != null) {
@@ -203,11 +203,10 @@ public final class Main extends Application {
                 gameboy.joypad().keyReleased(text);
                 controllerPane.getChildren().remove(shapeMap.get(text));
              
-            }else if (e.getText().toUpperCase().equals("T")) {
+            }else if (s.equals("T")) {
                 a.setAccelerationRatio(1);
-
+                
             }
-
         });
 
         BorderPane pane = new BorderPane(imageview);
@@ -222,5 +221,6 @@ public final class Main extends Application {
         controllerImageView.requestFocus();
 
     }
+    
 
 }

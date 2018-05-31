@@ -150,17 +150,6 @@ public final class LcdController implements Component, Clocked {
 //        }
 //    }
 
-    public LcdImage getCurrentBackground() {
-        return null;
-    }
-
-    public LcdImage getCurrentSpriteTiles() {
-        return null;
-    }
-
-    public LcdImage getCurrentWindow() {
-        return null;
-    }
 
     /*
      * (non-Javadoc)
@@ -346,7 +335,7 @@ public final class LcdController implements Component, Clocked {
     private LcdImageLine computeLine(int index) {
 
         LcdImageLine line = new LcdImageLine.Builder(IMAGE_EDGE).build();
-        if (backGroundActivated()) {
+        if (backGroundActivated() | mode==LCDMode.BACKGROUND) {
             int realIndex = (index + get(Reg.SCY)) % IMAGE_EDGE;
             int scx = get(Reg.SCX);
             TileDataArea tileArea = Bits.test(get(Reg.LCDC), LCDCBit.BG_AREA)
@@ -358,24 +347,24 @@ public final class LcdController implements Component, Clocked {
                 return line.extractWrapped(0, LCD_WIDTH);
 
         }
-        if (windowActivated() && index >= get(Reg.WY)) {
+        if (windowActivated() && index >= get(Reg.WY)  | mode==LCDMode.WINDOW) {
             int realIndex = (index + winY) % IMAGE_EDGE;
             TileDataArea tileArea = Bits.test(get(Reg.LCDC), LCDCBit.WIN_AREA)
                     ? TileDataArea.AREA_1
                             : TileDataArea.AREA_0;
             int shift = getRealWX();
-            LcdImageLine window = reallyComputeLine(0, winY, tileArea)
-                    .shift(shift);
-
             if (mode == LCDMode.WINDOW)
                 return reallyComputeLine(0, realIndex, tileArea).extractWrapped(0,
                         LCD_WIDTH);
+            LcdImageLine window = reallyComputeLine(0, winY, tileArea)
+                    .shift(shift);
+            
             line = line.join(window, Integer.max(0, shift));
             winY++;
         }
         line = line.extractWrapped(0, LCD_WIDTH).mapColors(get(Reg.BGP));
 
-        if (spritesActivated()) {
+        if (spritesActivated()  | mode==LCDMode.SPRITES) {
             int[] lineSprites = spritesIntersectingLine(index);
             LcdImageLine backgroundSprites = computeSpriteLine(lineSprites,
                     index, Position.BACKGOUND);

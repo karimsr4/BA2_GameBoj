@@ -29,6 +29,7 @@ public final class MBC1 implements Component {
     private Mode mode;
     private int romLsb5, ramRom2;
     private final int romMask, ramMask;
+    private final String saveName;
 
     /**
      * construit un controleur de banque mémoire de type 1
@@ -41,12 +42,12 @@ public final class MBC1 implements Component {
     public MBC1(Rom rom, int ramSize, String gameName) {
 
         this.rom = rom;
-
+        saveName = getSaveFileName(gameName);
         // ici on cherche une sauvegarde possible en utilisant la supposition
         // que la sauvegarde se nomme "nomDuJeu.sav"
         Ram ram1 = new Ram(ramSize);
         try {
-            ram1 = Ram.getRamFromFile(new File(getSaveFileName(gameName)));
+            ram1 = Ram.getRamFromFile(new File(saveName));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -54,10 +55,7 @@ public final class MBC1 implements Component {
 
         // on sauvegarde la ram quand on ferme la fenêtre
         Runtime runtime = Runtime.getRuntime();
-        runtime.addShutdownHook(new Thread(() -> {
-            if (ramSize != 0)
-                ram.createSaveFile(getSaveFileName(gameName));
-        }));
+        runtime.addShutdownHook(new Thread(() -> save()));
 
         this.ramEnabled = false;
         this.mode = Mode.MODE_0;
@@ -145,5 +143,11 @@ public final class MBC1 implements Component {
     private static String getSaveFileName(String gameName) {
 
         return gameName.substring(0, gameName.length() - 3) + ".sav";
+    }
+
+    public void save() {
+        if (ram.size() != 0)
+            ram.createSaveFile(saveName);
+
     }
 }

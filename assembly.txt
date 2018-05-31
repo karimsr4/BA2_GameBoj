@@ -1,217 +1,217 @@
-JP [$20c]
-NOP
-NOP
-NOP
-NOP
-NOP
-JP [$20c]
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-ADD_A_A
-POP_HL
-LD_E_A
-LD D,$0
-ADD_HL_DE
-LD_E_HLR
-INC_HL
-LD_D_HLR
-PUSH_DE
-POP_HL
-JP_HL
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-JP [$17e]
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-JP [$26be]
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-JP [$26be]
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-JP [$5b]
-PUSH_AF
-PUSH_HL
-PUSH_DE
-PUSH_BC
-CALL [$ 6b]
-LD A,$1
-LD A, $cc
-POP_BC
-POP_DE
-POP_HL
-POP_AF
-RETI
-LD A, [$FF00 + cd ]
-RST_5
-LD_A_B
-NOP
-SBC_A_A
-NOP
-AND_A_H
-NOP
-CP_A_D
-NOP
-LD [$f027], A
-POP_HL
-CP A,$7
-JR Z,$8
-CP A,$6
-RET_Z
-LD A,$6
-LD A, $e1
-RET
-LD A, [$FF00 + 1 ]
-CP A,$55
-JR $8
-LD A,$29
-LD A, $cb
-LD A,$1
-JR 8
-CP A,$29
-RET_NZ
-LD A,$55
-LD A, $cb
-XOR_A_A
-LD A, $2
-RET
-LD A, [$FF00 + 1 ]
-LD A, $d0
-RET
-LD A, [$FF00 + 1 ]
-LD A, $d0
-LD A, [$FF00 + cb ]
-CP A,$29
-RET_Z
-LD A, [$FF00 + cf ]
-LD A, $1
-LD A,$ff
-LD A, $cf
-LD A,$80
-LD A, $2
-RET
-LD A, [$FF00 + 1 ]
-LD A, $d0
-LD A, [$FF00 + cb ]
-CP A,$29
-RET_Z
-LD A, [$FF00 + cf ]
-LD A, $1
-EI
-CALL [$ a98]
-LD A,$80
-LD A, $2
-RET
-LD A, [$FF00 + cd ]
-CP A,$2
-RET_NZ
-XOR_A_A
-LD A, $f
-EI
-RET
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-RST_7
-NOP
-JP [$150]
-ADC A,$ed
-LD_H_HLR
-LD_H_HLR
-CALL Z,$d
-DEC_BC
-INC_BC
-LD_HLR_E
-NOP
-ADD_A_E
-NOP
-INC_C
-NOP
-DEC_C
-NOP
-LD [$ 1f11], SP
-ADC_A_B
-ADC_A_C
-NOP
-LD C,$dc
-CALL Z,$e66e
+JP [$20c] c3
+NOP 0
+NOP 0
+NOP 0
+NOP 0
+NOP 0
+JP [$20c] c3
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+ADD A,A 87
+POP HL e1
+LD E,A 5f
+LD D,$0 16
+LD HL,DE 19
+LD E,[HL] 5e
+INC HL 23
+LD D,[HL] 56
+PUSH DE d5
+POP HL e1
+JP [HL] e9
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+JP [$17e] c3
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+JP [$26be] c3
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+JP [$26be] c3
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+JP [$5b] c3
+PUSH AF f5
+PUSH HL e5
+PUSH DE d5
+PUSH BC c5
+CALL [$ 6b] cd
+LD A,$1 3e
+LD A, $cc e0
+POP BC c1
+POP DE d1
+POP HL e1
+POP AF f1
+RETI d9
+LD A, [$FF00 + cd ] f0
+RST 5 ef
+LD A,B 78
+NOP 0
+SBC A,A 9f
+NOP 0
+AND A,H a4
+NOP 0
+XOR A,D ba
+NOP 0
+LD [$f027], A ea
+POP HL e1
+CP A,$7 fe
+JR Z,$8 28
+CP A,$6 fe
+RET Z c8
+LD A,$6 3e
+LD A, $e1 e0
+RET c9
+LD A, [$FF00 + 1 ] f0
+CP A,$55 fe
+JR $8 20
+LD A,$29 3e
+LD A, $cb e0
+LD A,$1 3e
+JR 8 18
+CP A,$29 fe
+RET NZ c0
+LD A,$55 3e
+LD A, $cb e0
+XOR A,A af
+LD A, $2 e0
+RET c9
+LD A, [$FF00 + 1 ] f0
+LD A, $d0 e0
+RET c9
+LD A, [$FF00 + 1 ] f0
+LD A, $d0 e0
+LD A, [$FF00 + cb ] f0
+CP A,$29 fe
+RET Z c8
+LD A, [$FF00 + cf ] f0
+LD A, $1 e0
+LD A,$ff 3e
+LD A, $cf e0
+LD A,$80 3e
+LD A, $2 e0
+RET c9
+LD A, [$FF00 + 1 ] f0
+LD A, $d0 e0
+LD A, [$FF00 + cb ] f0
+CP A,$29 fe
+RET Z c8
+LD A, [$FF00 + cf ] f0
+LD A, $1 e0
+EI fb
+CALL [$ a98] cd
+LD A,$80 3e
+LD A, $2 e0
+RET c9
+LD A, [$FF00 + cd ] f0
+CP A,$2 fe
+RET NZ c0
+XOR A,A af
+LD A, $f e0
+EI fb
+RET c9
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+RST 7 ff
+NOP 0
+JP [$150] c3
+ADC A,$ed ce
+LD H,[HL] 66
+LD H,[HL] 66
+CALL Z,$d cc
+DEC BC b
+INC BC 3
+LD [HL],E 73
+NOP 0
+ADD A,E 83
+NOP 0
+INC C c
+NOP 0
+DEC C d
+NOP 0
+LD [$ 1f11], SP 8
+ADC A,B 88
+ADC A,C 89
+NOP 0
+LD C,$dc e
+CALL Z,$e66e cc
