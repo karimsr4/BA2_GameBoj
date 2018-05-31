@@ -85,11 +85,11 @@ public final class Ram {
         return data.length;
     }
 
-    public void createSaveFile(String fileName) {
+    public static void createSaveFile(Ram ram ,String fileName) {
 
         try (OutputStream stream = new BufferedOutputStream(
                 new FileOutputStream(new File(fileName)))) {
-            stream.write(data);
+            stream.write(ram.data);
         } catch (IOException e) {
             e.printStackTrace();
         }

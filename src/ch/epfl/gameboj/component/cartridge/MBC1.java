@@ -147,7 +147,7 @@ public final class MBC1 implements Component {
 
     public void save() {
         if (ram.size() != 0)
-            ram.createSaveFile(saveName);
+            Ram.createSaveFile(ram,saveName);
 
     }
 }
